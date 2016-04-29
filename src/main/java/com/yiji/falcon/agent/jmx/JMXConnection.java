@@ -99,7 +99,6 @@ public abstract class JMXConnection {
                         jmxConnectionInfo.setConnectionQualifiedServerName(desc.displayName());
                         jmxConnectionInfo.setmBeanServerConnection(connector.getMBeanServerConnection());
                         jmxConnectionInfo.setName(getJmxConnectionName(connector.getMBeanServerConnection()));
-                        jmxConnectionInfo.setValid(true);
 
                         jmxConnectionInfo.setValid(true);
                         connectLibrary.put(desc.displayName(),jmxConnectionInfo);

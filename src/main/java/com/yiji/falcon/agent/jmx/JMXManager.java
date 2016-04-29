@@ -78,6 +78,9 @@ public class JMXManager {
             }else{
                 //发现不可用的jmx连接,设置需要进行JMX连接维护标识
                 hasResetConnection = true;
+                //设置返回对象-添加监控值对象,连接不可用也需要返回,以便于构建连接不可用的报告对象
+                jmxMetricsValueInfo.setJmxConnectionInfo(connectionInfo);
+                jmxMetricsValueInfoList.add(jmxMetricsValueInfo);
             }
         }
 
