@@ -1,0 +1,290 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.yiji.falcon.agent</groupId>
+    <artifactId>falcon-agent</artifactId>
+    <version>1.0</version>
+
+    <profiles>
+        <profile>
+            <id>linux-64</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-assembly-plugin</artifactId>
+                        <version>2.5.5</version>
+                        <executions>  <!--执行器 mvn assembly:assembly-->
+                            <execution>
+                                <id>linux-64</id><!--名字任意 -->
+                                <phase>package</phase><!-- 绑定到package生命周期阶段上 -->
+                                <goals>
+                                    <goal>single</goal><!-- 只运行一次 -->
+                                </goals>
+                                <configuration>
+                                    <finalName>falcon-agent</finalName>
+                                    <descriptors> <!--描述文件路径-->
+                                        <descriptor>src/main/assembly/assembly-linux-64.xml</descriptor>
+                                    </descriptors>
+                                </configuration>
+                            </execution>
+                        </executions>
+
+                        <configuration>
+                            <descriptors>
+                                <descriptor>src/main/assembly/assembly-linux-64.xml</descriptor>
+                            </descriptors>
+                        </configuration>
+
+                    </plugin>
+                </plugins>
+            </build>
+
+            <activation>
+                <property>
+                    <name>java.vendor</name>
+                    <value>Sun Microsystems Inc.</value>
+                </property>
+            </activation>
+
+            <dependencies>
+                <dependency>
+                    <groupId>com.sun</groupId>
+                    <artifactId>tools</artifactId>
+                    <version>1.8</version>
+                    <scope>system</scope>
+                    <systemPath>${java.home}/../lib/tools.jar</systemPath>
+                </dependency>
+            </dependencies>
+        </profile>
+
+        <profile>
+            <id>linux64-noJar</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-assembly-plugin</artifactId>
+                        <version>2.5.5</version>
+                        <executions>  <!--执行器 mvn assembly:assembly-->
+                            <execution>
+                                <id>unix-noJar</id><!--名字任意 -->
+                                <phase>package</phase><!-- 绑定到package生命周期阶段上 -->
+                                <goals>
+                                    <goal>single</goal><!-- 只运行一次 -->
+                                </goals>
+                                <configuration>
+                                    <finalName>falcon-agent</finalName>
+                                    <descriptors> <!--描述文件路径-->
+                                        <descriptor>src/main/assembly/assembly-linux64-noJar.xml</descriptor>
+                                    </descriptors>
+                                </configuration>
+                            </execution>
+                        </executions>
+
+                        <configuration>
+                            <descriptors>
+                                <descriptor>src/main/assembly/assembly-linux64-noJar.xml</descriptor>
+                            </descriptors>
+                        </configuration>
+
+                    </plugin>
+                </plugins>
+            </build>
+
+            <activation>
+                <property>
+                    <name>java.vendor</name>
+                    <value>Sun Microsystems Inc.</value>
+                </property>
+            </activation>
+
+            <dependencies>
+                <dependency>
+                    <groupId>com.sun</groupId>
+                    <artifactId>tools</artifactId>
+                    <version>1.8</version>
+                    <scope>system</scope>
+                    <systemPath>${java.home}/../lib/tools.jar</systemPath>
+                </dependency>
+            </dependencies>
+        </profile>
+
+        <profile>
+            <id>osx-noJar</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-assembly-plugin</artifactId>
+                        <version>2.5.5</version>
+                        <executions>  <!--执行器 mvn assembly:assembly-->
+                            <execution>
+                                <id>unix-noJar</id><!--名字任意 -->
+                                <phase>package</phase><!-- 绑定到package生命周期阶段上 -->
+                                <goals>
+                                    <goal>single</goal><!-- 只运行一次 -->
+                                </goals>
+                                <configuration>
+                                    <finalName>falcon-agent</finalName>
+                                    <descriptors> <!--描述文件路径-->
+                                        <descriptor>src/main/assembly/assembly-osx-noJar.xml</descriptor>
+                                    </descriptors>
+                                </configuration>
+                            </execution>
+                        </executions>
+
+                        <configuration>
+                            <descriptors>
+                                <descriptor>src/main/assembly/assembly-osx-noJar.xml</descriptor>
+                            </descriptors>
+                        </configuration>
+
+                    </plugin>
+                </plugins>
+            </build>
+
+            <activation>
+                <property>
+                    <name>java.vendor</name>
+                    <value>Sun Microsystems Inc.</value>
+                </property>
+            </activation>
+
+            <dependencies>
+                <dependency>
+                    <groupId>com.sun</groupId>
+                    <artifactId>tools</artifactId>
+                    <version>1.8</version>
+                    <scope>system</scope>
+                    <systemPath>${java.home}/../lib/tools.jar</systemPath>
+                </dependency>
+            </dependencies>
+        </profile>
+
+    </profiles>
+
+    <build>
+
+        <finalName>falcon-agent</finalName>
+
+        <plugins>
+            <!-- 设置源文件编码方式 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+            </plugin>
+
+            <!-- 解决资源文件的编码问题 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>2.3</version>
+                <configuration>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+            </plugin>
+
+             <!--打包source文件为jar文件-->
+            <!--<plugin>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>2.1</version>
+                <configuration>
+                    <attach>true</attach>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>-->
+
+        </plugins>
+    </build>
+
+    <dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.7</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.5</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>1.7.5</version>
+        </dependency>
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>1.2.12</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.quartz-scheduler</groupId>
+            <artifactId>quartz</artifactId>
+            <version>2.2.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20140107</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpcore</artifactId>
+            <version>4.4.4</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>4.5.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>commons-lang</groupId>
+            <artifactId>commons-lang</artifactId>
+            <version>2.6</version>
+        </dependency>
+
+        <!--<dependency>
+            <groupId>org.apache.zookeeper</groupId>
+            <artifactId>zookeeper</artifactId>
+            <version>3.4.5</version>
+
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>log4j</groupId>
+                    <artifactId>log4j</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>-->
+
+    </dependencies>
+
+</project>
