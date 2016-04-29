@@ -36,6 +36,7 @@ public abstract class JMXConnection {
      * @throws IOException
      */
     public List<JMXConnectionInfo> getMBeanConnection(String serverName){
+        //TODO 后期可以加入配置重置刷新JMX连接
         if(this.getClass() == JMXConnection.class){
             log.warn("警告:不应该直接实例化 {} 调用此方法 {}",JMXConnection.class.getName(),"getMBeanConnection()");
         }
