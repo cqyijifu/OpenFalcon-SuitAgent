@@ -36,7 +36,12 @@ public abstract class JMXConnection {
      * @throws IOException
      */
     public List<JMXConnectionInfo> getMBeanConnection(String serverName){
-        List<JMXConnectionInfo> connections = connectLibrary.entrySet().stream().filter(entry -> entry.getKey().contains(serverName)).map(Map.Entry::getValue).collect(Collectors.toList());
+        if(this.getClass() == JMXConnection.class){
+            log.warn("警告:不应该直接实例化 {} 调用此方法 {}",JMXConnection.class.getName(),"getMBeanConnection()");
+        }
+        List<JMXConnectionInfo> connections = connectLibrary.entrySet().
+                stream().
+                filter(entry -> entry.getKey().contains(serverName)).map(Map.Entry::getValue).collect(Collectors.toList());
         if(connections.size() == 0){
             synchronized (LOCK){
                 List<VirtualMachineDescriptor> vms = VirtualMachine.list();
@@ -44,8 +49,7 @@ public abstract class JMXConnection {
                     if(desc.displayName().contains(serverName)){
                         String connectorAddress = new AbstractJmxCommand().findJMXUrlByProcessId(Integer.parseInt(desc.id()));
                         if (connectorAddress == null) {
-//                            log.error("应用 {} 的JMX连接URL获取失败",serverName);
-//                            return null;
+                            log.error("应用 {} 的JMX连接URL获取失败",desc.displayName());
                             continue;
                         }
                         JMXConnectionInfo jmxConnectionInfo = new JMXConnectionInfo();
@@ -57,6 +61,8 @@ public abstract class JMXConnection {
                             jmxConnectionInfo.setmBeanServerConnection(connector.getMBeanServerConnection());
                             jmxConnectionInfo.setName(getJmxConnectionName(connector.getMBeanServerConnection()));
                             jmxConnectionInfo.setValid(true);
+
+                            connections.add(jmxConnectionInfo);
                             connectLibrary.put(desc.displayName(),jmxConnectionInfo);
                         } catch (IOException e) {
                             log.error("JMX 连接获取异常",e);
@@ -64,9 +70,6 @@ public abstract class JMXConnection {
                     }
                 }
             }
-        }
-        if(connections.size() == 0){
-            log.warn("");
         }
         return connections;
     }
@@ -94,7 +97,9 @@ public abstract class JMXConnection {
                         jmxConnectionInfo.setConnectionServerName(serverName);
                         jmxConnectionInfo.setConnectionQualifiedServerName(desc.displayName());
                         jmxConnectionInfo.setmBeanServerConnection(connector.getMBeanServerConnection());
-                        jmxConnectionInfo.setConnectionQualifiedServerName(getJmxConnectionName(connector.getMBeanServerConnection()));
+                        jmxConnectionInfo.setName(getJmxConnectionName(connector.getMBeanServerConnection()));
+                        jmxConnectionInfo.setValid(true);
+
                         jmxConnectionInfo.setValid(true);
                         connectLibrary.put(desc.displayName(),jmxConnectionInfo);
                     } catch (IOException e) {

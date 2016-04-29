@@ -81,12 +81,19 @@ public class ZkMetricValue {
             return result;
         }
         for (JMXMetricsValueInfo metricsValueInfo : metricsValueInfos) {
+
+            boolean isLeader = false;
+
             if(!metricsValueInfo.getJmxConnectionInfo().isValid()){
                 //该连接不可用,添加该zk jmx不可用的监控报告
                 result.add(generatorVariabilityReport(false,metricsValueInfo.getJmxConnectionInfo().getName()));
             }else{
                 for (String confNeedsObjectName : confMetrics.keySet()) {// 配置文件配置的需要监控的ObjectName
                     for (JMXObjectNameInfo objectNameInfo : metricsValueInfo.getJmxObjectNameInfoList()) {
+                        if(objectNameInfo.toString().contains("Leader")){
+                            //若ObjectName中包含有 Leader 则该zk为Leader角色
+                            isLeader = true;
+                        }
                         if(objectNameInfo.getObjectName().toString().contains(confNeedsObjectName)){// 如果ObjectName匹配
                             Map<String,String> objectNameAllValue = objectNameInfo.getMetricsValue();
                             Set<String> valueSet = confMetrics.get(confNeedsObjectName);
@@ -125,62 +132,11 @@ public class ZkMetricValue {
                     }
                 }
             }
-        }
 
-//        List<FalconReportObject> result = new ArrayList<>();
-//
-//        Map<String,FalconReportObject> requestObjectMap = new HashMap<>();//保存监控结果,使用map是为了保证监控值能够正确获取
-//        for (JMXObjectNameInfo jmxObjectNameInfo : objectNames) {
-//            for (ObjectName objectName : jmxObjectNameInfo.getObjectNames()) {// serverName所有的ObjectName
-//                for (String confNeedsObjectName : confMetrics.keySet()) {// 配置文件配置的需要监控的ObjectName
-//                    if(objectName.toString().contains(confNeedsObjectName)){// 如果ObjectName匹配
-//                        List<JMXMetricsValueInfo> metricsValueInfoList = jmxManager.getJmxMetricValue(serverName,objectName);//ObjectName所有的监控值
-//                        Set<String> valueSet = confMetrics.get(confNeedsObjectName);
-//
-//                        for (JMXMetricsValueInfo jmxMetricsValueInfo : metricsValueInfoList) {
-//                            for (String confNeedsMetrics : valueSet) {// 配置文件配置的需要获取的监控值
-//                                String signName = confNeedsObjectName + "-" + confNeedsMetrics;//监控结果的当前唯一标识值
-//                                String[] conf = confNeedsMetrics.split(":");
-//
-//                                if(requestObjectMap.get(signName) == null){
-//                                    FalconReportObject requestObject = new FalconReportObject();
-//                                    setReportCommonValue(requestObject);
-//                                    requestObject.setMetric(conf[0]);//设置push obj 的 metrics
-//                                    try {
-//                                        CounterType counterType = CounterType.valueOf(conf[1]); //设置push obj 的 Counter
-//                                        requestObject.setCounterType(counterType);
-//                                    } catch (IllegalArgumentException e) {
-//                                        log.error("错误的counterType配置:{},只能是{}获取{}",conf[1],CounterType.COUNTER,CounterType.GAUGE);
-//                                    }
-//                                    if(conf.length == 3){
-//                                        requestObject.setTags(conf[2]); //设置push obj 的 tag
-//                                    }
-//                                    requestObjectMap.put(signName,requestObject);
-//                                }
-//
-//                                try {
-//                                    // 设置 push obj 的 value
-//                                    String v = jmxMetricsValueInfo.getMetricsValue().get(confNeedsMetrics);
-//                                    FalconReportObject requestObject = requestObjectMap.get(confNeedsObjectName + "-" + confNeedsMetrics);
-//                                    requestObject.setTimestamp(System.currentTimeMillis() / 1000);
-//                                    if(v != null){
-//                                        requestObject.setValue(Double.parseDouble(v));// 指定监控值的具体数值
-//                                    }
-//                                } catch (NumberFormatException e) {
-//                                    log.warn("异常:监控指标值{} - {}:{}不能转换为数字",confNeedsObjectName,confNeedsMetrics,metricsValueInfoList.get(confNeedsMetrics));
-//                                }
-//                            }
-//                        }
-//
-//                    }
-//                }
-//            }
-//
-//        }
-//
-//        for (Map.Entry<String, FalconReportObject> entry : requestObjectMap.entrySet()) {
-//            result.add(entry.getValue());
-//        }
+            //添加isLeader报告
+            result.add(generatorIsLeaderReport(isLeader,metricsValueInfo.getJmxConnectionInfo().getName()));
+
+        }
 
         return result;
     }
@@ -197,6 +153,22 @@ public class ZkMetricValue {
         falconReportObject.setCounterType(CounterType.GAUGE);
         falconReportObject.setMetric("availability-zookeeper");
         falconReportObject.setValue(isAva ? 1 : 0);
+        falconReportObject.setTimestamp(System.currentTimeMillis() / 1000);
+        return falconReportObject;
+    }
+
+    /**
+     * 创建指定可用性的报告对象
+     * @param isLeader
+     * @param name 报告对象的连接标识名
+     * @return
+     */
+    private FalconReportObject generatorIsLeaderReport(boolean isLeader,String name){
+        FalconReportObject falconReportObject = new FalconReportObject();
+        setReportCommonValue(falconReportObject,name);
+        falconReportObject.setCounterType(CounterType.GAUGE);
+        falconReportObject.setMetric("isLeader");
+        falconReportObject.setValue(isLeader ? 1 : 0);
         falconReportObject.setTimestamp(System.currentTimeMillis() / 1000);
         return falconReportObject;
     }

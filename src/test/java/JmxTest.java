@@ -20,26 +20,26 @@ import java.util.Set;
  */
 public class JmxTest {
 
-    @Test
-    public void printMetrics() throws IOException, IntrospectionException, InstanceNotFoundException, ReflectionException {
-        String serverName = "org.apache.zookeeper.server.quorum.QuorumPeerMain";
-        MBeanServerConnection mbeanConn = JMXConnection.getMBeanConnection(serverName);
-        if(mbeanConn == null){
-            System.out.println("应用未开启");
-            return;
-        }
-        Set<ObjectInstance> beanSet = mbeanConn.queryMBeans(null, null);
-        for (ObjectInstance mbean : beanSet) {
-            System.out.println(mbean.getObjectName());
-            for (MBeanAttributeInfo mBeanAttributeInfo : mbeanConn.getMBeanInfo(mbean.getObjectName()).getAttributes()) {
-                try {
-                    System.out.println("\t" + mBeanAttributeInfo.getName() + " : " + mbeanConn.getAttribute(mbean.getObjectName(),mBeanAttributeInfo.getName()));
-                } catch (Exception ignored) {
-                }
-            }
-            System.out.println();
-        }
-    }
+//    @Test
+//    public void printMetrics() throws IOException, IntrospectionException, InstanceNotFoundException, ReflectionException {
+//        String serverName = "org.apache.zookeeper.server.quorum.QuorumPeerMain";
+//        MBeanServerConnection mbeanConn = JMXConnection.getMBeanConnection(serverName);
+//        if(mbeanConn == null){
+//            System.out.println("应用未开启");
+//            return;
+//        }
+//        Set<ObjectInstance> beanSet = mbeanConn.queryMBeans(null, null);
+//        for (ObjectInstance mbean : beanSet) {
+//            System.out.println(mbean.getObjectName());
+//            for (MBeanAttributeInfo mBeanAttributeInfo : mbeanConn.getMBeanInfo(mbean.getObjectName()).getAttributes()) {
+//                try {
+//                    System.out.println("\t" + mBeanAttributeInfo.getName() + " : " + mbeanConn.getAttribute(mbean.getObjectName(),mBeanAttributeInfo.getName()));
+//                } catch (Exception ignored) {
+//                }
+//            }
+//            System.out.println();
+//        }
+//    }
 
     @Test
     public void test() throws IntrospectionException, ReflectionException, InstanceNotFoundException, IOException, InterruptedException {

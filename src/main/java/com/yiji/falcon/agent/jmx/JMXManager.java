@@ -84,8 +84,10 @@ public class JMXManager {
         if(hasResetConnection){
             // TODO 这里可以设置重试次数,超过次数就进行此连接的清除
             for (JMXConnectionInfo connectionInfo : mbeanConns) {//遍历JMX连接
-                log.error("发现不可用的JMX连接,尝试重新构建 {} 的jmx连接",connectionInfo.getName());
-                jmxConnection.resetMBeanConnection(connectionInfo.getConnectionServerName());
+                if(!connectionInfo.isValid()){
+                    log.error("发现不可用的JMX连接,尝试重新构建 {} 的jmx连接",connectionInfo.getName());
+                    jmxConnection.resetMBeanConnection(connectionInfo.getConnectionServerName());
+                }
             }
         }
 
