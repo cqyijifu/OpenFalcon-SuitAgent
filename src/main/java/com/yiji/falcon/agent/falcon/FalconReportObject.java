@@ -3,6 +3,11 @@ package com.yiji.falcon.agent.falcon;/**
  * Created by QianLong on 16/4/25.
  */
 
+import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang.builder.HashCodeBuilder;
+
+import java.util.Objects;
+
 /**
  * push到falcon的数据报告对象
  * Created by QianLong on 16/4/25.
@@ -51,6 +56,38 @@ public class FalconReportObject {
                 ", counterType=" + counterType +
                 ", tags='" + tags + '\'' +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+
+        if (!(o instanceof FalconReportObject)) return false;
+
+        FalconReportObject that = (FalconReportObject) o;
+
+        return new EqualsBuilder()
+                .append(timestamp, that.timestamp)
+                .append(step, that.step)
+                .append(value, that.value)
+                .append(endpoint, that.endpoint)
+                .append(metric, that.metric)
+                .append(counterType, that.counterType)
+                .append(tags, that.tags)
+                .isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder(17, 37)
+                .append(endpoint)
+                .append(metric)
+                .append(timestamp)
+                .append(step)
+                .append(value)
+                .append(counterType)
+                .append(tags)
+                .toHashCode();
     }
 
     public String getEndpoint() {

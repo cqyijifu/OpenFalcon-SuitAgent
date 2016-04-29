@@ -1,4 +1,4 @@
-package com.yiji.falcon.agent.vo;/**
+package com.yiji.falcon.agent.vo.sceduler;/**
  * Copyright 2014-2015 the original BZTWT
  * Created by QianLong on 2014/7/11 0011.
  */

@@ -6,7 +6,7 @@ package com.yiji.falcon.agent;/**
 import com.yiji.falcon.agent.common.AgentConfiguration;
 import com.yiji.falcon.agent.util.CronUtil;
 import com.yiji.falcon.agent.util.SchedulerUtil;
-import com.yiji.falcon.agent.vo.ScheduleJobResult;
+import com.yiji.falcon.agent.vo.sceduler.ScheduleJobResult;
 import com.yiji.falcon.agent.zk.ReportJob;
 import org.apache.log4j.PropertyConfigurator;
 import org.quartz.*;

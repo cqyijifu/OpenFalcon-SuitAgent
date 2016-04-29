@@ -3,6 +3,7 @@ package com.yiji.falcon.agent.zk;/**
  * Created by QianLong on 16/4/25.
  */
 
+import com.mchange.v2.util.DoubleWeakHashMap;
 import com.yiji.falcon.agent.common.AgentConfiguration;
 import com.yiji.falcon.agent.falcon.CounterType;
 import com.yiji.falcon.agent.falcon.FalconReportObject;
@@ -40,37 +41,21 @@ public class ZkMetricValue {
         Properties properties = new Properties();
         properties.load(new FileInputStream(AgentConfiguration.INSTANCE.getAGENT_CONF_PATH()));
 
-        Map<String,Set<String>> confMetrics = new HashMap<>();
+        List<MetricsConfiguration> metricsConfigurationList = new ArrayList<>();
         String basePropertiesKey = "agent.zk.metrics.type.";
         for (int i = 1; i <= 100; i++) {
-            String key = basePropertiesKey + i;
-            String value = properties.getProperty(key);
-            if(!StringUtils.isEmpty(value)){
-                String[] ss = value.split(":");
-                if(ss.length < 3){
-                    log.warn("无效的配置参数:{}",value);
-                    continue;
-                }
-                if(confMetrics.get(ss[0]) == null){
-                    Set<String> valueSet = new HashSet<>();
-                    if(ss.length == 4){
-                        valueSet.add(ss[1] + ":" + ss[2] + ":" + ss[3]);
-                    }else{
-                        valueSet.add(ss[1] + ":" + ss[2]);
-                    }
-                    confMetrics.put(ss[0],valueSet);
-                }else{
-                    Set<String> valueSet = confMetrics.get(ss[0]);
-                    if(ss.length == 4){
-                        valueSet.add(ss[1] + ":" + ss[2] + ":" + ss[3]);
-                    }else{
-                        valueSet.add(ss[1] + ":" + ss[2]);
-                    }
-                    confMetrics.put(ss[0],valueSet);
-                }
+            String objectName = basePropertiesKey + i +".objectName";
+            if(!StringUtils.isEmpty(properties.getProperty(objectName))){
+                MetricsConfiguration metricsConfiguration = new MetricsConfiguration();
+                metricsConfiguration.setObjectName(properties.getProperty(objectName));//设置ObjectName
+                metricsConfiguration.setCounterType(properties.getProperty(basePropertiesKey + i + ".counterType"));//设置counterType
+                metricsConfiguration.setMetrics(properties.getProperty(basePropertiesKey + i + ".metrics"));//设置metrics
+                String tag = properties.getProperty(basePropertiesKey + i + ".tag");
+                metricsConfiguration.setTag(StringUtils.isEmpty(tag) ? "" : tag);//设置tag
+
+                metricsConfigurationList.add(metricsConfiguration);
             }
         }
-
 
         List<FalconReportObject> result = new ArrayList<>();
         List<JMXMetricsValueInfo> metricsValueInfos = JMXManager.getJmxMetricValue(serverName,new ZKJMXConnection());
@@ -84,53 +69,66 @@ public class ZkMetricValue {
 
             boolean isLeader = false;
 
+            /**
+             * 用于判断监控值是否重复添加,若出现重复添加,进行监控值比较
+             */
+            Map<String,FalconReportObject> repeat = new HashMap<>();
+
             if(!metricsValueInfo.getJmxConnectionInfo().isValid()){
                 //该连接不可用,添加该zk jmx不可用的监控报告
                 result.add(generatorVariabilityReport(false,metricsValueInfo.getJmxConnectionInfo().getName()));
             }else{
-                for (String confNeedsObjectName : confMetrics.keySet()) {// 配置文件配置的需要监控的ObjectName
+                for (MetricsConfiguration metricsConfiguration : metricsConfigurationList) {// 配置文件配置的需要监控的
                     for (JMXObjectNameInfo objectNameInfo : metricsValueInfo.getJmxObjectNameInfoList()) {
                         if(objectNameInfo.toString().contains("Leader")){
                             //若ObjectName中包含有 Leader 则该zk为Leader角色
                             isLeader = true;
                         }
-                        if(objectNameInfo.getObjectName().toString().contains(confNeedsObjectName)){// 如果ObjectName匹配
+                        if(objectNameInfo.getObjectName().toString().contains(metricsConfiguration.getObjectName())){// 如果ObjectName匹配
                             Map<String,String> objectNameAllValue = objectNameInfo.getMetricsValue();
-                            Set<String> valueSet = confMetrics.get(confNeedsObjectName);
-                            for (String confNeedsMetrics : valueSet) {// 配置文件配置的需要获取的监控值
-                                String metrics = "";
-                                String counterType = "";
-                                String tag = "";
-                                String[] conf = confNeedsMetrics.split(":");
-                                metrics = conf[0];
-                                counterType = conf[1];
-                                if(conf.length == 3){
-                                    tag = conf[2];
-                                }
-                                if(objectNameAllValue.get(metrics) != null){//若ObjectName 的 监控值中有配置项指定的监控值
-                                    FalconReportObject requestObject = new FalconReportObject();
-                                    setReportCommonValue(requestObject,metricsValueInfo.getJmxConnectionInfo().getName());
-                                    requestObject.setMetric(metrics);//设置push obj 的 metrics
-                                    try {
-                                        //设置push obj 的 Counter
-                                        requestObject.setCounterType(CounterType.valueOf(counterType));
-                                    } catch (IllegalArgumentException e) {
-                                        log.error("错误的counterType配置:{},只能是 {} 或 {}",conf[1],CounterType.COUNTER,CounterType.GAUGE);
-                                    }
-                                    requestObject.setTags(tag);
-                                    requestObject.setTimestamp(System.currentTimeMillis() / 1000);
-                                    try {
-                                        requestObject.setValue(Double.parseDouble(objectNameAllValue.get(metrics)));// 指定监控值的具体数值
-                                    } catch (NumberFormatException e) {
-                                        log.error("异常:监控指标值{} - {} : {}不能转换为数字",confNeedsObjectName,confNeedsMetrics,objectNameAllValue.get(metrics));
-                                    }
 
+                            if(objectNameAllValue.get(metricsConfiguration.getMetrics()) != null){//若ObjectName 的 监控值中有配置项指定的监控值
+                                FalconReportObject requestObject = new FalconReportObject();
+                                setReportCommonValue(requestObject,metricsValueInfo.getJmxConnectionInfo().getName());
+                                requestObject.setMetric(metricsConfiguration.getMetrics());//设置push obj 的 metrics
+                                try {
+                                    //设置push obj 的 Counter
+                                    requestObject.setCounterType(CounterType.valueOf(metricsConfiguration.getCounterType()));
+                                } catch (IllegalArgumentException e) {
+                                    log.error("错误的counterType配置:{},只能是 {} 或 {}",metricsConfiguration.getCounterType(),CounterType.COUNTER,CounterType.GAUGE);
+                                }
+                                requestObject.setTags(metricsConfiguration.getTag());
+                                requestObject.setTimestamp(System.currentTimeMillis() / 1000);
+                                try {
+                                    requestObject.setValue(Double.parseDouble(objectNameAllValue.get(metricsConfiguration.getMetrics())));// 指定监控值的具体数值
+                                } catch (NumberFormatException e) {
+                                    log.error("异常:监控指标值{} - {} : {}不能转换为数字",metricsConfiguration.getObjectName(),metricsConfiguration.getMetrics(),objectNameAllValue.get(metricsConfiguration.getMetrics()));
+                                }
+
+                                //监控值重复性判断
+                                FalconReportObject reportInRepeat = repeat.get(metricsConfiguration.getMetrics());
+                                if(reportInRepeat == null){
+                                    //第一次添加
                                     result.add(requestObject);
+                                    repeat.put(metricsConfiguration.getMetrics(),requestObject);
+                                }else{
+                                    if(reportInRepeat.getValue() == 0 && requestObject.getValue() != 0){
+                                        //替换有值的
+                                        result.remove(reportInRepeat);
+                                        result.add(requestObject);
+                                        repeat.put(metricsConfiguration.getMetrics(),requestObject);
+                                    }else if(reportInRepeat.getValue() != 0 && requestObject.getValue() != 0 && reportInRepeat.getValue() != requestObject.getValue()){
+                                        //都有值,而且不同,保存两者
+                                        result.add(requestObject);
+                                        repeat.put(metricsConfiguration.getMetrics(),requestObject);
+                                    }
                                 }
                             }
                         }
                     }
                 }
+                //添加可用性报告
+                result.add(generatorVariabilityReport(true,metricsValueInfo.getJmxConnectionInfo().getName()));
             }
 
             //添加isLeader报告
@@ -140,6 +138,8 @@ public class ZkMetricValue {
 
         return result;
     }
+
+
 
     /**
      * 创建指定可用性的报告对象

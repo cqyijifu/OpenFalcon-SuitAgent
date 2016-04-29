@@ -4,8 +4,8 @@ package com.yiji.falcon.agent.util;/**
  */
 
 import com.yiji.falcon.agent.common.SchedulerFactory;
-import com.yiji.falcon.agent.vo.ScheduleJobResult;
-import com.yiji.falcon.agent.vo.ScheduleJobStatus;
+import com.yiji.falcon.agent.vo.sceduler.ScheduleJobResult;
+import com.yiji.falcon.agent.vo.sceduler.ScheduleJobStatus;
 import org.quartz.JobDetail;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
