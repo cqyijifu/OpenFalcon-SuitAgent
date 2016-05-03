@@ -38,7 +38,7 @@ public class ReportMetrics {
             jsonObject.put("tags",falconReportObject.getTags());
             jsonArray.put(jsonObject);
         }
-        log.info("报告Falcon : [{}]",jsonArray.toString());
+        log.debug("报告Falcon : [{}]",jsonArray.toString());
         HttpResponse result = null;
         try {
             result = HttpUtil.postJSON(AgentConfiguration.INSTANCE.getAGENT_PUSH_URL(),jsonArray.toString());
@@ -63,7 +63,7 @@ public class ReportMetrics {
         jsonObject.put("counterType",falconReportObject.getCounterType());
         jsonObject.put("tags",falconReportObject.getTags());
         jsonArray.put(jsonObject);
-        log.info("报告Falcon : [{}]",jsonArray.toString());
+        log.debug("报告Falcon : [{}]",jsonArray.toString());
         HttpResponse result = null;
         try {
             result = HttpUtil.postJSON(AgentConfiguration.INSTANCE.getAGENT_PUSH_URL(),jsonArray.toString());
