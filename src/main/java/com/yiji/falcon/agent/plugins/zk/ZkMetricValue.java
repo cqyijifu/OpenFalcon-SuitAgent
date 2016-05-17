@@ -1,0 +1,110 @@
+package com.yiji.falcon.agent.plugins.zk;/**
+ * Copyright 2014-2015 the original ql
+ * Created by QianLong on 16/4/25.
+ */
+
+import com.yiji.falcon.agent.common.AgentConfiguration;
+import com.yiji.falcon.agent.falcon.CounterType;
+import com.yiji.falcon.agent.falcon.FalconReportObject;
+import com.yiji.falcon.agent.jmx.JMXManager;
+import com.yiji.falcon.agent.jmx.vo.JMXMetricsValueInfo;
+import com.yiji.falcon.agent.jmx.vo.JMXObjectNameInfo;
+import com.yiji.falcon.agent.plugins.JMXMetricsValue;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+/**
+ * Created by QianLong on 16/4/25.
+ */
+public class ZkMetricValue extends JMXMetricsValue {
+
+    private final Logger log = LoggerFactory.getLogger(this.getClass());
+
+    /**
+     * 获取所有的具体服务的JMX监控值VO
+     *
+     * @return
+     */
+    @Override
+    protected List<JMXMetricsValueInfo> getMetricsValueInfos() {
+        return JMXManager.getJmxMetricValue(getServerName(),new ZKJMXConnection());
+    }
+
+    /**
+     * 当可用时的內建监控报告
+     *
+     * @return
+     */
+    @Override
+    public Collection<FalconReportObject> getInbuiltReportObjectsForValid() {
+        boolean isLeader = false;
+        String name = "";
+        List<FalconReportObject> result = new ArrayList<>();
+        for (JMXMetricsValueInfo metricsValueInfo : metricsValueInfos) {
+            for (JMXObjectNameInfo objectNameInfo : metricsValueInfo.getJmxObjectNameInfoList()) {
+                if(objectNameInfo.toString().contains("Leader")){
+                    //若ObjectName中包含有 Leader 则该zk为Leader角色
+                    isLeader = true;
+                    name = metricsValueInfo.getJmxConnectionInfo().getName();
+                }
+            }
+        }
+        result.add(generatorIsLeaderReport(isLeader,name));
+        return result;
+    }
+
+    private FalconReportObject generatorIsLeaderReport(boolean isLeader,String name){
+        FalconReportObject falconReportObject = new FalconReportObject();
+        setReportCommonValue(falconReportObject,name);
+        falconReportObject.setCounterType(CounterType.GAUGE);
+        falconReportObject.setMetric("isLeader");
+        falconReportObject.setValue(isLeader ? "1" : "0");
+        falconReportObject.setTimestamp(System.currentTimeMillis() / 1000);
+        return falconReportObject;
+    }
+
+    /**
+     * 获取step
+     *
+     * @return
+     */
+    @Override
+    public int getStep() {
+        return AgentConfiguration.INSTANCE.getZkStep();
+    }
+
+    /**
+     * 监控类型
+     *
+     * @return
+     */
+    @Override
+    public String getType() {
+        return "zookeeper";
+    }
+
+
+    /**
+     * 监控值配置项基础配置名
+     *
+     * @return
+     */
+    @Override
+    public String getBasePropertiesKey() {
+        return "agent.zk.metrics.type.";
+    }
+
+    /**
+     * JMX连接的服务名
+     *
+     * @return
+     */
+    @Override
+    public String getServerName() {
+        return AgentConfiguration.INSTANCE.getZkJmxServerName();
+    }
+}

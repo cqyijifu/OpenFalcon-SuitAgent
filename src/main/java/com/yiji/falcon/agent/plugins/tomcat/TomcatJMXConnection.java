@@ -1,6 +1,6 @@
-package com.yiji.falcon.agent.zk;/**
+package com.yiji.falcon.agent.plugins.tomcat;/**
  * Copyright 2014-2015 the original ql
- * Created by QianLong on 16/4/29.
+ * Created by QianLong on 16/5/3.
  */
 
 import com.yiji.falcon.agent.jmx.JMXConnection;
@@ -14,9 +14,9 @@ import javax.management.ObjectName;
 import java.util.Set;
 
 /**
- * Created by QianLong on 16/4/29.
+ * Created by QianLong on 16/5/3.
  */
-public class ZKJMXConnection extends JMXConnection {
+public class TomcatJMXConnection extends JMXConnection {
     private final Logger log = LoggerFactory.getLogger(this.getClass());
     /**
      * 获取指定连接对监控平台暴露标签名
@@ -27,23 +27,28 @@ public class ZKJMXConnection extends JMXConnection {
     @Override
     public String getJmxConnectionName(MBeanServerConnection mBeanServerConnection) {
         try {
+            String name = "";
             Set<ObjectInstance> beanSet = mBeanServerConnection.queryMBeans(null, null);
             for (ObjectInstance mbean : beanSet) {
                 ObjectName objectName = mbean.getObjectName();
-                if(objectName.toString().contains("org.apache.ZooKeeperService")){
+                if(objectName.toString().contains("Catalina:type=Connector")){
                     for (MBeanAttributeInfo mBeanAttributeInfo : mBeanServerConnection.getMBeanInfo(objectName).getAttributes()) {
                         String key = mBeanAttributeInfo.getName();
-                        if("ClientPort".equals(key)){
-                            return mBeanServerConnection.getAttribute(mbean.getObjectName(),key).toString();
-
+                        if("port".equals(key)){
+                            String value = mBeanServerConnection.getAttribute(mbean.getObjectName(),key).toString();
+                            if("".equals(name)){
+                                name += value;
+                            }else{
+                                name += "-" + value;
+                            }
                         }
                     }
                 }
             }
+            return name;
         } catch (Exception e) {
             log.error("设置JMX name 失败",e);
             return "";
         }
-        return "";
     }
 }

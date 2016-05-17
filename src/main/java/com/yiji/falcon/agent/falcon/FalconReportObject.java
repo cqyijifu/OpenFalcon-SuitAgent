@@ -6,7 +6,7 @@ package com.yiji.falcon.agent.falcon;/**
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 
-import java.util.Objects;
+import javax.management.ObjectName;
 
 /**
  * push到falcon的数据报告对象
@@ -31,9 +31,9 @@ public class FalconReportObject {
      */
     private int step;
     /**
-     * 代表该metric在当前时间点的值，float64
+     * 代表该metric在当前时间点的值,数值类型
      */
-    private double value;
+    private String value;
     /**
      * 只能是COUNTER或者GAUGE二选一，前者表示该数据采集项为计时器类型，后者表示其为原值 (注意大小写)
      GAUGE：即用户上传什么样的值，就原封不动的存储
@@ -45,9 +45,14 @@ public class FalconReportObject {
      */
     private String tags;
 
+    /**
+     * 仅供系统使用
+     */
+    private ObjectName objectName;
+
     @Override
     public String toString() {
-        return "RequestObject{" +
+        return "FalconReportObject{" +
                 "endpoint='" + endpoint + '\'' +
                 ", metric='" + metric + '\'' +
                 ", timestamp=" + timestamp +
@@ -55,6 +60,7 @@ public class FalconReportObject {
                 ", value=" + value +
                 ", counterType=" + counterType +
                 ", tags='" + tags + '\'' +
+                ", objectName=" + objectName +
                 '}';
     }
 
@@ -74,6 +80,7 @@ public class FalconReportObject {
                 .append(metric, that.metric)
                 .append(counterType, that.counterType)
                 .append(tags, that.tags)
+                .append(objectName, that.objectName)
                 .isEquals();
     }
 
@@ -87,7 +94,16 @@ public class FalconReportObject {
                 .append(value)
                 .append(counterType)
                 .append(tags)
+                .append(objectName)
                 .toHashCode();
+    }
+
+    public ObjectName getObjectName() {
+        return objectName;
+    }
+
+    public void setObjectName(ObjectName objectName) {
+        this.objectName = objectName;
     }
 
     public String getEndpoint() {
@@ -122,11 +138,11 @@ public class FalconReportObject {
         this.step = step;
     }
 
-    public double getValue() {
+    public String getValue() {
         return value;
     }
 
-    public void setValue(double value) {
+    public void setValue(String value) {
         this.value = value;
     }
 

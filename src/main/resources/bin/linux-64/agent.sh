@@ -39,6 +39,7 @@ agent_class=com.yiji.falcon.agent.Agent
 
 client_cmd="${JAVA} \
 	-Dagent.conf.path=${agentHome}/conf/agent.properties \
+	-Dagent.oracle.conf.path=${agentHome}/conf/oracle/metricsSql.properties \
 	-Dagent.quartz.conf.path=${agentHome}/conf/quartz.properties \
 	-Dagent.log4j.conf.path=${agentHome}/conf/log4j.properties \
 	-cp ${agent_classpath} ${agent_class} $1

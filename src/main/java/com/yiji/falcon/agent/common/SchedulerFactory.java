@@ -21,7 +21,7 @@ public class SchedulerFactory {
      * 调度器获取失败异常
      */
     public static Scheduler getScheduler() throws SchedulerException {
-        org.quartz.SchedulerFactory sf = new StdSchedulerFactory(AgentConfiguration.INSTANCE.getQUARTZ_CONF_PATH());
+        org.quartz.SchedulerFactory sf = new StdSchedulerFactory(AgentConfiguration.INSTANCE.getQuartzConfPath());
         return sf.getScheduler();
     }
 

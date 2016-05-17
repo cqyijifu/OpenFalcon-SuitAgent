@@ -12,7 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.Collection;
 
 /**
  * Created by QianLong on 16/4/26.
@@ -25,7 +25,7 @@ public class ReportMetrics {
      * 推送数据到falcon
      * @param falconReportObjectList
      */
-    public static void push(List<FalconReportObject> falconReportObjectList){
+    public static void push(Collection<FalconReportObject> falconReportObjectList){
         JSONArray jsonArray = new JSONArray();
         for (FalconReportObject falconReportObject : falconReportObjectList) {
             JSONObject jsonObject = new JSONObject();
@@ -35,13 +35,13 @@ public class ReportMetrics {
             jsonObject.put("step",falconReportObject.getStep());
             jsonObject.put("value",falconReportObject.getValue());
             jsonObject.put("counterType",falconReportObject.getCounterType());
-            jsonObject.put("tags",falconReportObject.getTags());
+            jsonObject.put("tags",falconReportObject.getTags() == null ? "" : falconReportObject.getTags());
             jsonArray.put(jsonObject);
         }
         log.debug("报告Falcon : [{}]",jsonArray.toString());
         HttpResponse result = null;
         try {
-            result = HttpUtil.postJSON(AgentConfiguration.INSTANCE.getAGENT_PUSH_URL(),jsonArray.toString());
+            result = HttpUtil.postJSON(AgentConfiguration.INSTANCE.getAgentPushUrl(),jsonArray.toString());
         } catch (IOException e) {
             log.error("post请求异常",e);
         }
@@ -61,12 +61,12 @@ public class ReportMetrics {
         jsonObject.put("step",falconReportObject.getStep());
         jsonObject.put("value",falconReportObject.getValue());
         jsonObject.put("counterType",falconReportObject.getCounterType());
-        jsonObject.put("tags",falconReportObject.getTags());
+        jsonObject.put("tags",falconReportObject.getTags() == null ? "" : falconReportObject.getTags());
         jsonArray.put(jsonObject);
         log.debug("报告Falcon : [{}]",jsonArray.toString());
         HttpResponse result = null;
         try {
-            result = HttpUtil.postJSON(AgentConfiguration.INSTANCE.getAGENT_PUSH_URL(),jsonArray.toString());
+            result = HttpUtil.postJSON(AgentConfiguration.INSTANCE.getAgentPushUrl(),jsonArray.toString());
         } catch (IOException e) {
             log.error("post请求异常",e);
         }

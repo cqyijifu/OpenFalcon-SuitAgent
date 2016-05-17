@@ -4,16 +4,16 @@
  */
 
 import com.yiji.falcon.agent.falcon.FalconReportObject;
-import com.yiji.falcon.agent.jmx.JMXConnection;
-import com.yiji.falcon.agent.zk.ZkMetricValue;
+import com.yiji.falcon.agent.plugins.zk.ZkMetricValue;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Test;
 
-import javax.management.*;
+import javax.management.InstanceNotFoundException;
+import javax.management.IntrospectionException;
+import javax.management.ReflectionException;
 import java.io.IOException;
-import java.util.List;
-import java.util.Set;
+import java.util.Collection;
 
 /**
  * Created by QianLong on 16/4/25.
@@ -44,7 +44,7 @@ public class JmxTest {
     @Test
     public void test() throws IntrospectionException, ReflectionException, InstanceNotFoundException, IOException, InterruptedException {
         ZkMetricValue zkMetricValue = new ZkMetricValue();
-        List<FalconReportObject> requestObjectList = zkMetricValue.getConfReportObjects();
+        Collection<FalconReportObject> requestObjectList = zkMetricValue.getReportObjects();
         for (FalconReportObject requestObject : requestObjectList) {
             System.out.println(requestObject.toString());
         }

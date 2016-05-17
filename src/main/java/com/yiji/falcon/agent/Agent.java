@@ -4,10 +4,12 @@ package com.yiji.falcon.agent;/**
  */
 
 import com.yiji.falcon.agent.common.AgentConfiguration;
+import com.yiji.falcon.agent.plugins.oracle.OracleReportJob;
+import com.yiji.falcon.agent.plugins.tomcat.TomcatReportJob;
 import com.yiji.falcon.agent.util.CronUtil;
 import com.yiji.falcon.agent.util.SchedulerUtil;
 import com.yiji.falcon.agent.vo.sceduler.ScheduleJobResult;
-import com.yiji.falcon.agent.zk.ReportJob;
+import com.yiji.falcon.agent.plugins.zk.ZKReportJob;
 import org.apache.log4j.PropertyConfigurator;
 import org.quartz.*;
 import org.quartz.impl.DirectSchedulerFactory;
@@ -39,7 +41,7 @@ public class Agent extends Thread{
     @Override
     public void run() {
         try {
-            this.serverStart(AgentConfiguration.INSTANCE.getAGENT_PORT());
+            this.serverStart(AgentConfiguration.INSTANCE.getAgentPort());
         } catch (IOException e) {
             log.error("Agent启动失败",e);
         }
@@ -115,32 +117,71 @@ public class Agent extends Thread{
     }
 
     private void work(){
-        JobDetail job = JobBuilder.newJob(ReportJob.class)
-                .withIdentity("zk-scheduler-job", "job-metricsScheduler")
-                .withDescription("ZK的监控数据push调度JOB")
-                .build();
+        try {
+            if(AgentConfiguration.INSTANCE.isAgentZkWork()){
+                //开启ZK
+                JobDetail job = getJobDetail(ZKReportJob.class,"zookeeper","ZK的监控数据push调度JOB");
 
-        String cron = CronUtil.getCronBySecondScheduler(AgentConfiguration.INSTANCE.getZK_STEP());
+                Trigger trigger = getTrigger(AgentConfiguration.INSTANCE.getZkStep(),"zookeeper","ZK的监控数据push调度任务");
+                ScheduleJobResult scheduleJobResult = SchedulerUtil.executeScheduleJob(job,trigger);
+            }
+            if(AgentConfiguration.INSTANCE.isAgentTomcatWork()){
+                //开启ZK
+                JobDetail job = getJobDetail(TomcatReportJob.class,"tomcat","tomcat的监控数据push调度JOB");
+
+                Trigger trigger = getTrigger(AgentConfiguration.INSTANCE.getTomcatStep(),"tomcat","tomcat的监控数据push调度任务");
+                ScheduleJobResult scheduleJobResult = SchedulerUtil.executeScheduleJob(job,trigger);
+            }
+            if(AgentConfiguration.INSTANCE.isAgentOracleWork()){
+                //开启Oracle
+                JobDetail job = getJobDetail(OracleReportJob.class,"oracle","oracle的监控数据push调度JOB");
+
+                Trigger trigger = getTrigger(AgentConfiguration.INSTANCE.getOracleStep(),"oracle","oracle的监控数据push调度任务");
+                ScheduleJobResult scheduleJobResult = SchedulerUtil.executeScheduleJob(job,trigger);
+            }
+        } catch (SchedulerException e) {
+            log.error("Agent启动失败 : 调度任务启动失败",e);
+            System.exit(0);
+        }
+    }
+
+    /**
+     * 获取计划任务JOB
+     * @param job
+     * @param id
+     * @param description
+     * @return
+     */
+    private JobDetail getJobDetail(Class <? extends Job> job,String id,String description){
+        return JobBuilder.newJob(job)
+                .withIdentity(id + "-scheduler-job", "job-metricsScheduler")
+                .withDescription(description)
+                .build();
+    }
+
+    /**
+     * 获取调度器
+     * @param step
+     * @param id
+     * @param description
+     * @return
+     */
+    private Trigger getTrigger(int step,String id,String description){
+        String cron = CronUtil.getCronBySecondScheduler(step);
         Trigger trigger = null;
         if(cron != null){
-            System.out.println("启动ZK调度:" + cron);
+            System.out.println("启动{ " + description + " }调度:" + cron);
             trigger = newTrigger()
-                    .withIdentity("zk-scheduler-trigger", "trigger-metricsScheduler")
+                    .withIdentity(id + "-agent-scheduler-trigger", "trigger-metricsScheduler")
                     .withSchedule(CronScheduleBuilder.cronSchedule(cron))
                     .startNow()
-                    .withDescription("ZK的监控数据push调度任务")
+                    .withDescription(description)
                     .build();
         }else{
             System.err.println("agent 启动失败. 调度时间配置失败");
             System.exit(0);
         }
-
-        try {
-            ScheduleJobResult scheduleJobResult = SchedulerUtil.executeScheduleJob(job,trigger);
-        } catch (SchedulerException e) {
-            log.error("Agent启动失败 : 调度任务启动失败",e);
-            System.exit(0);
-        }
+        return trigger;
     }
 
     static String decode(ByteBuffer buffer){
@@ -163,14 +204,14 @@ public class Agent extends Thread{
 
         if ("start".equals(args[0])){
             //自定义日志配置文件
-            PropertyConfigurator.configure(AgentConfiguration.INSTANCE.getLOG4J_CONF_PATH());
+            PropertyConfigurator.configure(AgentConfiguration.INSTANCE.getLog4JConfPath());
             Thread main = new Thread(new Agent());
             main.setName("Agent Main Thread");
             main.start();
         }else if("stop".equals(args[0])){
             try {
                 Client client = new Client();
-                client.start(AgentConfiguration.INSTANCE.getAGENT_PORT());
+                client.start(AgentConfiguration.INSTANCE.getAgentPort());
                 client.sendCloseCommend();
                 client.talk();
             } catch (IOException e) {

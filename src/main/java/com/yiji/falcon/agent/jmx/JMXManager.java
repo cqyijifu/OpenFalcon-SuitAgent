@@ -31,7 +31,7 @@ public class JMXManager {
      */
     public synchronized static List<JMXMetricsValueInfo> getJmxMetricValue(String serverName, JMXConnection jmxConnection){
         List<JMXConnectionInfo> mbeanConns = jmxConnection.getMBeanConnection(serverName);
-        if(mbeanConns == null || mbeanConns.size() == 0){
+        if(mbeanConns == null || mbeanConns.isEmpty()){
             log.error("获取应用 {} jmx连接失败,请检查应用是否已启动",serverName);
             return null;
         }

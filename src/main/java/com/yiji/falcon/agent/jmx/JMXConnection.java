@@ -6,6 +6,7 @@ package com.yiji.falcon.agent.jmx;/**
 import com.sun.tools.attach.VirtualMachine;
 import com.sun.tools.attach.VirtualMachineDescriptor;
 import com.yiji.falcon.agent.jmx.vo.JMXConnectionInfo;
+import com.yiji.falcon.agent.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,14 +37,19 @@ public abstract class JMXConnection {
      * @throws IOException
      */
     public List<JMXConnectionInfo> getMBeanConnection(String serverName){
+        if(StringUtils.isEmpty(serverName)){
+            log.error("获取JMX连接的serverName不能为空");
+        }
         //TODO 后期可以加入配置重置刷新JMX连接
         if(this.getClass() == JMXConnection.class){
             log.warn("警告:不应该直接实例化 {} 调用此方法 {}",JMXConnection.class.getName(),"getMBeanConnection()");
         }
         List<JMXConnectionInfo> connections = connectLibrary.entrySet().
                 stream().
-                filter(entry -> entry.getKey().contains(serverName)).map(Map.Entry::getValue).collect(Collectors.toList());
-        if(connections.size() == 0){
+                filter(entry -> entry.getKey().contains(serverName)).
+                map(Map.Entry::getValue).
+                collect(Collectors.toList());
+        if(connections.isEmpty()){
             synchronized (LOCK){
                 List<VirtualMachineDescriptor> vms = VirtualMachine.list();
                 for (VirtualMachineDescriptor desc : vms) {
@@ -82,6 +88,9 @@ public abstract class JMXConnection {
      * @throws IOException
      */
     public void resetMBeanConnection(String serverName) {
+        if(StringUtils.isEmpty(serverName)){
+            log.error("获取JMX连接的serverName不能为空");
+        }
         synchronized (LOCK){
             List<VirtualMachineDescriptor> vms = VirtualMachine.list();
             for (VirtualMachineDescriptor desc : vms) {
