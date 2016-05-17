@@ -15,6 +15,7 @@ import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +29,7 @@ public abstract class JMXConnection {
     private static final Logger log = LoggerFactory.getLogger(JMXConnection.class);
     private static final Byte[] LOCK = new Byte[0];
     private static final Map<String,JMXConnectionInfo> connectLibrary = new HashMap<>();
+    private static List<JMXConnector> closeRecord = new ArrayList<>();
 
     /**
      * 获取JMX连接
@@ -71,6 +73,8 @@ public abstract class JMXConnection {
 
                             connections.add(jmxConnectionInfo);
                             connectLibrary.put(desc.displayName(),jmxConnectionInfo);
+                            //添加关闭集合
+                            closeRecord.add(connector);
                         } catch (IOException e) {
                             log.error("JMX 连接获取异常",e);
                         }
@@ -97,7 +101,7 @@ public abstract class JMXConnection {
                 if(desc.displayName().contains(serverName)){
                     String connectorAddress = new AbstractJmxCommand().findJMXUrlByProcessId(Integer.parseInt(desc.id()));
                     if (connectorAddress == null) {
-//                        log.error("应用{}的JMX连接URL获取失败",serverName);
+                        log.error("应用{}的JMX连接URL获取失败",serverName);
                         continue;
                     }
                     try {
@@ -111,10 +115,26 @@ public abstract class JMXConnection {
 
                         jmxConnectionInfo.setValid(true);
                         connectLibrary.put(desc.displayName(),jmxConnectionInfo);
+                        //添加关闭集合
+                        closeRecord.add(connector);
                     } catch (IOException e) {
                         log.error("JMX 连接获取异常",e);
                     }
                 }
+            }
+        }
+    }
+
+    /**
+     *
+     * @throws IOException
+     */
+    public static void close() {
+        for (JMXConnector jmxConnector : closeRecord) {
+            try {
+                jmxConnector.close();
+            } catch (IOException e) {
+                log.warn("",e);
             }
         }
     }

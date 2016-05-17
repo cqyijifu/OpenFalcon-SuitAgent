@@ -3,6 +3,8 @@ package com.yiji.falcon.agent;/**
  * Created by QianLong on 15/5/17.
  */
 
+import com.yiji.falcon.agent.jmx.JMXConnection;
+import com.yiji.falcon.agent.plugins.oracle.OracleConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -104,6 +106,10 @@ public class Client {
                 socketChannel.close();
                 //关闭服务器连接
                 selector.close();
+                //关闭jmx连接池
+                JMXConnection.close();
+                //关闭Oracle数据库连接
+                OracleConnection.close();
                 System.out.println("成功关闭Agent");
                 log.info("Agent已关闭");
                 System.exit(0);

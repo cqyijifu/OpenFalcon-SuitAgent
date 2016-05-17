@@ -4,6 +4,8 @@ package com.yiji.falcon.agent.plugins.oracle;/**
  */
 
 import com.yiji.falcon.agent.common.AgentConfiguration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -13,6 +15,7 @@ import java.sql.SQLException;
  * Created by QianLong on 16/5/16.
  */
 public class OracleConnection {
+    private static final Logger log = LoggerFactory.getLogger(OracleConnection.class);
 
     private static String JDBC_DRIVER = AgentConfiguration.INSTANCE.getOracleJDBCDriver();
     private static String JDBC_URL = AgentConfiguration.INSTANCE.getOracleJDBCUrl();
@@ -31,6 +34,19 @@ public class OracleConnection {
             connection = DriverManager.getConnection(JDBC_URL, JDBC_USER, JDBC_PASSWORD);
         }
         return connection;
+    }
+
+    /**
+     * 关闭连接
+     */
+    public static void close(){
+        if(connection != null){
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                log.warn("",e);
+            }
+        }
     }
 
 }

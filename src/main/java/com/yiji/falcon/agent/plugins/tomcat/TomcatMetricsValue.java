@@ -47,7 +47,7 @@ public class TomcatMetricsValue extends JMXMetricsValue {
         try {
             for (JMXMetricsValueInfo metricsValueInfo : metricsValueInfos) {
                 for (JMXObjectNameInfo objectNameInfo : metricsValueInfo.getJmxObjectNameInfoList()) {
-                    if(objectNameInfo.getObjectName().toString().equals("java.lang:type=Memory")){
+                    if("java.lang:type=Memory".equals(objectNameInfo.getObjectName().toString())){
                         MemoryUsage heapMemoryUsage =  MemoryUsage.from((CompositeDataSupport)objectNameInfo.
                                 getJmxConnectionInfo().getmBeanServerConnection().getAttribute(objectNameInfo.getObjectName(), "HeapMemoryUsage"));
                         FalconReportObject falconReportObject = new FalconReportObject();
@@ -57,19 +57,19 @@ public class TomcatMetricsValue extends JMXMetricsValue {
                         falconReportObject.setObjectName(objectNameInfo.getObjectName());
 
                         falconReportObject.setMetric("HeapMemoryCommitted");
-                        falconReportObject.setValue(heapMemoryUsage.getCommitted() + "");
+                        falconReportObject.setValue(String.valueOf(heapMemoryUsage.getCommitted()));
                         result.add(falconReportObject);
 
                         falconReportObject.setMetric("HeapMemoryFree");
-                        falconReportObject.setValue(heapMemoryUsage.getMax() - heapMemoryUsage.getUsed() + "");
+                        falconReportObject.setValue(String.valueOf(heapMemoryUsage.getMax() - heapMemoryUsage.getUsed()));
                         result.add(falconReportObject);
 
                         falconReportObject.setMetric("HeapMemoryMax");
-                        falconReportObject.setValue(heapMemoryUsage.getMax() + "");
+                        falconReportObject.setValue(String.valueOf(heapMemoryUsage.getMax()));
                         result.add(falconReportObject);
 
                         falconReportObject.setMetric("HeapMemoryUsed");
-                        falconReportObject.setValue(heapMemoryUsage.getUsed() + "");
+                        falconReportObject.setValue(String.valueOf(heapMemoryUsage.getUsed()));
                         result.add(falconReportObject);
 
                     }
