@@ -40,6 +40,7 @@ agent_classpath="${agent_classpath}:${agentHome}/lib/quartz-2.2.1.jar"
 agent_classpath="${agent_classpath}:${agentHome}/lib/slf4j-api-1.7.5.jar"
 agent_classpath="${agent_classpath}:${agentHome}/lib/slf4j-log4j12-1.7.5.jar"
 agent_classpath="${agent_classpath}:${agentHome}/lib/tools.jar"
+agent_classpath="${agent_classpath}:${agentHome}/lib/ojdbc5-11.2.0.2.0.jar"
 agent_class=com.yiji.falcon.agent.Agent
 
 client_cmd="${JAVA} \
