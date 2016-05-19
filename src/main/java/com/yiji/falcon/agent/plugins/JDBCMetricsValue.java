@@ -26,6 +26,13 @@ public abstract class JDBCMetricsValue {
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
     /**
+     * 当可用时的內建监控报告
+     * 此方法只有在监控对象可用时,才会调用,并加入到所有的监控值报告中(getReportObjects)
+     * @return
+     */
+    protected abstract Collection<FalconReportObject> getInbuiltReportObjectsForValid() throws SQLException, ClassNotFoundException;
+
+    /**
      * 获取所有的监控值报告
      * @return
      * @throws IOException
@@ -53,7 +60,11 @@ public abstract class JDBCMetricsValue {
                     log.warn("JDBC {} 的监控指标:{} 未获取到值,将跳过此监控指标",getType(),entry.getKey());
                 }
             }
-
+            //添加內建报告
+            Collection<FalconReportObject> inbuilt = getInbuiltReportObjectsForValid();
+            if(inbuilt != null && !inbuilt.isEmpty()){
+                result.addAll(inbuilt);
+            }
             result.add(generatorVariabilityReport(true));
         } catch (SQLException | ClassNotFoundException e) {
             log.warn("连接JDBC异常,创建不可用报告",e);
@@ -114,7 +125,7 @@ public abstract class JDBCMetricsValue {
      * step
      * @param falconReportObject
      */
-    void setReportCommonValue(FalconReportObject falconReportObject){
+    protected void setReportCommonValue(FalconReportObject falconReportObject){
         if(falconReportObject != null){
             falconReportObject.setEndpoint(AgentConfiguration.INSTANCE.getAgentEndpoint() + "-" + getType() + (StringUtils.isEmpty(getName()) ? "" : ":" + getName()));
             falconReportObject.setStep(getStep());

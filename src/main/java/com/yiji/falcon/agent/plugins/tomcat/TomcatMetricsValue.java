@@ -53,7 +53,7 @@ public class TomcatMetricsValue extends JMXMetricsValue {
                         FalconReportObject falconReportObject = new FalconReportObject();
                         setReportCommonValue(falconReportObject,objectNameInfo.getJmxConnectionInfo().getName());
                         falconReportObject.setCounterType(CounterType.GAUGE);
-                        falconReportObject.setTimestamp(System.currentTimeMillis());
+                        falconReportObject.setTimestamp(System.currentTimeMillis() / 1000);
                         falconReportObject.setObjectName(objectNameInfo.getObjectName());
 
                         falconReportObject.setMetric("HeapMemoryCommitted");
