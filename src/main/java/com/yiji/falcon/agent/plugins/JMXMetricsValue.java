@@ -82,7 +82,7 @@ public abstract class JMXMetricsValue {
 
         if(metricsValueInfos == null || metricsValueInfos.isEmpty()){
             //获取不到监控值,返回所有zk不可用的监控报告
-            log.error("zookeeper JMX 连接获取失败");
+            log.error(getType() + " JMX 连接获取失败");
             result.add(generatorVariabilityReport(false,"allUnVariability"));
             return result;
         }
