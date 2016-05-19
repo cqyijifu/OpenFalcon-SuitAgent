@@ -17,11 +17,6 @@ import java.sql.SQLException;
 public class OracleConnection {
     private static final Logger log = LoggerFactory.getLogger(OracleConnection.class);
 
-    private static String JDBC_DRIVER = AgentConfiguration.INSTANCE.getOracleJDBCDriver();
-    private static String JDBC_URL = AgentConfiguration.INSTANCE.getOracleJDBCUrl();
-    private static String JDBC_USER = AgentConfiguration.INSTANCE.getOracleJDBCUsername();
-    private static String JDBC_PASSWORD = AgentConfiguration.INSTANCE.getOracleJDBCPassword();
-
     private static Connection connection = null;
 
     private OracleConnection(){}
@@ -29,9 +24,11 @@ public class OracleConnection {
     public static Connection getConnection() throws ClassNotFoundException, SQLException {
         if(connection == null){
             //反射Oracle数据库驱动程序类
-            Class.forName(JDBC_DRIVER);
+            Class.forName(AgentConfiguration.INSTANCE.getOracleJDBCDriver());
             //获取数据库连接
-            connection = DriverManager.getConnection(JDBC_URL, JDBC_USER, JDBC_PASSWORD);
+            connection = DriverManager.getConnection(AgentConfiguration.INSTANCE.getOracleJDBCUrl(),
+                    AgentConfiguration.INSTANCE.getOracleJDBCUsername(),
+                    AgentConfiguration.INSTANCE.getOracleJDBCPassword());
         }
         return connection;
     }
