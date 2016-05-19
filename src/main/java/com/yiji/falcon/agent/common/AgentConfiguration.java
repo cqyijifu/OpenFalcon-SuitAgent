@@ -36,22 +36,25 @@ public enum  AgentConfiguration {
      */
     private String agentPushUrl = null;
     /**
-     * Agent服务配置文件路径
+     * 服务配置文件路径
      */
     private String agentConfPath = null;
+    private String zkMetricsConfPath = null;
+    private String tomcatMetricsConfPath = null;
+
     /**
      * agent监控指标的主体说明
      */
     private String agentEndpoint = "";
     /**
-     * ZK的数据采集周期
+     * 数据采集周期
      */
     private int zkStep = 60;
     private int tomcatStep = 60;
     private int oracleStep = 60;
 
     /**
-     * zk 的JMX 连接服务名
+     * JMX 连接服务名
      */
     private String zkJmxServerName = null;
     private String tomcatJmxServerName = null;
@@ -154,6 +157,13 @@ public enum  AgentConfiguration {
     }
 
     private void initTomcat(){
+        String tomcatConfPath = System.getProperty("agent.jmx.metrics.tomcat.path");
+        if(StringUtils.isEmpty(tomcatConfPath)){
+            System.err.println("tomcat的jmx配置系统属性文件未定义:agent.jmx.metrics.tomcat.path");
+            System.exit(0);
+        }
+        this.tomcatMetricsConfPath = tomcatConfPath;
+
         if(StringUtils.isEmpty(agentConf.getProperty(CONF_AGENT_TOMCAT_JMX_SERVER_NAME))){
             log.error("Agent启动失败,未定义 tomcat 的 jmx 服务名配置:{}", CONF_AGENT_TOMCAT_JMX_SERVER_NAME);
             System.exit(0);
@@ -162,6 +172,13 @@ public enum  AgentConfiguration {
     }
 
     private void initZk(){
+        String zkConfPath = System.getProperty("agent.jmx.metrics.zk.path");
+        if(StringUtils.isEmpty(zkConfPath)){
+            System.err.println("zookeeper的jmx配置系统属性文件未定义:agent.jmx.metrics.zk.path");
+            System.exit(0);
+        }
+        this.zkMetricsConfPath = zkConfPath;
+
         if(StringUtils.isEmpty(agentConf.getProperty(CONF_AGENT_ZK_JMX_SERVER_NAME))){
             log.error("Agent启动失败,未定义 zk 的 jmx 服务名配置:{}", CONF_AGENT_ZK_JMX_SERVER_NAME);
             System.exit(0);
@@ -342,5 +359,13 @@ public enum  AgentConfiguration {
 
     public String getOracleJDBCPassword() {
         return oracleJDBCPassword;
+    }
+
+    public String getZkMetricsConfPath() {
+        return zkMetricsConfPath;
+    }
+
+    public String getTomcatMetricsConfPath() {
+        return tomcatMetricsConfPath;
     }
 }

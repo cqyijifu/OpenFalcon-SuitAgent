@@ -43,6 +43,8 @@ client_cmd="${JAVA} \
 	-Dagent.oracle.conf.path=${agentHome}/conf/oracle/metricsSql.properties \
 	-Dagent.quartz.conf.path=${agentHome}/conf/quartz.properties \
 	-Dagent.log4j.conf.path=${agentHome}/conf/log4j.properties \
+	-Dagent.jmx.metrics.zk.path=${agentHome}/conf/jmx/zookeeper.properties \
+	-Dagent.jmx.metrics.tomcat.path=${agentHome}/conf/jmx/tomcat.properties \
 	-cp ${agent_classpath} ${agent_class} $1
 "
 

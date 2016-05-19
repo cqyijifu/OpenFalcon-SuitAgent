@@ -99,6 +99,16 @@ public class ZkMetricValue extends JMXMetricsValue {
     }
 
     /**
+     * 监控属性的配置文件位置
+     *
+     * @return
+     */
+    @Override
+    public String getMetricsConfPath() {
+        return AgentConfiguration.INSTANCE.getZkMetricsConfPath();
+    }
+
+    /**
      * JMX连接的服务名
      *
      * @return

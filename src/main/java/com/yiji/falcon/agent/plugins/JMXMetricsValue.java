@@ -43,7 +43,7 @@ public abstract class JMXMetricsValue {
      */
     private List<JMXMetricsConfiguration> getMetricsConfig() throws IOException {
         Properties properties = new Properties();
-        properties.load(new FileInputStream(AgentConfiguration.INSTANCE.getAgentConfPath()));
+        properties.load(new FileInputStream(getMetricsConfPath()));
 
         List<JMXMetricsConfiguration> metricsConfigurationList = new ArrayList<>();
         String basePropertiesKey = getBasePropertiesKey();
@@ -215,6 +215,12 @@ public abstract class JMXMetricsValue {
      * @return
      */
     public abstract String getBasePropertiesKey();
+
+    /**
+     * 监控属性的配置文件位置
+     * @return
+     */
+    public abstract String getMetricsConfPath();
 
     /**
      * JMX连接的服务名
