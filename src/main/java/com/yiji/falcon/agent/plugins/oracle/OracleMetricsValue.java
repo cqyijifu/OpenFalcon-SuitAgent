@@ -58,14 +58,15 @@ public class OracleMetricsValue extends JDBCMetricsValue {
         //执行查询语句，将数据保存到ResultSet对象中
         ResultSet rs = pstmt.executeQuery();
 
-        FalconReportObject falconReportObject = new FalconReportObject();
-        setReportCommonValue(falconReportObject);
-        falconReportObject.setCounterType(CounterType.GAUGE);
-        falconReportObject.setTimestamp(System.currentTimeMillis() / 1000);
         //将指针移到下一行，判断rs中是否有数据
         while (rs.next()){
             String tsName = rs.getString(1);
             String percent = rs.getString(2);
+
+            FalconReportObject falconReportObject = new FalconReportObject();
+            setReportCommonValue(falconReportObject);
+            falconReportObject.setCounterType(CounterType.GAUGE);
+            falconReportObject.setTimestamp(System.currentTimeMillis() / 1000);
             falconReportObject.setMetric("TSUsedPercent-" + tsName.trim());
             falconReportObject.setValue(percent.trim());
             result.add(falconReportObject);
