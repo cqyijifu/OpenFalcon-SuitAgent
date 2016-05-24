@@ -33,12 +33,6 @@ public abstract class JMXMetricsValue {
     }
 
     /**
-     * 获取所有的具体服务的JMX监控值VO
-     * @return
-     */
-    protected abstract List<JMXMetricsValueInfo> getMetricsValueInfos();
-
-    /**
      * 获取配置文件配置的监控值
      * @return
      */
@@ -50,46 +44,6 @@ public abstract class JMXMetricsValue {
 
         return jmxMetricsConfigurations;
     }
-
-    /**
-     * 设置配置的jmx监控属性
-     * @param basePropertiesKey
-     * 配置属性的前缀key值
-     * @param propertiesPath
-     * 监控属性的配置文件路径
-     * @param jmxMetricsConfigurations
-     * 需要保存的集合对象
-     * @throws IOException
-     */
-    private void setMetricsConfig(String basePropertiesKey,String propertiesPath,Set<JMXMetricsConfiguration> jmxMetricsConfigurations) throws IOException {
-        if(!StringUtils.isEmpty(basePropertiesKey) &&
-                !StringUtils.isEmpty(propertiesPath)){
-            Properties properties = new Properties();
-            properties.load(new FileInputStream(propertiesPath));
-            for (int i = 1; i <= 100; i++) {
-                String objectName = basePropertiesKey + i +".objectName";
-                if(!StringUtils.isEmpty(properties.getProperty(objectName))){
-                    JMXMetricsConfiguration metricsConfiguration = new JMXMetricsConfiguration();
-                    metricsConfiguration.setObjectName(properties.getProperty(objectName));//设置ObjectName
-                    metricsConfiguration.setCounterType(properties.getProperty(basePropertiesKey + i + ".counterType"));//设置counterType
-                    metricsConfiguration.setMetrics(properties.getProperty(basePropertiesKey + i + ".metrics"));//设置metrics
-                    String tag = properties.getProperty(basePropertiesKey + i + ".tag");
-                    metricsConfiguration.setTag(StringUtils.isEmpty(tag) ? "" : tag);//设置tag
-                    String alias = properties.getProperty(basePropertiesKey + i + ".alias");
-                    metricsConfiguration.setAlias(StringUtils.isEmpty(alias) ? metricsConfiguration.getMetrics() : alias);
-
-                    jmxMetricsConfigurations.add(metricsConfiguration);
-                }
-            }
-        }
-    }
-
-    /**
-     * 当可用时的內建监控报告
-     * 此方法只有在监控对象可用时,才会调用,并加入到所有的监控值报告中(getReportObjects)
-     * @return
-     */
-    protected abstract Collection<FalconReportObject> getInbuiltReportObjectsForValid();
 
     /**
      * 构建监控值报告的中间对象
@@ -215,7 +169,7 @@ public abstract class JMXMetricsValue {
 
             //添加內建报告
             result.addAll(getInbuiltReportObjects());
-            Collection<FalconReportObject> inbuilt = getInbuiltReportObjectsForValid();
+            Collection<FalconReportObject> inbuilt = getInbuiltReportObjectsForValid(metricsValueInfo);
             if(inbuilt != null && !inbuilt.isEmpty()){
                 result.addAll(inbuilt);
             }
@@ -320,6 +274,55 @@ public abstract class JMXMetricsValue {
             falconReportObject.setStep(getStep());
         }
     }
+
+    /**
+     * 设置配置的jmx监控属性
+     * @param basePropertiesKey
+     * 配置属性的前缀key值
+     * @param propertiesPath
+     * 监控属性的配置文件路径
+     * @param jmxMetricsConfigurations
+     * 需要保存的集合对象
+     * @throws IOException
+     */
+    private void setMetricsConfig(String basePropertiesKey,String propertiesPath,Set<JMXMetricsConfiguration> jmxMetricsConfigurations) throws IOException {
+
+        if(!StringUtils.isEmpty(basePropertiesKey) &&
+                !StringUtils.isEmpty(propertiesPath)){
+            Properties properties = new Properties();
+            properties.load(new FileInputStream(propertiesPath));
+            for (int i = 1; i <= 100; i++) {
+                String objectName = basePropertiesKey + i +".objectName";
+                if(!StringUtils.isEmpty(properties.getProperty(objectName))){
+                    JMXMetricsConfiguration metricsConfiguration = new JMXMetricsConfiguration();
+                    metricsConfiguration.setObjectName(properties.getProperty(objectName));//设置ObjectName
+                    metricsConfiguration.setCounterType(properties.getProperty(basePropertiesKey + i + ".counterType"));//设置counterType
+                    metricsConfiguration.setMetrics(properties.getProperty(basePropertiesKey + i + ".metrics"));//设置metrics
+                    String tag = properties.getProperty(basePropertiesKey + i + ".tag");
+                    metricsConfiguration.setTag(StringUtils.isEmpty(tag) ? "" : tag);//设置tag
+                    String alias = properties.getProperty(basePropertiesKey + i + ".alias");
+                    metricsConfiguration.setAlias(StringUtils.isEmpty(alias) ? metricsConfiguration.getMetrics() : alias);
+
+                    jmxMetricsConfigurations.add(metricsConfiguration);
+                }
+            }
+        }
+    }
+
+    /**
+     * 获取所有的具体服务的JMX监控值VO
+     * @return
+     */
+    protected abstract List<JMXMetricsValueInfo> getMetricsValueInfos();
+
+    /**
+     * 当可用时的內建监控报告
+     * 此方法只有在监控对象可用时,才会调用,并加入到所有的监控值报告中(getReportObjects)
+     * @param metricsValueInfo
+     * 当前的JMXMetricsValueInfo信息
+     * @return
+     */
+    protected abstract Collection<FalconReportObject> getInbuiltReportObjectsForValid(JMXMetricsValueInfo metricsValueInfo);
 
     /**
      * 获取step

@@ -36,21 +36,20 @@ public class ZkMetricValue extends JMXMetricsValue {
 
     /**
      * 当可用时的內建监控报告
-     *
+     * @param metricsValueInfo
+     * 当前的JMXMetricsValueInfo信息
      * @return
      */
     @Override
-    public Collection<FalconReportObject> getInbuiltReportObjectsForValid() {
+    public Collection<FalconReportObject> getInbuiltReportObjectsForValid(JMXMetricsValueInfo metricsValueInfo) {
         boolean isLeader = false;
         String name = "";
         List<FalconReportObject> result = new ArrayList<>();
-        for (JMXMetricsValueInfo metricsValueInfo : metricsValueInfos) {
-            for (JMXObjectNameInfo objectNameInfo : metricsValueInfo.getJmxObjectNameInfoList()) {
-                if(objectNameInfo.toString().contains("Leader")){
-                    //若ObjectName中包含有 Leader 则该zk为Leader角色
-                    isLeader = true;
-                    name = metricsValueInfo.getJmxConnectionInfo().getName();
-                }
+        for (JMXObjectNameInfo objectNameInfo : metricsValueInfo.getJmxObjectNameInfoList()) {
+            if(objectNameInfo.toString().contains("Leader")){
+                //若ObjectName中包含有 Leader 则该zk为Leader角色
+                isLeader = true;
+                name = metricsValueInfo.getJmxConnectionInfo().getName();
             }
         }
         result.add(generatorIsLeaderReport(isLeader,name));

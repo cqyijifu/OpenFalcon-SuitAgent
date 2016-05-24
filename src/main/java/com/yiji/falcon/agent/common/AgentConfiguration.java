@@ -42,6 +42,7 @@ public enum  AgentConfiguration {
     private String jmxCommonMetricsConfPath = null;
     private String zkMetricsConfPath = null;
     private String tomcatMetricsConfPath = null;
+    private String elasticSearchMetricsConfPath = null;
 
     /**
      * agent监控指标的主体说明
@@ -203,6 +204,13 @@ public enum  AgentConfiguration {
             System.exit(0);
         }
         this.elasticSearchJmxServerName = agentConf.getProperty(CONF_AGENT_ELASTICSEARCH_JMX_SERVER_NAME);
+
+        String property = System.getProperty("agent.metrics.elasticSearch.path");
+        if(StringUtils.isEmpty(property)){
+            System.err.println("tomcat的jmx配置系统属性文件未定义:agent.metrics.elasticSearch.path");
+            System.exit(0);
+        }
+        this.elasticSearchMetricsConfPath = property;
     }
 
     private void initJMXCommon(){
@@ -420,5 +428,9 @@ public enum  AgentConfiguration {
 
     public boolean isAgentElasticSearchWork() {
         return agentElasticSearchWork;
+    }
+
+    public String getElasticSearchMetricsConfPath() {
+        return elasticSearchMetricsConfPath;
     }
 }

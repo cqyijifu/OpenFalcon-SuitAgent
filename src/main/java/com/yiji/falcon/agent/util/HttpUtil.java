@@ -3,12 +3,15 @@ package com.yiji.falcon.agent.util;/**
  * Created by QianLong on 2014/4/16 0016.
  */
 
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.protocol.HTTP;
+import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,6 +46,36 @@ public class HttpUtil {
         httpPost.setEntity(entity);
         HttpClient client = new DefaultHttpClient();
         return client.execute(httpPost);
+    }
+
+    /**
+     * 发送json post请求
+     * @param url
+     * @return
+     * @throws IOException
+     */
+    public static String get(String url) throws IOException {
+        String html = "";
+        if (url != null && !"".equals(url)) {
+            // 创建一个默认的HttpClient
+            HttpClient httpclient = new DefaultHttpClient();
+            try {
+                // 以get方式请求网页
+                HttpGet httpget = new HttpGet(url);
+                // 执行请求并获取结果
+                HttpResponse httpResponse = httpclient.execute(httpget);
+                HttpEntity httpEntity = httpResponse.getEntity();
+
+                html = EntityUtils.toString(httpEntity);
+            } catch (Exception e) {
+                log.error("GET请求{}错误",url,e);
+                return "";
+            } finally {
+                // 关闭连接管理器
+                httpclient.getConnectionManager().shutdown();
+            }
+        }
+        return html;
     }
 
     /**

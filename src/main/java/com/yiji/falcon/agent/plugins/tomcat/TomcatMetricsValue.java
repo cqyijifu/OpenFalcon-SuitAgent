@@ -34,11 +34,12 @@ public class TomcatMetricsValue extends JMXMetricsValue {
     /**
      * 当可用时的內建监控报告
      * 此方法只有在监控对象可用时,才会调用,并加入到所有的监控值报告中(getReportObjects)
-     *
+     * @param metricsValueInfo
+     * 当前的JMXMetricsValueInfo信息
      * @return
      */
     @Override
-    protected Collection<FalconReportObject> getInbuiltReportObjectsForValid() {
+    protected Collection<FalconReportObject> getInbuiltReportObjectsForValid(JMXMetricsValueInfo metricsValueInfo) {
         return new ArrayList<>();
     }
 

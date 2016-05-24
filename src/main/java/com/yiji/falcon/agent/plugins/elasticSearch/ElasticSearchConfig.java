@@ -3,7 +3,9 @@ package com.yiji.falcon.agent.plugins.elasticSearch;/**
  * Created by QianLong on 16/5/24.
  */
 
+import com.alibaba.fastjson.JSONObject;
 import com.yiji.falcon.agent.util.CommendUtil;
+import com.yiji.falcon.agent.util.HttpUtil;
 import com.yiji.falcon.agent.util.StringUtils;
 import org.ho.yaml.Yaml;
 import org.ho.yaml.exception.YamlException;
@@ -120,7 +122,7 @@ public class ElasticSearchConfig {
      * @throws IOException
      */
     public static String getConnectionUrl(int pid) throws IOException {
-        return getNetworkHost(pid) + ":" + getHttpPort(pid);
+        return "http://" + getNetworkHost(pid) + ":" + getHttpPort(pid);
     }
 
     /**
@@ -133,7 +135,6 @@ public class ElasticSearchConfig {
     public static String getClusterName(int pid) throws IOException {
         String name = (String) getConfig(pid).get("cluster.name");
         if(StringUtils.isEmpty(name)){
-            //未配置,返回默认配置值
             return "elasticsearch";
         }else{
             return name;
@@ -150,9 +151,59 @@ public class ElasticSearchConfig {
     public static String getNodeName(int pid) throws IOException {
         String name = (String) getConfig(pid).get("node.name");
         if(StringUtils.isEmpty(name)){
-            return "";
+            return getNodeNameOrId(pid,2);
         }else{
             return name;
+        }
+    }
+
+    /**
+     * 获取es的节点id
+     * @param pid
+     * @return
+     * @throws IOException
+     */
+    public static String getNodeId(int pid) throws IOException {
+        return getNodeNameOrId(pid,1);
+    }
+
+    private static String getNodeNameOrId(int pid,int type) throws IOException {
+        String selfNodeId = "";
+        String selfNodeName = "";
+        String netWorkHost = getNetworkHost(pid);
+        int port = getHttpPort(pid);
+        String url = getConnectionUrl(pid) + "/_nodes";
+        String responseText = HttpUtil.get(url);
+        JSONObject responseJSON = JSONObject.parseObject(responseText);
+        JSONObject nodes = responseJSON.getJSONObject("nodes");
+        if(nodes != null){
+            for (Map.Entry<String, Object> entry : nodes.entrySet()) {
+                String nodeId = entry.getKey();
+                JSONObject nodeInfo = (JSONObject) entry.getValue();
+                String nodeName = nodeInfo.getString("name");
+                String http_address = nodeInfo.getString("http_address");
+                if("127.0.0.1".equals(netWorkHost) || "localhost".equals(netWorkHost)){
+                    if(http_address.contains("127.0.0.1:" + port) || http_address.contains("localhost:" + port)){
+                        selfNodeId = nodeId;
+                        selfNodeName = nodeName;
+                    }
+                }else{
+                    if(http_address.contains(netWorkHost + ":" + port)){
+                        selfNodeId = nodeId;
+                        selfNodeName = nodeName;
+                    }
+                }
+            }
+        }else{
+            log.error("elasticSearch json结果解析失败:{}",responseText);
+        }
+        switch (type){
+            case 1:
+                return selfNodeId;
+            case 2:
+                return selfNodeName;
+            default:
+                return "";
         }
     }
 }
