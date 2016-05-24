@@ -76,6 +76,8 @@ public class ElasticSearchConfig {
                 }
                 cache.put(key,result);
             }
+        }else{
+            log.error("命令 {} 执行失败,错误信息:\r\n{}",cmd,executeResult.msg);
         }
         return result;
     }
