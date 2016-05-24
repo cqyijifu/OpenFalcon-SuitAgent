@@ -134,7 +134,7 @@ public class ElasticSearchConfig {
         String name = (String) getConfig(pid).get("cluster.name");
         if(StringUtils.isEmpty(name)){
             //未配置,返回默认配置值
-            return "my-application";
+            return "elasticsearch";
         }else{
             return name;
         }
@@ -150,8 +150,7 @@ public class ElasticSearchConfig {
     public static String getNodeName(int pid) throws IOException {
         String name = (String) getConfig(pid).get("node.name");
         if(StringUtils.isEmpty(name)){
-            //未配置,返回默认配置值
-            return "node-1";
+            return "";
         }else{
             return name;
         }

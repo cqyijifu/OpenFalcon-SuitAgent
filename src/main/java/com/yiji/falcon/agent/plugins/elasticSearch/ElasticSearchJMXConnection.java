@@ -26,7 +26,7 @@ public class ElasticSearchJMXConnection extends JMXConnection {
     @Override
     public String getJmxConnectionName(MBeanServerConnection mBeanServerConnection,int pid) {
         try {
-            return ElasticSearchConfig.getClusterName(pid) + ":" + ElasticSearchConfig.getNodeName(pid) + ":" + ElasticSearchConfig.getHttpPort(pid);
+            return ElasticSearchConfig.getClusterName(pid) + ":" + String.valueOf(ElasticSearchConfig.getHttpPort(pid));
         } catch (IOException e) {
             logger.error("获取elasticSearch的名称异常",e);
             return "";
