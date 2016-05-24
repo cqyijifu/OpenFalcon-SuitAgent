@@ -39,6 +39,7 @@ public enum  AgentConfiguration {
      * 服务配置文件路径
      */
     private String agentConfPath = null;
+    private String jmxCommonMetricsConfPath = null;
     private String zkMetricsConfPath = null;
     private String tomcatMetricsConfPath = null;
 
@@ -52,12 +53,15 @@ public enum  AgentConfiguration {
     private int zkStep = 60;
     private int tomcatStep = 60;
     private int oracleStep = 60;
+    private int elasticSearchStep = 60;
 
     /**
      * JMX 连接服务名
      */
     private String zkJmxServerName = null;
     private String tomcatJmxServerName = null;
+    private String elasticSearchJmxServerName = null;
+
     /**
      * agent启动端口
      */
@@ -67,6 +71,7 @@ public enum  AgentConfiguration {
     private boolean agentZkWork = false;
     private boolean agentTomcatWork = false;
     private boolean agentOracleWork = false;
+    private boolean agentElasticSearchWork = false;
 
     //Oracle
     private String oracleJDBCDriver;
@@ -80,15 +85,19 @@ public enum  AgentConfiguration {
     private static final String CONF_AGENT_ZK_METRICS_STEP = "agent.zk.metrics.step";
     private static final String CONF_AGENT_TOMCAT_METRICS_STEP = "agent.tomcat.metrics.step";
     private static final String CONF_AGENT_ORACLE_METRICS_STEP = "agent.oracle.metrics.step";
+    private static final String CONF_AGENT_ELASTICSEARCH_METRICS_STEP = "agent.elasticSearch.metrics.step";
 
     private static final String CONF_AGENT_FALCON_PUSH_URL = "agent.falcon.push.url";
+    private static final String CONF_AGENT_PORT = "agent.port";
+
     private static final String CONF_AGENT_ZK_JMX_SERVER_NAME = "agent.zk.jmx.serverName";
     private static final String CONF_AGENT_TOMCAT_JMX_SERVER_NAME = "agent.tomcat.jmx.serverName";
-    private static final String CONF_AGENT_PORT = "agent.port";
+    private static final String CONF_AGENT_ELASTICSEARCH_JMX_SERVER_NAME = "agent.elasticSearch.jmx.serverName";
 
     private static final String CONF_AGENT_ZK_WORK = "agent.zk.work";
     private static final String CONF_AGENT_ORACLE_WORK = "agent.oracle.work";
     private static final String CONF_AGENT_TOMCAT_WORK = "agent.tomcat.work";
+    private static final String CONF_AGENT_ELASTICSEARCH_WORK = "agent.elasticSearch.work";
 
     private static final String CONF_AGENT_ORACLE_JDBC_DRIVER = "agent.oracle.jdbc.driver";
     private static final String CONF_AGENT_ORACLE_JDBC_URL = "agent.oracle.jdbc.url";
@@ -130,11 +139,13 @@ public enum  AgentConfiguration {
             System.exit(0);
         }
         init();
+        initJMXCommon();
         initWork();
         initStep();
         initOracle();
         initTomcat();
         initZk();
+        initElasticSearch();
     }
 
     private void init(){
@@ -186,6 +197,23 @@ public enum  AgentConfiguration {
         this.zkJmxServerName = agentConf.getProperty(CONF_AGENT_ZK_JMX_SERVER_NAME);
     }
 
+    private void initElasticSearch(){
+        if(StringUtils.isEmpty(agentConf.getProperty(CONF_AGENT_ELASTICSEARCH_JMX_SERVER_NAME))){
+            log.error("Agent启动失败,未定义 zk 的 jmx 服务名配置:{}", CONF_AGENT_ELASTICSEARCH_JMX_SERVER_NAME);
+            System.exit(0);
+        }
+        this.elasticSearchJmxServerName = agentConf.getProperty(CONF_AGENT_ELASTICSEARCH_JMX_SERVER_NAME);
+    }
+
+    private void initJMXCommon(){
+        String property = System.getProperty("agent.jmx.metrics.common.path");
+        if(StringUtils.isEmpty(property)){
+            System.err.println("jmx 的公共配置系统属性文件未定义:agent.jmx.metrics.common.path");
+            System.exit(0);
+        }
+        this.jmxCommonMetricsConfPath = property;
+    }
+
     private void initOracle(){
         Properties pps = new Properties();
         try {
@@ -227,41 +255,45 @@ public enum  AgentConfiguration {
     }
 
     private void initStep(){
-        if(!StringUtils.isEmpty(agentConf.getProperty(CONF_AGENT_ZK_METRICS_STEP))){
-            try {
-                this.zkStep = Integer.parseInt(agentConf.getProperty(CONF_AGENT_ZK_METRICS_STEP));
-                if(this.zkStep >= 24 * 60 * 60){
-                    log.error("配置文件: {} 的 {} 配置的值非法 Agent启动失败",this.agentConfPath, CONF_AGENT_ZK_METRICS_STEP);
-                    System.exit(0);
-                }
-            } catch (NumberFormatException e) {
-                log.error("配置文件: {} 的 {} 配置的值非法 Agent启动失败",this.agentConfPath, CONF_AGENT_ZK_METRICS_STEP);
-                System.exit(0);
-            }
-        }
+        setInitStep(CONF_AGENT_ZK_METRICS_STEP,4);
+        setInitStep(CONF_AGENT_TOMCAT_METRICS_STEP,3);
+        setInitStep(CONF_AGENT_ORACLE_METRICS_STEP,2);
+        setInitStep(CONF_AGENT_ELASTICSEARCH_METRICS_STEP,1);
+    }
 
-        if(!StringUtils.isEmpty(agentConf.getProperty(CONF_AGENT_TOMCAT_METRICS_STEP))){
+    /**
+     * 设置step配置
+     * @param stepConf
+     * step配置名
+     * @param type
+     * 设置的类型
+     */
+    private void setInitStep(String stepConf,int type){
+        if(!StringUtils.isEmpty(agentConf.getProperty(stepConf))){
             try {
-                this.tomcatStep = Integer.parseInt(agentConf.getProperty(CONF_AGENT_TOMCAT_METRICS_STEP));
-                if(this.tomcatStep >= 24 * 60 * 60){
-                    log.error("配置文件: {} 的 {} 配置的值非法 Agent启动失败",this.agentConfPath, CONF_AGENT_TOMCAT_METRICS_STEP);
+                int value = Integer.parseInt(agentConf.getProperty(stepConf));
+                if(value >= 24 * 60 * 60){
+                    log.error("配置文件: {} 的 {} 配置的值非法 Agent启动失败",this.agentConfPath, stepConf);
                     System.exit(0);
                 }
-            } catch (NumberFormatException e) {
-                log.error("配置文件: {} 的 {} 配置的值非法 Agent启动失败",this.agentConfPath, CONF_AGENT_TOMCAT_METRICS_STEP);
-                System.exit(0);
-            }
-        }
+                switch (type){
+                    case 1 :
+                        this.elasticSearchStep = value;
+                        break;
 
-        if(!StringUtils.isEmpty(agentConf.getProperty(CONF_AGENT_ORACLE_METRICS_STEP))){
-            try {
-                this.oracleStep = Integer.parseInt(agentConf.getProperty(CONF_AGENT_ORACLE_METRICS_STEP));
-                if(this.oracleStep >= 24 * 60 * 60){
-                    log.error("配置文件: {} 的 {} 配置的值非法 Agent启动失败",this.agentConfPath, CONF_AGENT_ORACLE_METRICS_STEP);
-                    System.exit(0);
+                    case 2:
+                        this.oracleStep = value;
+                        break;
+                    case 3:
+                        this.tomcatStep = value;
+                        break;
+                    case 4:
+                        this.zkStep = value;
+                        break;
+                    default:break;
                 }
             } catch (NumberFormatException e) {
-                log.error("配置文件: {} 的 {} 配置的值非法 Agent启动失败",this.agentConfPath, CONF_AGENT_ORACLE_METRICS_STEP);
+                log.error("配置文件: {} 的 {} 配置的值非法 Agent启动失败",this.agentConfPath, stepConf);
                 System.exit(0);
             }
         }
@@ -283,6 +315,15 @@ public enum  AgentConfiguration {
         if(!StringUtils.isEmpty(agentConf.getProperty(CONF_AGENT_ORACLE_WORK))){
             this.agentOracleWork = "true".equals(agentConf.getProperty(CONF_AGENT_ORACLE_WORK));
         }
+
+        if(!StringUtils.isEmpty(agentConf.getProperty(CONF_AGENT_ELASTICSEARCH_WORK))){
+            this.agentElasticSearchWork = "true".equals(agentConf.getProperty(CONF_AGENT_ELASTICSEARCH_WORK));
+        }
+
+    }
+
+    public int getElasticSearchStep() {
+        return elasticSearchStep;
     }
 
     public int getOracleStep() {
@@ -367,5 +408,17 @@ public enum  AgentConfiguration {
 
     public String getTomcatMetricsConfPath() {
         return tomcatMetricsConfPath;
+    }
+
+    public String getJmxCommonMetricsConfPath() {
+        return jmxCommonMetricsConfPath;
+    }
+
+    public String getElasticSearchJmxServerName() {
+        return elasticSearchJmxServerName;
+    }
+
+    public boolean isAgentElasticSearchWork() {
+        return agentElasticSearchWork;
     }
 }

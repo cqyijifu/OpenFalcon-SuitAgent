@@ -1,6 +1,6 @@
-package com.yiji.falcon.agent.plugins.tomcat;/**
+package com.yiji.falcon.agent.plugins.elasticSearch;/**
  * Copyright 2014-2015 the original ql
- * Created by QianLong on 16/5/3.
+ * Created by QianLong on 16/5/24.
  */
 
 import com.yiji.falcon.agent.common.AgentConfiguration;
@@ -8,19 +8,15 @@ import com.yiji.falcon.agent.falcon.FalconReportObject;
 import com.yiji.falcon.agent.jmx.JMXManager;
 import com.yiji.falcon.agent.jmx.vo.JMXMetricsValueInfo;
 import com.yiji.falcon.agent.plugins.JMXMetricsValue;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
 /**
- * Created by QianLong on 16/5/3.
+ * Created by QianLong on 16/5/24.
  */
-public class TomcatMetricsValue extends JMXMetricsValue {
-    private final Logger log = LoggerFactory.getLogger(this.getClass());
-
+public class ElasticSearchMetricsValue extends JMXMetricsValue {
     /**
      * 获取所有的具体服务的JMX监控值VO
      *
@@ -28,7 +24,7 @@ public class TomcatMetricsValue extends JMXMetricsValue {
      */
     @Override
     protected List<JMXMetricsValueInfo> getMetricsValueInfos() {
-        return JMXManager.getJmxMetricValue(getServerName(),new TomcatJMXConnection());
+        return JMXManager.getJmxMetricValue(getServerName(),new ElasticSearchJMXConnection());
     }
 
     /**
@@ -49,7 +45,7 @@ public class TomcatMetricsValue extends JMXMetricsValue {
      */
     @Override
     public int getStep() {
-        return AgentConfiguration.INSTANCE.getTomcatStep();
+        return AgentConfiguration.INSTANCE.getElasticSearchStep();
     }
 
     /**
@@ -59,7 +55,7 @@ public class TomcatMetricsValue extends JMXMetricsValue {
      */
     @Override
     public String getType() {
-        return "tomcat";
+        return "elasticSearch";
     }
 
     /**
@@ -69,7 +65,7 @@ public class TomcatMetricsValue extends JMXMetricsValue {
      */
     @Override
     public String getBasePropertiesKey() {
-        return "agent.tomcat.metrics.type.";
+        return null;
     }
 
     /**
@@ -79,7 +75,7 @@ public class TomcatMetricsValue extends JMXMetricsValue {
      */
     @Override
     public String getMetricsConfPath() {
-        return AgentConfiguration.INSTANCE.getTomcatMetricsConfPath();
+        return null;
     }
 
     /**
@@ -89,6 +85,6 @@ public class TomcatMetricsValue extends JMXMetricsValue {
      */
     @Override
     public String getServerName() {
-        return AgentConfiguration.INSTANCE.getTomcatJmxServerName();
+        return AgentConfiguration.INSTANCE.getElasticSearchJmxServerName();
     }
 }

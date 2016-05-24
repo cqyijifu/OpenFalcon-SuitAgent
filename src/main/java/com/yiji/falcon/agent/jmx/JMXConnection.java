@@ -68,8 +68,9 @@ public abstract class JMXConnection {
                             jmxConnectionInfo.setConnectionServerName(serverName);
                             jmxConnectionInfo.setConnectionQualifiedServerName(desc.displayName());
                             jmxConnectionInfo.setmBeanServerConnection(connector.getMBeanServerConnection());
-                            jmxConnectionInfo.setName(getJmxConnectionName(connector.getMBeanServerConnection()));
+                            jmxConnectionInfo.setName(getJmxConnectionName(connector.getMBeanServerConnection(),Integer.parseInt(desc.id())));
                             jmxConnectionInfo.setValid(true);
+                            jmxConnectionInfo.setPid(Integer.parseInt(desc.id()));
 
                             connections.add(jmxConnectionInfo);
                             connectLibrary.put(desc.displayName(),jmxConnectionInfo);
@@ -111,7 +112,8 @@ public abstract class JMXConnection {
                         jmxConnectionInfo.setConnectionServerName(serverName);
                         jmxConnectionInfo.setConnectionQualifiedServerName(desc.displayName());
                         jmxConnectionInfo.setmBeanServerConnection(connector.getMBeanServerConnection());
-                        jmxConnectionInfo.setName(getJmxConnectionName(connector.getMBeanServerConnection()));
+                        jmxConnectionInfo.setName(getJmxConnectionName(connector.getMBeanServerConnection(),Integer.parseInt(desc.id())));
+                        jmxConnectionInfo.setPid(Integer.parseInt(desc.id()));
 
                         jmxConnectionInfo.setValid(true);
                         connectLibrary.put(desc.displayName(),jmxConnectionInfo);
@@ -144,6 +146,6 @@ public abstract class JMXConnection {
      * @param mBeanServerConnection
      * @return
      */
-    public abstract String getJmxConnectionName(MBeanServerConnection mBeanServerConnection);
+    public abstract String getJmxConnectionName(MBeanServerConnection mBeanServerConnection,int pid);
 
 }

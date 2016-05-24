@@ -4,12 +4,14 @@ package com.yiji.falcon.agent;/**
  */
 
 import com.yiji.falcon.agent.common.AgentConfiguration;
+import com.yiji.falcon.agent.plugins.elasticSearch.ElasticSearchReportJob;
 import com.yiji.falcon.agent.plugins.oracle.OracleReportJob;
 import com.yiji.falcon.agent.plugins.tomcat.TomcatReportJob;
 import com.yiji.falcon.agent.util.CronUtil;
 import com.yiji.falcon.agent.util.SchedulerUtil;
 import com.yiji.falcon.agent.vo.sceduler.ScheduleJobResult;
 import com.yiji.falcon.agent.plugins.zk.ZKReportJob;
+import com.yiji.falcon.agent.vo.sceduler.ScheduleJobStatus;
 import org.apache.log4j.PropertyConfigurator;
 import org.quartz.*;
 import org.quartz.impl.DirectSchedulerFactory;
@@ -124,6 +126,7 @@ public class Agent extends Thread{
 
                 Trigger trigger = getTrigger(AgentConfiguration.INSTANCE.getZkStep(),"zookeeper","ZK的监控数据push调度任务");
                 ScheduleJobResult scheduleJobResult = SchedulerUtil.executeScheduleJob(job,trigger);
+                workResult(scheduleJobResult);
             }
             if(AgentConfiguration.INSTANCE.isAgentTomcatWork()){
                 //开启ZK
@@ -131,6 +134,7 @@ public class Agent extends Thread{
 
                 Trigger trigger = getTrigger(AgentConfiguration.INSTANCE.getTomcatStep(),"tomcat","tomcat的监控数据push调度任务");
                 ScheduleJobResult scheduleJobResult = SchedulerUtil.executeScheduleJob(job,trigger);
+                workResult(scheduleJobResult);
             }
             if(AgentConfiguration.INSTANCE.isAgentOracleWork()){
                 //开启Oracle
@@ -138,10 +142,27 @@ public class Agent extends Thread{
 
                 Trigger trigger = getTrigger(AgentConfiguration.INSTANCE.getOracleStep(),"oracle","oracle的监控数据push调度任务");
                 ScheduleJobResult scheduleJobResult = SchedulerUtil.executeScheduleJob(job,trigger);
+                workResult(scheduleJobResult);
+            }
+            if(AgentConfiguration.INSTANCE.isAgentElasticSearchWork()){
+                //开启Oracle
+                JobDetail job = getJobDetail(ElasticSearchReportJob.class,"elasticSearch","elasticSearch的监控数据push调度JOB");
+
+                Trigger trigger = getTrigger(AgentConfiguration.INSTANCE.getElasticSearchStep(),"elasticSearch","elasticSearch的监控数据push调度任务");
+                ScheduleJobResult scheduleJobResult = SchedulerUtil.executeScheduleJob(job,trigger);
+                workResult(scheduleJobResult);
             }
         } catch (SchedulerException e) {
             log.error("Agent启动失败 : 调度任务启动失败",e);
             System.exit(0);
+        }
+    }
+
+    private void workResult(ScheduleJobResult scheduleJobResult){
+        if(scheduleJobResult.getScheduleJobStatus() == ScheduleJobStatus.SUCCESS){
+            log.info("{} 启动成功",scheduleJobResult.getTriggerKey().getName());
+        }else if(scheduleJobResult.getScheduleJobStatus() == ScheduleJobStatus.FAILED){
+            log.error("{} 启动失败",scheduleJobResult.getTriggerKey().getName());
         }
     }
 

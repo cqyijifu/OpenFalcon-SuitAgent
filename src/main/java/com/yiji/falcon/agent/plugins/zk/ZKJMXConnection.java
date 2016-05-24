@@ -25,7 +25,7 @@ public class ZKJMXConnection extends JMXConnection {
      * @return
      */
     @Override
-    public String getJmxConnectionName(MBeanServerConnection mBeanServerConnection) {
+    public String getJmxConnectionName(MBeanServerConnection mBeanServerConnection,int pid) {
         try {
             Set<ObjectInstance> beanSet = mBeanServerConnection.queryMBeans(null, null);
             for (ObjectInstance mbean : beanSet) {

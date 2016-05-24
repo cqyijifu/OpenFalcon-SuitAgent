@@ -25,7 +25,7 @@ public class TomcatJMXConnection extends JMXConnection {
      * @return
      */
     @Override
-    public String getJmxConnectionName(MBeanServerConnection mBeanServerConnection) {
+    public String getJmxConnectionName(MBeanServerConnection mBeanServerConnection,int pid) {
         try {
             String name = "";
             Set<ObjectInstance> beanSet = mBeanServerConnection.queryMBeans(null, null);
