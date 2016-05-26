@@ -106,8 +106,9 @@ public abstract class JMXMetricsValue extends MetricsCommon{
                 requestObject.setTags(jmxMetricsConfiguration.getTag());
                 requestObject.setTimestamp(System.currentTimeMillis() / 1000);
                 requestObject.setObjectName(jmxObjectNameInfo.getObjectName());
-                if(NumberUtils.isNumber(metricsValue)){
-                    requestObject.setValue(metricsValue);
+                Object newValue = executeJsExpress(kitObjectNameMetrics.jmxMetricsConfiguration.getValueExpress(),metricsValue);
+                if(NumberUtils.isNumber(String.valueOf(newValue))){
+                    requestObject.setValue(String.valueOf(newValue));
                 }else{
                     log.error("异常:监控指标值{} - {} : {}不能转换为数字,将忽略此监控值",jmxMetricsConfiguration.getObjectName(),jmxMetricsConfiguration.getMetrics(),metricsValue);
                     continue;
@@ -265,7 +266,6 @@ public abstract class JMXMetricsValue extends MetricsCommon{
     @Override
     public void setReportCommonValue(FalconReportObject falconReportObject,String name){
         if(falconReportObject != null){
-//            falconReportObject.setEndpoint(AgentConfiguration.INSTANCE.getAgentEndpoint() + "-" + getType() + (StringUtils.isEmpty(name) ? "" : ":" + name));
             falconReportObject.setEndpoint(AgentConfiguration.INSTANCE.getAgentEndpoint());
             falconReportObject.setStep(getStep());
         }
@@ -294,6 +294,7 @@ public abstract class JMXMetricsValue extends MetricsCommon{
                     metricsConfiguration.setObjectName(properties.getProperty(objectName));//设置ObjectName
                     metricsConfiguration.setCounterType(properties.getProperty(basePropertiesKey + i + ".counterType"));//设置counterType
                     metricsConfiguration.setMetrics(properties.getProperty(basePropertiesKey + i + ".metrics"));//设置metrics
+                    metricsConfiguration.setValueExpress(properties.getProperty(basePropertiesKey + i + ".valueExpress"));//设置metrics
                     String tag = properties.getProperty(basePropertiesKey + i + ".tag");
                     metricsConfiguration.setTag(StringUtils.isEmpty(tag) ? "" : tag);//设置tag
                     String alias = properties.getProperty(basePropertiesKey + i + ".alias");

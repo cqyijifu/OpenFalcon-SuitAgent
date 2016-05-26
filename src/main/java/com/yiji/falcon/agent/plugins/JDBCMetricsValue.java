@@ -115,7 +115,6 @@ public abstract class JDBCMetricsValue extends MetricsCommon{
     @Override
     public void setReportCommonValue(FalconReportObject falconReportObject,String name){
         if(falconReportObject != null){
-//            falconReportObject.setEndpoint(AgentConfiguration.INSTANCE.getAgentEndpoint() + "-" + getType() + (StringUtils.isEmpty(name) ? "" : ":" + name));
             falconReportObject.setEndpoint(AgentConfiguration.INSTANCE.getAgentEndpoint());
             falconReportObject.setStep(getStep());
         }

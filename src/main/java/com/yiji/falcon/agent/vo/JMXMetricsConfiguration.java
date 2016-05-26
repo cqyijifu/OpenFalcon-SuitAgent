@@ -14,6 +14,7 @@ public class JMXMetricsConfiguration {
 
     private String objectName;
     private String metrics;
+    private String valueExpress;
     private String alias;
     private String counterType;
     private String tag;
@@ -23,6 +24,7 @@ public class JMXMetricsConfiguration {
         return "JMXMetricsConfiguration{" +
                 "objectName='" + objectName + '\'' +
                 ", metrics='" + metrics + '\'' +
+                ", valueExpress='" + valueExpress + '\'' +
                 ", alias='" + alias + '\'' +
                 ", counterType='" + counterType + '\'' +
                 ", tag='" + tag + '\'' +
@@ -40,6 +42,7 @@ public class JMXMetricsConfiguration {
         return new EqualsBuilder()
                 .append(objectName, that.objectName)
                 .append(metrics, that.metrics)
+                .append(valueExpress, that.valueExpress)
                 .append(alias, that.alias)
                 .append(counterType, that.counterType)
                 .append(tag, that.tag)
@@ -51,10 +54,19 @@ public class JMXMetricsConfiguration {
         return new HashCodeBuilder(17, 37)
                 .append(objectName)
                 .append(metrics)
+                .append(valueExpress)
                 .append(alias)
                 .append(counterType)
                 .append(tag)
                 .toHashCode();
+    }
+
+    public String getValueExpress() {
+        return valueExpress;
+    }
+
+    public void setValueExpress(String valueExpress) {
+        this.valueExpress = valueExpress;
     }
 
     public String getObjectName() {

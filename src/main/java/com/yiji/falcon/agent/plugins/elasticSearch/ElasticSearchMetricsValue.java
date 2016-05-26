@@ -11,10 +11,15 @@ import com.yiji.falcon.agent.jmx.JMXManager;
 import com.yiji.falcon.agent.jmx.vo.JMXMetricsValueInfo;
 import com.yiji.falcon.agent.plugins.JMXMetricsValue;
 import com.yiji.falcon.agent.util.HttpUtil;
+import com.yiji.falcon.agent.util.StringUtils;
 import org.ho.yaml.Yaml;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.script.ScriptContext;
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.*;
@@ -58,10 +63,13 @@ public class ElasticSearchMetricsValue extends JMXMetricsValue {
                     String urlSuffix = key.substring(0,key.lastIndexOf('.'));
                     String url = ElasticSearchConfig.getConnectionUrl(pid) + "/" + urlSuffix;
                     Map<String,String> config = (Map<String, String>) confMap.get(key);
+
                     String method = config.get("method");
                     String metrics = config.get("metrics");
                     String valuePath = config.get("valuePath").replace("{selfNodeId}",selfNodeId).replace("{selfNodeName}",selfNodeName);
                     String counterType = config.get("counterType");
+                    String valueExpress = config.get("valueExpress");
+
                     String tag = config.get("tag");
                     if("get".equalsIgnoreCase(method)){
                         String responseText = HttpUtil.get(url);
@@ -81,7 +89,9 @@ public class ElasticSearchMetricsValue extends JMXMetricsValue {
                                         setReportCommonValue(falconReportObject,name);
                                         falconReportObject.setTimestamp(System.currentTimeMillis() / 1000);
                                         falconReportObject.setMetric(getMetricsName(metrics,name));
-                                        falconReportObject.setValue(String.valueOf(value));
+
+                                        falconReportObject.setValue(String.valueOf(executeJsExpress(valueExpress,value)));
+
                                         falconReportObject.setCounterType(CounterType.valueOf(counterType));
                                         falconReportObject.setTags(tag);
 
