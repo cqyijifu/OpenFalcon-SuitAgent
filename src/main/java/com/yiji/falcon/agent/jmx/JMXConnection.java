@@ -27,7 +27,6 @@ import java.util.stream.Collectors;
  */
 public abstract class JMXConnection {
     private static final Logger log = LoggerFactory.getLogger(JMXConnection.class);
-    private static final Byte[] LOCK = new Byte[0];
     private static final Map<String,JMXConnectionInfo> connectLibrary = new HashMap<>();
     private static List<JMXConnector> closeRecord = new ArrayList<>();
 
@@ -38,7 +37,7 @@ public abstract class JMXConnection {
      * null : 应用连接获取失败
      * @throws IOException
      */
-    public List<JMXConnectionInfo> getMBeanConnection(String serverName){
+    public synchronized List<JMXConnectionInfo> getMBeanConnection(String serverName){
         if(StringUtils.isEmpty(serverName)){
             log.error("获取JMX连接的serverName不能为空");
         }
@@ -52,33 +51,31 @@ public abstract class JMXConnection {
                 map(Map.Entry::getValue).
                 collect(Collectors.toList());
         if(connections.isEmpty()){
-            synchronized (LOCK){
-                List<VirtualMachineDescriptor> vms = VirtualMachine.list();
-                for (VirtualMachineDescriptor desc : vms) {
-                    if(desc.displayName().contains(serverName)){
-                        String connectorAddress = new AbstractJmxCommand().findJMXUrlByProcessId(Integer.parseInt(desc.id()));
-                        if (connectorAddress == null) {
-                            log.error("应用 {} 的JMX连接URL获取失败",desc.displayName());
-                            continue;
-                        }
-                        JMXConnectionInfo jmxConnectionInfo = new JMXConnectionInfo();
-                        try {
-                            JMXServiceURL url = new JMXServiceURL(connectorAddress);
-                            JMXConnector connector = JMXConnectorFactory.connect(url);
-                            jmxConnectionInfo.setConnectionServerName(serverName);
-                            jmxConnectionInfo.setConnectionQualifiedServerName(desc.displayName());
-                            jmxConnectionInfo.setmBeanServerConnection(connector.getMBeanServerConnection());
-                            jmxConnectionInfo.setName(getJmxConnectionName(connector.getMBeanServerConnection(),Integer.parseInt(desc.id())));
-                            jmxConnectionInfo.setValid(true);
-                            jmxConnectionInfo.setPid(Integer.parseInt(desc.id()));
+            List<VirtualMachineDescriptor> vms = VirtualMachine.list();
+            for (VirtualMachineDescriptor desc : vms) {
+                if(desc.displayName().contains(serverName)){
+                    String connectorAddress = new AbstractJmxCommand().findJMXUrlByProcessId(Integer.parseInt(desc.id()));
+                    if (connectorAddress == null) {
+                        log.error("应用 {} 的JMX连接URL获取失败",desc.displayName());
+                        continue;
+                    }
+                    JMXConnectionInfo jmxConnectionInfo = new JMXConnectionInfo();
+                    try {
+                        JMXServiceURL url = new JMXServiceURL(connectorAddress);
+                        JMXConnector connector = JMXConnectorFactory.connect(url);
+                        jmxConnectionInfo.setConnectionServerName(serverName);
+                        jmxConnectionInfo.setConnectionQualifiedServerName(desc.displayName());
+                        jmxConnectionInfo.setmBeanServerConnection(connector.getMBeanServerConnection());
+                        jmxConnectionInfo.setName(getJmxConnectionName(connector.getMBeanServerConnection(),Integer.parseInt(desc.id())));
+                        jmxConnectionInfo.setValid(true);
+                        jmxConnectionInfo.setPid(Integer.parseInt(desc.id()));
 
-                            connections.add(jmxConnectionInfo);
-                            connectLibrary.put(desc.displayName(),jmxConnectionInfo);
-                            //添加关闭集合
-                            closeRecord.add(connector);
-                        } catch (IOException e) {
-                            log.error("JMX 连接获取异常",e);
-                        }
+                        connections.add(jmxConnectionInfo);
+                        connectLibrary.put(desc.displayName(),jmxConnectionInfo);
+                        //添加关闭集合
+                        closeRecord.add(connector);
+                    } catch (IOException e) {
+                        log.error("JMX 连接获取异常",e);
                     }
                 }
             }
@@ -92,36 +89,34 @@ public abstract class JMXConnection {
      * 配置中指定的jmx服务名
      * @throws IOException
      */
-    public void resetMBeanConnection(String serverName) {
+    public synchronized void resetMBeanConnection(String serverName) {
         if(StringUtils.isEmpty(serverName)){
             log.error("获取JMX连接的serverName不能为空");
         }
-        synchronized (LOCK){
-            List<VirtualMachineDescriptor> vms = VirtualMachine.list();
-            for (VirtualMachineDescriptor desc : vms) {
-                if(desc.displayName().contains(serverName)){
-                    String connectorAddress = new AbstractJmxCommand().findJMXUrlByProcessId(Integer.parseInt(desc.id()));
-                    if (connectorAddress == null) {
-                        log.error("应用{}的JMX连接URL获取失败",serverName);
-                        continue;
-                    }
-                    try {
-                        JMXServiceURL url = new JMXServiceURL(connectorAddress);
-                        JMXConnector connector = JMXConnectorFactory.connect(url);
-                        JMXConnectionInfo jmxConnectionInfo = new JMXConnectionInfo();
-                        jmxConnectionInfo.setConnectionServerName(serverName);
-                        jmxConnectionInfo.setConnectionQualifiedServerName(desc.displayName());
-                        jmxConnectionInfo.setmBeanServerConnection(connector.getMBeanServerConnection());
-                        jmxConnectionInfo.setName(getJmxConnectionName(connector.getMBeanServerConnection(),Integer.parseInt(desc.id())));
-                        jmxConnectionInfo.setPid(Integer.parseInt(desc.id()));
+        List<VirtualMachineDescriptor> vms = VirtualMachine.list();
+        for (VirtualMachineDescriptor desc : vms) {
+            if(desc.displayName().contains(serverName)){
+                String connectorAddress = new AbstractJmxCommand().findJMXUrlByProcessId(Integer.parseInt(desc.id()));
+                if (connectorAddress == null) {
+                    log.error("应用{}的JMX连接URL获取失败",serverName);
+                    continue;
+                }
+                try {
+                    JMXServiceURL url = new JMXServiceURL(connectorAddress);
+                    JMXConnector connector = JMXConnectorFactory.connect(url);
+                    JMXConnectionInfo jmxConnectionInfo = new JMXConnectionInfo();
+                    jmxConnectionInfo.setConnectionServerName(serverName);
+                    jmxConnectionInfo.setConnectionQualifiedServerName(desc.displayName());
+                    jmxConnectionInfo.setmBeanServerConnection(connector.getMBeanServerConnection());
+                    jmxConnectionInfo.setName(getJmxConnectionName(connector.getMBeanServerConnection(),Integer.parseInt(desc.id())));
+                    jmxConnectionInfo.setPid(Integer.parseInt(desc.id()));
 
-                        jmxConnectionInfo.setValid(true);
-                        connectLibrary.put(desc.displayName(),jmxConnectionInfo);
-                        //添加关闭集合
-                        closeRecord.add(connector);
-                    } catch (IOException e) {
-                        log.error("JMX 连接获取异常",e);
-                    }
+                    jmxConnectionInfo.setValid(true);
+                    connectLibrary.put(desc.displayName(),jmxConnectionInfo);
+                    //添加关闭集合
+                    closeRecord.add(connector);
+                } catch (IOException e) {
+                    log.error("JMX 连接获取异常",e);
                 }
             }
         }

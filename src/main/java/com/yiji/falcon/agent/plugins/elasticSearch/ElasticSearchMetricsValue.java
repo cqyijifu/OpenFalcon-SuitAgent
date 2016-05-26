@@ -45,6 +45,7 @@ public class ElasticSearchMetricsValue extends JMXMetricsValue {
      */
     @Override
     protected Collection<FalconReportObject> getInbuiltReportObjectsForValid(JMXMetricsValueInfo metricsValueInfo) {
+        // 构建elasticSearch/metricsConf.yml配置中配置的监控值
         int pid = metricsValueInfo.getJmxConnectionInfo().getPid();
         Set<FalconReportObject> result = new HashSet<>();
         String configPath = AgentConfiguration.INSTANCE.getElasticSearchMetricsConfPath();
@@ -73,10 +74,13 @@ public class ElasticSearchMetricsValue extends JMXMetricsValue {
                                     if(value instanceof JSONObject){
                                         logger.error("elasticSearch http获取值异常,检查{}路径(valuePath)是否为叶子节点:{}",key,config.get("valuePath"));
                                     }else{
+                                        //服务的标识后缀名
+                                        String name = metricsValueInfo.getJmxConnectionInfo().getName();
+
                                         FalconReportObject falconReportObject = new FalconReportObject();
-                                        setReportCommonValue(falconReportObject,metricsValueInfo.getJmxConnectionInfo().getName());
+                                        setReportCommonValue(falconReportObject,name);
                                         falconReportObject.setTimestamp(System.currentTimeMillis() / 1000);
-                                        falconReportObject.setMetric(metrics);
+                                        falconReportObject.setMetric(getMetricsName(metrics,name));
                                         falconReportObject.setValue(String.valueOf(value));
                                         falconReportObject.setCounterType(CounterType.valueOf(counterType));
                                         falconReportObject.setTags(tag);

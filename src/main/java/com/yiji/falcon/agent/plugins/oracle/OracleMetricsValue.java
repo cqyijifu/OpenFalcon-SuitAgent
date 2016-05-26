@@ -64,10 +64,10 @@ public class OracleMetricsValue extends JDBCMetricsValue {
             String percent = rs.getString(2);
 
             FalconReportObject falconReportObject = new FalconReportObject();
-            setReportCommonValue(falconReportObject);
+            setReportCommonValue(falconReportObject,getName());
             falconReportObject.setCounterType(CounterType.GAUGE);
             falconReportObject.setTimestamp(System.currentTimeMillis() / 1000);
-            falconReportObject.setMetric("TSUsedPercent-" + tsName.trim());
+            falconReportObject.setMetric(getMetricsName("TSUsedPercent-" + tsName.trim(),getName()));
             falconReportObject.setValue(percent.trim());
             result.add(falconReportObject);
         }

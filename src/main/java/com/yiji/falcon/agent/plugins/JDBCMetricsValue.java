@@ -22,7 +22,7 @@ import java.util.*;
  * 利用JDBC获取metrics监控值抽象类
  * Created by QianLong on 16/5/17.
  */
-public abstract class JDBCMetricsValue {
+public abstract class JDBCMetricsValue extends MetricsCommon{
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
     /**
@@ -48,11 +48,11 @@ public abstract class JDBCMetricsValue {
                         log.error("JDBC {} 的监控指标:{} 的值:{} ,不能转换为数字,将跳过此监控指标",getType(),entry.getKey(),metricsValue);
                     }else{
                         FalconReportObject reportObject = new FalconReportObject();
-                        reportObject.setMetric(entry.getKey());
+                        reportObject.setMetric(getMetricsName(entry.getKey(),getName()));
                         reportObject.setCounterType(CounterType.GAUGE);
                         reportObject.setValue(metricsValue);
                         reportObject.setTimestamp(System.currentTimeMillis() / 1000);
-                        setReportCommonValue(reportObject);
+                        setReportCommonValue(reportObject,getName());
 
                         result.add(reportObject);
                     }
@@ -65,10 +65,10 @@ public abstract class JDBCMetricsValue {
             if(inbuilt != null && !inbuilt.isEmpty()){
                 result.addAll(inbuilt);
             }
-            result.add(generatorVariabilityReport(true));
+            result.add(generatorVariabilityReport(true,getName()));
         } catch (SQLException | ClassNotFoundException e) {
             log.warn("连接JDBC异常,创建不可用报告",e);
-            result.add(generatorVariabilityReport(false));
+            result.add(generatorVariabilityReport(false,getName()));
         }
         return result;
     }
@@ -104,20 +104,7 @@ public abstract class JDBCMetricsValue {
      */
     public abstract Map<String,String> getAllMetricsQuery();
 
-    /**
-     * 创建指定可用性的报告对象
-     * @param isAva
-     * @return
-     */
-    private FalconReportObject generatorVariabilityReport(boolean isAva){
-        FalconReportObject falconReportObject = new FalconReportObject();
-        setReportCommonValue(falconReportObject);
-        falconReportObject.setCounterType(CounterType.GAUGE);
-        falconReportObject.setMetric("availability");
-        falconReportObject.setValue(isAva ? "1" : "0");
-        falconReportObject.setTimestamp(System.currentTimeMillis() / 1000);
-        return falconReportObject;
-    }
+
 
     /**
      * 设置报告对象公共的属性
@@ -125,9 +112,11 @@ public abstract class JDBCMetricsValue {
      * step
      * @param falconReportObject
      */
-    protected void setReportCommonValue(FalconReportObject falconReportObject){
+    @Override
+    public void setReportCommonValue(FalconReportObject falconReportObject,String name){
         if(falconReportObject != null){
-            falconReportObject.setEndpoint(AgentConfiguration.INSTANCE.getAgentEndpoint() + "-" + getType() + (StringUtils.isEmpty(getName()) ? "" : ":" + getName()));
+//            falconReportObject.setEndpoint(AgentConfiguration.INSTANCE.getAgentEndpoint() + "-" + getType() + (StringUtils.isEmpty(name) ? "" : ":" + name));
+            falconReportObject.setEndpoint(AgentConfiguration.INSTANCE.getAgentEndpoint());
             falconReportObject.setStep(getStep());
         }
     }
@@ -145,12 +134,6 @@ public abstract class JDBCMetricsValue {
      * @return
      */
     public abstract int getStep();
-
-    /**
-     * 监控类型
-     * @return
-     */
-    public abstract String getType();
 
     /**
      * 报告对象的连接标识名

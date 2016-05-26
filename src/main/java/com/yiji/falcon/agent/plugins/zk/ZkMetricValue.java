@@ -60,7 +60,7 @@ public class ZkMetricValue extends JMXMetricsValue {
         FalconReportObject falconReportObject = new FalconReportObject();
         setReportCommonValue(falconReportObject,name);
         falconReportObject.setCounterType(CounterType.GAUGE);
-        falconReportObject.setMetric("isLeader");
+        falconReportObject.setMetric(getMetricsName("isLeader",name));
         falconReportObject.setValue(isLeader ? "1" : "0");
         falconReportObject.setTimestamp(System.currentTimeMillis() / 1000);
         return falconReportObject;

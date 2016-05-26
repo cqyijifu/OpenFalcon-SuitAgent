@@ -34,7 +34,8 @@ public class ZKJMXConnection extends JMXConnection {
                     for (MBeanAttributeInfo mBeanAttributeInfo : mBeanServerConnection.getMBeanInfo(objectName).getAttributes()) {
                         String key = mBeanAttributeInfo.getName();
                         if("ClientPort".equals(key)){
-                            return mBeanServerConnection.getAttribute(mbean.getObjectName(),key).toString();
+                            String clientPort = mBeanServerConnection.getAttribute(mbean.getObjectName(),key).toString();
+                            return clientPort.substring(clientPort.lastIndexOf(':') + 1,clientPort.length());
 
                         }
                     }

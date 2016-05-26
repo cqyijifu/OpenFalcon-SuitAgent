@@ -24,7 +24,7 @@ import java.util.*;
  * 从JMX获取监控值抽象类
  * Created by QianLong on 16/5/3.
  */
-public abstract class JMXMetricsValue {
+public abstract class JMXMetricsValue extends MetricsCommon{
     private final Logger log = LoggerFactory.getLogger(this.getClass());
     protected List<JMXMetricsValueInfo> metricsValueInfos;
 
@@ -80,9 +80,8 @@ public abstract class JMXMetricsValue {
      */
     private Set<FalconReportObject> generatorReportObject(Collection<KitObjectNameMetrics> kitObjectNameMetricses,JMXMetricsValueInfo metricsValueInfo){
         Set<FalconReportObject> result = new HashSet<>();
-        /**
-         * 用于判断监控值是否重复添加,若出现重复添加,进行监控值比较
-         */
+
+        //用于判断监控值是否重复添加,若出现重复添加,进行监控值比较
         Map<String,FalconReportObject> repeat = new HashMap<>();
 
         for (KitObjectNameMetrics kitObjectNameMetrics : kitObjectNameMetricses) {
@@ -90,9 +89,13 @@ public abstract class JMXMetricsValue {
             JMXMetricsConfiguration jmxMetricsConfiguration = kitObjectNameMetrics.jmxMetricsConfiguration;
             String metricsValue = jmxObjectNameInfo.getMetricsValue().get(jmxMetricsConfiguration.getMetrics());
             if(metricsValue != null){
+                //服务的标识后缀名
+                String name = metricsValueInfo.getJmxConnectionInfo().getName();
+
                 FalconReportObject requestObject = new FalconReportObject();
-                setReportCommonValue(requestObject,metricsValueInfo.getJmxConnectionInfo().getName());
-                requestObject.setMetric(jmxMetricsConfiguration.getAlias());//设置push obj 的 metrics
+                setReportCommonValue(requestObject,name);
+                requestObject.setMetric(getMetricsName(jmxMetricsConfiguration.getAlias(),
+                        name));//设置push obj 的 metrics
                 try {
                     //设置push obj 的 Counter
                     requestObject.setCounterType(CounterType.valueOf(jmxMetricsConfiguration.getCounterType()));
@@ -110,6 +113,8 @@ public abstract class JMXMetricsValue {
                     continue;
                 }
 
+                result.add(requestObject);
+
                 //监控值重复性判断
                 FalconReportObject reportInRepeat = repeat.get(jmxMetricsConfiguration.getMetrics());
                 if(reportInRepeat == null){
@@ -120,10 +125,12 @@ public abstract class JMXMetricsValue {
                     if(!reportInRepeat.equals(requestObject)){
                         // 若已有记录而且不相同,进行区分保存
                         result.remove(reportInRepeat);
-                        reportInRepeat.setMetric(jmxMetricsConfiguration.getMetrics() + "(" + reportInRepeat.getObjectName().toString().replace("\"","") + ")");
+                        reportInRepeat.setMetric(getMetricsName(jmxMetricsConfiguration.getMetrics() + "(" + reportInRepeat.getObjectName().toString().replace("\"","") + ")",
+                                name));
                         result.add(reportInRepeat);
 
-                        requestObject.setMetric(jmxMetricsConfiguration.getMetrics() + "(" + requestObject.getObjectName().toString().replace("\"","") + ")");
+                        requestObject.setMetric(getMetricsName(jmxMetricsConfiguration.getMetrics() + "(" + requestObject.getObjectName().toString().replace("\"","") + ")",
+                                name));
                         if(!result.contains(requestObject)){
                             result.add(requestObject);
                         }
@@ -198,41 +205,44 @@ public abstract class JMXMetricsValue {
             for (JMXMetricsValueInfo metricsValueInfo : metricsValueInfos) {
                 for (JMXObjectNameInfo objectNameInfo : metricsValueInfo.getJmxObjectNameInfoList()) {
                     if("java.lang:type=Memory".equals(objectNameInfo.getObjectName().toString())){
+                        //服务的标识后缀名
+                        String name = objectNameInfo.getJmxConnectionInfo().getName();
+
                         MemoryUsage heapMemoryUsage =  MemoryUsage.from((CompositeDataSupport)objectNameInfo.
                                 getJmxConnectionInfo().getmBeanServerConnection().getAttribute(objectNameInfo.getObjectName(), "HeapMemoryUsage"));
                         MemoryUsage nonHeapMemoryUsage =  MemoryUsage.from((CompositeDataSupport)objectNameInfo.
                                 getJmxConnectionInfo().getmBeanServerConnection().getAttribute(objectNameInfo.getObjectName(), "NonHeapMemoryUsage"));
                         FalconReportObject falconReportObject = new FalconReportObject();
-                        setReportCommonValue(falconReportObject,objectNameInfo.getJmxConnectionInfo().getName());
+                        setReportCommonValue(falconReportObject,name);
                         falconReportObject.setCounterType(CounterType.GAUGE);
                         falconReportObject.setTimestamp(System.currentTimeMillis() / 1000);
                         falconReportObject.setObjectName(objectNameInfo.getObjectName());
 
-                        falconReportObject.setMetric("HeapMemoryCommitted");
+                        falconReportObject.setMetric(getMetricsName("HeapMemoryCommitted",name));
                         falconReportObject.setValue(String.valueOf(heapMemoryUsage.getCommitted()));
                         result.add(falconReportObject);
-                        falconReportObject.setMetric("NonHeapMemoryCommitted");
+                        falconReportObject.setMetric(getMetricsName("NonHeapMemoryCommitted",name));
                         falconReportObject.setValue(String.valueOf(nonHeapMemoryUsage.getCommitted()));
                         result.add(falconReportObject);
 
-                        falconReportObject.setMetric("HeapMemoryFree");
+                        falconReportObject.setMetric(getMetricsName("HeapMemoryFree",name));
                         falconReportObject.setValue(String.valueOf(heapMemoryUsage.getMax() - heapMemoryUsage.getUsed()));
                         result.add(falconReportObject);
-                        falconReportObject.setMetric("NonHeapMemoryFree");
+                        falconReportObject.setMetric(getMetricsName("NonHeapMemoryFree",name));
                         falconReportObject.setValue(String.valueOf(nonHeapMemoryUsage.getMax() - nonHeapMemoryUsage.getUsed()));
                         result.add(falconReportObject);
 
-                        falconReportObject.setMetric("HeapMemoryMax");
+                        falconReportObject.setMetric(getMetricsName("HeapMemoryMax",name));
                         falconReportObject.setValue(String.valueOf(heapMemoryUsage.getMax()));
                         result.add(falconReportObject);
-                        falconReportObject.setMetric("NonHeapMemoryMax");
+                        falconReportObject.setMetric(getMetricsName("NonHeapMemoryMax",name));
                         falconReportObject.setValue(String.valueOf(nonHeapMemoryUsage.getMax()));
                         result.add(falconReportObject);
 
-                        falconReportObject.setMetric("HeapMemoryUsed");
+                        falconReportObject.setMetric(getMetricsName("HeapMemoryUsed",name));
                         falconReportObject.setValue(String.valueOf(heapMemoryUsage.getUsed()));
                         result.add(falconReportObject);
-                        falconReportObject.setMetric("NonHeapMemoryUsed");
+                        falconReportObject.setMetric(getMetricsName("NonHeapMemoryUsed",name));
                         falconReportObject.setValue(String.valueOf(nonHeapMemoryUsage.getUsed()));
                         result.add(falconReportObject);
 
@@ -246,31 +256,17 @@ public abstract class JMXMetricsValue {
     }
 
     /**
-     * 创建指定可用性的报告对象
-     * @param isAva
-     * @param name 报告对象的连接标识名
-     * @return
-     */
-    private FalconReportObject generatorVariabilityReport(boolean isAva, String name){
-        FalconReportObject falconReportObject = new FalconReportObject();
-        setReportCommonValue(falconReportObject,name);
-        falconReportObject.setCounterType(CounterType.GAUGE);
-        falconReportObject.setMetric("availability");
-        falconReportObject.setValue(isAva ? "1" : "0");
-        falconReportObject.setTimestamp(System.currentTimeMillis() / 1000);
-        return falconReportObject;
-    }
-
-    /**
      * 设置报告对象公共的属性
      * endpoint
      * step
      * @param falconReportObject
      * @param name 报告对象的连接标识名
      */
-    protected void setReportCommonValue(FalconReportObject falconReportObject,String name){
+    @Override
+    public void setReportCommonValue(FalconReportObject falconReportObject,String name){
         if(falconReportObject != null){
-            falconReportObject.setEndpoint(AgentConfiguration.INSTANCE.getAgentEndpoint() + "-" + getType() + (StringUtils.isEmpty(name) ? "" : ":" + name));
+//            falconReportObject.setEndpoint(AgentConfiguration.INSTANCE.getAgentEndpoint() + "-" + getType() + (StringUtils.isEmpty(name) ? "" : ":" + name));
+            falconReportObject.setEndpoint(AgentConfiguration.INSTANCE.getAgentEndpoint());
             falconReportObject.setStep(getStep());
         }
     }
@@ -329,12 +325,6 @@ public abstract class JMXMetricsValue {
      * @return
      */
     public abstract int getStep();
-
-    /**
-     * 监控类型
-     * @return
-     */
-    public abstract String getType();
 
     /**
      * 监控值配置项基础配置名
