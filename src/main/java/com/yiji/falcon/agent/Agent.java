@@ -4,7 +4,9 @@ package com.yiji.falcon.agent;/**
  */
 
 import com.yiji.falcon.agent.common.AgentConfiguration;
+import com.yiji.falcon.agent.jmx.JMXConnection;
 import com.yiji.falcon.agent.plugins.elasticSearch.ElasticSearchReportJob;
+import com.yiji.falcon.agent.plugins.oracle.OracleConnection;
 import com.yiji.falcon.agent.plugins.oracle.OracleReportJob;
 import com.yiji.falcon.agent.plugins.tomcat.TomcatReportJob;
 import com.yiji.falcon.agent.util.CronUtil;
@@ -114,6 +116,12 @@ public class Agent extends Thread{
             System.err.println("获取Schedulers发生异常 " + e.getMessage());
         }
         System.out.println("调度器关闭成功");
+
+        System.out.println("关闭JMX连接");
+        JMXConnection.close();
+        System.out.println("关闭数据库连接");
+        OracleConnection.close();
+
         System.out.println("服务器关闭成功");
         System.exit(0);
     }
@@ -227,7 +235,7 @@ public class Agent extends Thread{
             //自定义日志配置文件
             PropertyConfigurator.configure(AgentConfiguration.INSTANCE.getLog4JConfPath());
             Thread main = new Thread(new Agent());
-            main.setName("Agent Main Thread");
+            main.setName("FalconAgent");
             main.start();
         }else if("stop".equals(args[0])){
             try {

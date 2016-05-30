@@ -52,7 +52,7 @@ public abstract class JDBCMetricsValue extends MetricsCommon{
                         reportObject.setCounterType(CounterType.GAUGE);
                         reportObject.setValue(metricsValue);
                         reportObject.setTimestamp(System.currentTimeMillis() / 1000);
-                        setReportCommonValue(reportObject,getName());
+                        setReportCommonValue(reportObject);
 
                         result.add(reportObject);
                     }
@@ -66,8 +66,11 @@ public abstract class JDBCMetricsValue extends MetricsCommon{
                 result.addAll(inbuilt);
             }
             result.add(generatorVariabilityReport(true,getName()));
-        } catch (SQLException | ClassNotFoundException e) {
+        } catch (SQLException e) {
             log.warn("连接JDBC异常,创建不可用报告",e);
+            result.add(generatorVariabilityReport(false,getName()));
+        } catch (ClassNotFoundException e) {
+            log.warn("JDBC驱动加载失败",e);
             result.add(generatorVariabilityReport(false,getName()));
         }
         return result;
@@ -113,9 +116,9 @@ public abstract class JDBCMetricsValue extends MetricsCommon{
      * @param falconReportObject
      */
     @Override
-    public void setReportCommonValue(FalconReportObject falconReportObject,String name){
+    public void setReportCommonValue(FalconReportObject falconReportObject){
         if(falconReportObject != null){
-            falconReportObject.setEndpoint(AgentConfiguration.INSTANCE.getAgentEndpoint());
+            falconReportObject.setEndpoint(getEndpointByTrans(AgentConfiguration.INSTANCE.getAgentEndpoint()));
             falconReportObject.setStep(getStep());
         }
     }

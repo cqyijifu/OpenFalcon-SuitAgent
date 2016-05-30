@@ -93,7 +93,7 @@ public abstract class JMXMetricsValue extends MetricsCommon{
                 String name = metricsValueInfo.getJmxConnectionInfo().getName();
 
                 FalconReportObject requestObject = new FalconReportObject();
-                setReportCommonValue(requestObject,name);
+                setReportCommonValue(requestObject);
                 requestObject.setMetric(getMetricsName(jmxMetricsConfiguration.getAlias(),
                         name));//设置push obj 的 metrics
                 try {
@@ -214,7 +214,7 @@ public abstract class JMXMetricsValue extends MetricsCommon{
                         MemoryUsage nonHeapMemoryUsage =  MemoryUsage.from((CompositeDataSupport)objectNameInfo.
                                 getJmxConnectionInfo().getmBeanServerConnection().getAttribute(objectNameInfo.getObjectName(), "NonHeapMemoryUsage"));
                         FalconReportObject falconReportObject = new FalconReportObject();
-                        setReportCommonValue(falconReportObject,name);
+                        setReportCommonValue(falconReportObject);
                         falconReportObject.setCounterType(CounterType.GAUGE);
                         falconReportObject.setTimestamp(System.currentTimeMillis() / 1000);
                         falconReportObject.setObjectName(objectNameInfo.getObjectName());
@@ -261,12 +261,11 @@ public abstract class JMXMetricsValue extends MetricsCommon{
      * endpoint
      * step
      * @param falconReportObject
-     * @param name 报告对象的连接标识名
      */
     @Override
-    public void setReportCommonValue(FalconReportObject falconReportObject,String name){
+    public void setReportCommonValue(FalconReportObject falconReportObject){
         if(falconReportObject != null){
-            falconReportObject.setEndpoint(AgentConfiguration.INSTANCE.getAgentEndpoint());
+            falconReportObject.setEndpoint(getEndpointByTrans(AgentConfiguration.INSTANCE.getAgentEndpoint()));
             falconReportObject.setStep(getStep());
         }
     }

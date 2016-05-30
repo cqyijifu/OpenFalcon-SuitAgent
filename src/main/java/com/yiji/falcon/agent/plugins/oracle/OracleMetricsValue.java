@@ -22,11 +22,6 @@ import java.util.Map;
  * Created by QianLong on 16/5/16.
  */
 public class OracleMetricsValue extends JDBCMetricsValue {
-    private Connection connection = null;
-
-    public OracleMetricsValue() throws SQLException, ClassNotFoundException {
-        connection = OracleConnection.getConnection();
-    }
 
     /**
      * 当可用时的內建监控报告
@@ -64,7 +59,7 @@ public class OracleMetricsValue extends JDBCMetricsValue {
             String percent = rs.getString(2);
 
             FalconReportObject falconReportObject = new FalconReportObject();
-            setReportCommonValue(falconReportObject,getName());
+            setReportCommonValue(falconReportObject);
             falconReportObject.setCounterType(CounterType.GAUGE);
             falconReportObject.setTimestamp(System.currentTimeMillis() / 1000);
             falconReportObject.setMetric(getMetricsName("TSUsedPercent-" + tsName.trim(),getName()));
@@ -97,7 +92,7 @@ public class OracleMetricsValue extends JDBCMetricsValue {
      */
     @Override
     public Connection getConnection() throws SQLException, ClassNotFoundException {
-        return connection;
+        return OracleConnection.getConnection();
     }
 
     /**

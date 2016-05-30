@@ -106,10 +106,6 @@ public class Client {
                 socketChannel.close();
                 //关闭服务器连接
                 selector.close();
-                //关闭jmx连接池
-                JMXConnection.close();
-                //关闭Oracle数据库连接
-                OracleConnection.close();
                 System.out.println("成功关闭Agent");
                 log.info("Agent已关闭");
                 System.exit(0);

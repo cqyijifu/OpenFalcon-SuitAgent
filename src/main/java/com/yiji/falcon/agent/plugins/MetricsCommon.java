@@ -13,6 +13,8 @@ import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 /**
  * Created by QianLong on 16/5/25.
@@ -31,12 +33,31 @@ public abstract class MetricsCommon {
      */
     FalconReportObject generatorVariabilityReport(boolean isAva, String name){
         FalconReportObject falconReportObject = new FalconReportObject();
-        setReportCommonValue(falconReportObject,name);
+        setReportCommonValue(falconReportObject);
         falconReportObject.setCounterType(CounterType.GAUGE);
         falconReportObject.setMetric(getMetricsName("availability",name));
         falconReportObject.setValue(isAva ? "1" : "0");
         falconReportObject.setTimestamp(System.currentTimeMillis() / 1000);
         return falconReportObject;
+    }
+
+    /**
+     * 返回进行变量转换后的endPoint
+     * @param endPoint
+     * @return
+     */
+    protected String getEndpointByTrans(String endPoint){
+        String hostIP = "unKnowHostIP";
+        String hostName = "unKnowHostName";
+        try {
+            InetAddress addr = InetAddress.getLocalHost();
+            hostIP = addr.getHostAddress();
+            hostName = addr.getHostName();
+        } catch (UnknownHostException e) {
+            logger.error("获取系统Host信息失败",e);
+        }
+        return endPoint.replace("{host.ip}",hostIP).
+                replace("{host.name}",hostName);
     }
 
     /**
@@ -48,7 +69,7 @@ public abstract class MetricsCommon {
      * @return
      * 返回新值或返回原值(执行失败时)
      */
-    public Object executeJsExpress(String express,Object value){
+    protected Object executeJsExpress(String express, Object value){
         Object newValue = value;
         if(!StringUtils.isEmpty(express)){
             try {
@@ -75,7 +96,7 @@ public abstract class MetricsCommon {
      * 服务的标识后缀名
      * @return
      */
-    public String getMetricsName(String metricsName,String name) {
+    protected String getMetricsName(String metricsName, String name) {
         return getType() + "." + metricsName + (StringUtils.isEmpty(name) ? "" : "/" + name);
     }
 
@@ -88,8 +109,7 @@ public abstract class MetricsCommon {
     /**
      * 设置报告对象公共的属性
      * @param falconReportObject
-     * @param name
      */
-    public abstract void setReportCommonValue(FalconReportObject falconReportObject,String name);
+    public abstract void setReportCommonValue(FalconReportObject falconReportObject);
 
 }
