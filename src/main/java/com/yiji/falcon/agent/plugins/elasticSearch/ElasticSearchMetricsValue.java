@@ -86,7 +86,7 @@ public class ElasticSearchMetricsValue extends JMXMetricsValue {
                                         String name = metricsValueInfo.getJmxConnectionInfo().getName();
 
                                         FalconReportObject falconReportObject = new FalconReportObject();
-                                        setReportCommonValue(falconReportObject,name);
+                                        setReportCommonValue(falconReportObject);
                                         falconReportObject.setTimestamp(System.currentTimeMillis() / 1000);
                                         falconReportObject.setMetric(getMetricsName(metrics,name));
 
@@ -133,7 +133,7 @@ public class ElasticSearchMetricsValue extends JMXMetricsValue {
     }
 
     /**
-     * 监控值配置项基础配置名
+     * 自定义的监控属性的监控值基础配置名
      *
      * @return
      */
@@ -143,7 +143,7 @@ public class ElasticSearchMetricsValue extends JMXMetricsValue {
     }
 
     /**
-     * 监控属性的配置文件位置
+     * 自定义的监控属性的配置文件位置
      *
      * @return
      */

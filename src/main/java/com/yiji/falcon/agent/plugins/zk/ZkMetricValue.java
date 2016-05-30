@@ -58,7 +58,7 @@ public class ZkMetricValue extends JMXMetricsValue {
 
     private FalconReportObject generatorIsLeaderReport(boolean isLeader,String name){
         FalconReportObject falconReportObject = new FalconReportObject();
-        setReportCommonValue(falconReportObject,name);
+        setReportCommonValue(falconReportObject);
         falconReportObject.setCounterType(CounterType.GAUGE);
         falconReportObject.setMetric(getMetricsName("isLeader",name));
         falconReportObject.setValue(isLeader ? "1" : "0");
@@ -88,7 +88,7 @@ public class ZkMetricValue extends JMXMetricsValue {
 
 
     /**
-     * 监控值配置项基础配置名
+     * 自定义的监控属性的监控值基础配置名
      *
      * @return
      */
@@ -98,7 +98,7 @@ public class ZkMetricValue extends JMXMetricsValue {
     }
 
     /**
-     * 监控属性的配置文件位置
+     * 自定义的监控属性的配置文件位置
      *
      * @return
      */

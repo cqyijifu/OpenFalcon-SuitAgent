@@ -1,6 +1,6 @@
-package com.yiji.falcon.agent.plugins.tomcat;/**
+package com.yiji.falcon.agent.plugins.logstash;/**
  * Copyright 2014-2015 the original ql
- * Created by QianLong on 16/5/3.
+ * Created by QianLong on 16/5/30.
  */
 
 import com.yiji.falcon.agent.common.AgentConfiguration;
@@ -8,19 +8,14 @@ import com.yiji.falcon.agent.falcon.FalconReportObject;
 import com.yiji.falcon.agent.jmx.JMXManager;
 import com.yiji.falcon.agent.jmx.vo.JMXMetricsValueInfo;
 import com.yiji.falcon.agent.plugins.JMXMetricsValue;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
 /**
- * Created by QianLong on 16/5/3.
+ * Created by QianLong on 16/5/30.
  */
-public class TomcatMetricsValue extends JMXMetricsValue {
-    private final Logger log = LoggerFactory.getLogger(this.getClass());
-
+public class LogstashMetricsValue extends JMXMetricsValue {
     /**
      * 获取所有的具体服务的JMX监控值VO
      *
@@ -28,19 +23,19 @@ public class TomcatMetricsValue extends JMXMetricsValue {
      */
     @Override
     protected List<JMXMetricsValueInfo> getMetricsValueInfos() {
-        return JMXManager.getJmxMetricValue(getServerName(),new TomcatJMXConnection());
+        return JMXManager.getJmxMetricValue(getServerName(),new LogstashJMXConnection());
     }
 
     /**
      * 当可用时的內建监控报告
      * 此方法只有在监控对象可用时,才会调用,并加入到所有的监控值报告中(getReportObjects)
-     * @param metricsValueInfo
-     * 当前的JMXMetricsValueInfo信息
+     *
+     * @param metricsValueInfo 当前的JMXMetricsValueInfo信息
      * @return
      */
     @Override
     protected Collection<FalconReportObject> getInbuiltReportObjectsForValid(JMXMetricsValueInfo metricsValueInfo) {
-        return new ArrayList<>();
+        return null;
     }
 
     /**
@@ -50,17 +45,7 @@ public class TomcatMetricsValue extends JMXMetricsValue {
      */
     @Override
     public int getStep() {
-        return AgentConfiguration.INSTANCE.getTomcatStep();
-    }
-
-    /**
-     * 监控类型
-     *
-     * @return
-     */
-    @Override
-    public String getType() {
-        return "tomcat";
+        return AgentConfiguration.INSTANCE.getLogstashStep();
     }
 
     /**
@@ -70,7 +55,7 @@ public class TomcatMetricsValue extends JMXMetricsValue {
      */
     @Override
     public String getBasePropertiesKey() {
-        return "agent.tomcat.metrics.type.";
+        return null;
     }
 
     /**
@@ -80,7 +65,7 @@ public class TomcatMetricsValue extends JMXMetricsValue {
      */
     @Override
     public String getMetricsConfPath() {
-        return AgentConfiguration.INSTANCE.getTomcatMetricsConfPath();
+        return null;
     }
 
     /**
@@ -90,6 +75,16 @@ public class TomcatMetricsValue extends JMXMetricsValue {
      */
     @Override
     public String getServerName() {
-        return AgentConfiguration.INSTANCE.getTomcatJmxServerName();
+        return AgentConfiguration.INSTANCE.getLogstashJmxServerName();
+    }
+
+    /**
+     * 监控类型
+     *
+     * @return
+     */
+    @Override
+    public String getType() {
+        return "logstash";
     }
 }

@@ -33,7 +33,7 @@ public class JMXManager {
         List<JMXConnectionInfo> mbeanConns = jmxConnection.getMBeanConnection(serverName);
         if(mbeanConns == null || mbeanConns.isEmpty()){
             log.error("获取应用 {} jmx连接失败,请检查应用是否已启动",serverName);
-            return null;
+            return new ArrayList<>();
         }
 
         boolean hasResetConnection = false;
@@ -88,8 +88,8 @@ public class JMXManager {
             // TODO 这里可以设置重试次数,超过次数就进行此连接的清除
             for (JMXConnectionInfo connectionInfo : mbeanConns) {//遍历JMX连接
                 if(!connectionInfo.isValid()){
-                    log.error("发现不可用的JMX连接,尝试重新构建 {} 的jmx连接",connectionInfo.getName());
-                    jmxConnection.resetMBeanConnection(connectionInfo.getConnectionServerName());
+                    log.error("发现不可用的JMX连接,尝试重新构建 {} 的jmx连接",connectionInfo.getConnectionServerName());
+                    jmxConnection.resetMBeanConnection(connectionInfo.getConnectionServerName(),connectionInfo.getCacheKeyId());
                 }
             }
         }

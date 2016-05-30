@@ -6,6 +6,7 @@ package com.yiji.falcon.agent;/**
 import com.yiji.falcon.agent.common.AgentConfiguration;
 import com.yiji.falcon.agent.jmx.JMXConnection;
 import com.yiji.falcon.agent.plugins.elasticSearch.ElasticSearchReportJob;
+import com.yiji.falcon.agent.plugins.logstash.LogstashReportJob;
 import com.yiji.falcon.agent.plugins.oracle.OracleConnection;
 import com.yiji.falcon.agent.plugins.oracle.OracleReportJob;
 import com.yiji.falcon.agent.plugins.tomcat.TomcatReportJob;
@@ -153,10 +154,18 @@ public class Agent extends Thread{
                 workResult(scheduleJobResult);
             }
             if(AgentConfiguration.INSTANCE.isAgentElasticSearchWork()){
-                //开启Oracle
+                //开启elasticSearch
                 JobDetail job = getJobDetail(ElasticSearchReportJob.class,"elasticSearch","elasticSearch的监控数据push调度JOB");
 
                 Trigger trigger = getTrigger(AgentConfiguration.INSTANCE.getElasticSearchStep(),"elasticSearch","elasticSearch的监控数据push调度任务");
+                ScheduleJobResult scheduleJobResult = SchedulerUtil.executeScheduleJob(job,trigger);
+                workResult(scheduleJobResult);
+            }
+            if(AgentConfiguration.INSTANCE.isAgentLogstashWork()){
+                //开启logstash
+                JobDetail job = getJobDetail(LogstashReportJob.class,"logstash","logstash的监控数据push调度JOB");
+
+                Trigger trigger = getTrigger(AgentConfiguration.INSTANCE.getLogstashStep(),"logstash","logstash的监控数据push调度任务");
                 ScheduleJobResult scheduleJobResult = SchedulerUtil.executeScheduleJob(job,trigger);
                 workResult(scheduleJobResult);
             }

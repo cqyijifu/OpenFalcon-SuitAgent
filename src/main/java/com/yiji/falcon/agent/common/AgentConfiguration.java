@@ -55,6 +55,7 @@ public enum  AgentConfiguration {
     private int tomcatStep = 60;
     private int oracleStep = 60;
     private int elasticSearchStep = 60;
+    private int logstashStep = 60;
 
     /**
      * JMX 连接服务名
@@ -62,6 +63,7 @@ public enum  AgentConfiguration {
     private String zkJmxServerName = null;
     private String tomcatJmxServerName = null;
     private String elasticSearchJmxServerName = null;
+    private String logstashJmxServerName = null;
 
     /**
      * agent启动端口
@@ -73,6 +75,7 @@ public enum  AgentConfiguration {
     private boolean agentTomcatWork = false;
     private boolean agentOracleWork = false;
     private boolean agentElasticSearchWork = false;
+    private boolean agentLogstashWork = false;
 
     //Oracle
     private String oracleJDBCDriver;
@@ -87,6 +90,7 @@ public enum  AgentConfiguration {
     private static final String CONF_AGENT_TOMCAT_METRICS_STEP = "agent.tomcat.metrics.step";
     private static final String CONF_AGENT_ORACLE_METRICS_STEP = "agent.oracle.metrics.step";
     private static final String CONF_AGENT_ELASTICSEARCH_METRICS_STEP = "agent.elasticSearch.metrics.step";
+    private static final String CONF_AGENT_LOGSTASH_METRICS_STEP = "agent.logstash.metrics.step";
 
     private static final String CONF_AGENT_FALCON_PUSH_URL = "agent.falcon.push.url";
     private static final String CONF_AGENT_PORT = "agent.port";
@@ -94,11 +98,13 @@ public enum  AgentConfiguration {
     private static final String CONF_AGENT_ZK_JMX_SERVER_NAME = "agent.zk.jmx.serverName";
     private static final String CONF_AGENT_TOMCAT_JMX_SERVER_NAME = "agent.tomcat.jmx.serverName";
     private static final String CONF_AGENT_ELASTICSEARCH_JMX_SERVER_NAME = "agent.elasticSearch.jmx.serverName";
+    private static final String CONF_AGENT_LOGSTASH_JMX_SERVER_NAME = "agent.logstash.jmx.serverName";
 
     private static final String CONF_AGENT_ZK_WORK = "agent.zk.work";
     private static final String CONF_AGENT_ORACLE_WORK = "agent.oracle.work";
     private static final String CONF_AGENT_TOMCAT_WORK = "agent.tomcat.work";
     private static final String CONF_AGENT_ELASTICSEARCH_WORK = "agent.elasticSearch.work";
+    private static final String CONF_AGENT_LOGSTASH_WORK = "agent.logstash.work";
 
     private static final String CONF_AGENT_ORACLE_JDBC_DRIVER = "agent.oracle.jdbc.driver";
     private static final String CONF_AGENT_ORACLE_JDBC_URL = "agent.oracle.jdbc.url";
@@ -147,6 +153,7 @@ public enum  AgentConfiguration {
         initTomcat();
         initZk();
         initElasticSearch();
+        initLogstash();
     }
 
     private void init(){
@@ -213,6 +220,14 @@ public enum  AgentConfiguration {
         this.elasticSearchMetricsConfPath = property;
     }
 
+    private void initLogstash(){
+        if(StringUtils.isEmpty(agentConf.getProperty(CONF_AGENT_LOGSTASH_JMX_SERVER_NAME))){
+            log.error("Agent启动失败,未定义 zk 的 jmx 服务名配置:{}", CONF_AGENT_LOGSTASH_JMX_SERVER_NAME);
+            System.exit(0);
+        }
+        this.logstashJmxServerName = agentConf.getProperty(CONF_AGENT_LOGSTASH_JMX_SERVER_NAME);
+    }
+
     private void initJMXCommon(){
         String property = System.getProperty("agent.jmx.metrics.common.path");
         if(StringUtils.isEmpty(property)){
@@ -267,6 +282,7 @@ public enum  AgentConfiguration {
         setInitStep(CONF_AGENT_TOMCAT_METRICS_STEP,3);
         setInitStep(CONF_AGENT_ORACLE_METRICS_STEP,2);
         setInitStep(CONF_AGENT_ELASTICSEARCH_METRICS_STEP,1);
+        setInitStep(CONF_AGENT_LOGSTASH_METRICS_STEP,5);
     }
 
     /**
@@ -298,6 +314,9 @@ public enum  AgentConfiguration {
                     case 4:
                         this.zkStep = value;
                         break;
+                    case 5:
+                        this.logstashStep = value;
+                        break;
                     default:break;
                 }
             } catch (NumberFormatException e) {
@@ -326,6 +345,10 @@ public enum  AgentConfiguration {
 
         if(!StringUtils.isEmpty(agentConf.getProperty(CONF_AGENT_ELASTICSEARCH_WORK))){
             this.agentElasticSearchWork = "true".equals(agentConf.getProperty(CONF_AGENT_ELASTICSEARCH_WORK));
+        }
+
+        if(!StringUtils.isEmpty(agentConf.getProperty(CONF_AGENT_LOGSTASH_WORK))){
+            this.agentLogstashWork = "true".equals(agentConf.getProperty(CONF_AGENT_LOGSTASH_WORK));
         }
 
     }
@@ -432,5 +455,17 @@ public enum  AgentConfiguration {
 
     public String getElasticSearchMetricsConfPath() {
         return elasticSearchMetricsConfPath;
+    }
+
+    public boolean isAgentLogstashWork() {
+        return agentLogstashWork;
+    }
+
+    public int getLogstashStep() {
+        return logstashStep;
+    }
+
+    public String getLogstashJmxServerName() {
+        return logstashJmxServerName;
     }
 }

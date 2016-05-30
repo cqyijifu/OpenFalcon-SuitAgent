@@ -151,6 +151,7 @@ public abstract class JMXMetricsValue extends MetricsCommon{
         Set<FalconReportObject> result = new HashSet<>();
 
         if(metricsValueInfos == null || metricsValueInfos.isEmpty()){
+            //当第一次启动agent时,当前服务未启动
             //获取不到监控值,返回所有zk不可用的监控报告
             log.error(getType() + " JMX 连接获取失败");
             result.add(generatorVariabilityReport(false,"allUnVariability"));
@@ -173,13 +174,13 @@ public abstract class JMXMetricsValue extends MetricsCommon{
 
                 //添加可用性报告
                 result.add(generatorVariabilityReport(true,metricsValueInfo.getJmxConnectionInfo().getName()));
-            }
 
-            //添加內建报告
-            result.addAll(getInbuiltReportObjects());
-            Collection<FalconReportObject> inbuilt = getInbuiltReportObjectsForValid(metricsValueInfo);
-            if(inbuilt != null && !inbuilt.isEmpty()){
-                result.addAll(inbuilt);
+                //添加內建报告
+                result.addAll(getInbuiltReportObjects());
+                Collection<FalconReportObject> inbuilt = getInbuiltReportObjectsForValid(metricsValueInfo);
+                if(inbuilt != null && !inbuilt.isEmpty()){
+                    result.addAll(inbuilt);
+                }
             }
 
         }
@@ -327,13 +328,13 @@ public abstract class JMXMetricsValue extends MetricsCommon{
     public abstract int getStep();
 
     /**
-     * 监控值配置项基础配置名
+     * 自定义的监控属性的监控值基础配置名
      * @return
      */
     public abstract String getBasePropertiesKey();
 
     /**
-     * 监控属性的配置文件位置
+     * 自定义的监控属性的配置文件位置
      * @return
      */
     public abstract String getMetricsConfPath();

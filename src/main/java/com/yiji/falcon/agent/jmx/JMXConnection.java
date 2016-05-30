@@ -15,10 +15,7 @@ import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -63,7 +60,7 @@ public abstract class JMXConnection {
                     try {
                         JMXServiceURL url = new JMXServiceURL(connectorAddress);
                         JMXConnector connector = JMXConnectorFactory.connect(url);
-                        connections.add(initJMXConnectionInfo(connector,serverName,desc));
+                        connections.add(initJMXConnectionInfo(connector,serverName,desc, UUID.randomUUID().toString()));
                     } catch (IOException e) {
                         log.error("JMX 连接获取异常",e);
                     }
@@ -77,9 +74,11 @@ public abstract class JMXConnection {
      * 重置指定应用的jmx连接
      * @param serverName
      * 配置中指定的jmx服务名
+     * @param cacheKeyId
+     * 缓存中的key id
      * @throws IOException
      */
-    public synchronized void resetMBeanConnection(String serverName) {
+    public synchronized void resetMBeanConnection(String serverName,String cacheKeyId) {
         if(StringUtils.isEmpty(serverName)){
             log.error("获取JMX连接的serverName不能为空");
         }
@@ -94,7 +93,7 @@ public abstract class JMXConnection {
                 try {
                     JMXServiceURL url = new JMXServiceURL(connectorAddress);
                     JMXConnector connector = JMXConnectorFactory.connect(url);
-                    initJMXConnectionInfo(connector,serverName,desc);
+                    initJMXConnectionInfo(connector,serverName,desc,cacheKeyId);
                 } catch (IOException e) {
                     log.error("JMX 连接获取异常",e);
                 }
@@ -102,8 +101,9 @@ public abstract class JMXConnection {
         }
     }
 
-    private JMXConnectionInfo initJMXConnectionInfo(JMXConnector connector,String serverName,VirtualMachineDescriptor desc) throws IOException {
+    private JMXConnectionInfo initJMXConnectionInfo(JMXConnector connector,String serverName,VirtualMachineDescriptor desc,String keyId) throws IOException {
         JMXConnectionInfo jmxConnectionInfo = new JMXConnectionInfo();
+        jmxConnectionInfo.setCacheKeyId(keyId);
         jmxConnectionInfo.setConnectionServerName(serverName);
         jmxConnectionInfo.setConnectionQualifiedServerName(desc.displayName());
         jmxConnectionInfo.setmBeanServerConnection(connector.getMBeanServerConnection());
@@ -111,7 +111,7 @@ public abstract class JMXConnection {
         jmxConnectionInfo.setValid(true);
         jmxConnectionInfo.setPid(Integer.parseInt(desc.id()));
 
-        connectLibrary.put(desc.displayName() + desc.id(),jmxConnectionInfo);
+        connectLibrary.put(serverName + keyId,jmxConnectionInfo);
         //添加关闭集合
         closeRecord.add(connector);
         return jmxConnectionInfo;

@@ -13,6 +13,7 @@ import javax.management.MBeanServerConnection;
  * Created by QianLong on 16/4/28.
  */
 public class JMXConnectionInfo {
+    private String cacheKeyId;//JMX缓存的key的唯一id
     private MBeanServerConnection mBeanServerConnection;
     private String connectionQualifiedServerName;//JMX中的jmx连接限定名
     private String connectionServerName;//配置中指定的服务名
@@ -23,7 +24,8 @@ public class JMXConnectionInfo {
     @Override
     public String toString() {
         return "JMXConnectionInfo{" +
-                "mBeanServerConnection=" + mBeanServerConnection +
+                "cacheKeyId='" + cacheKeyId + '\'' +
+                ", mBeanServerConnection=" + mBeanServerConnection +
                 ", connectionQualifiedServerName='" + connectionQualifiedServerName + '\'' +
                 ", connectionServerName='" + connectionServerName + '\'' +
                 ", name='" + name + '\'' +
@@ -43,6 +45,7 @@ public class JMXConnectionInfo {
         return new EqualsBuilder()
                 .append(pid, that.pid)
                 .append(valid, that.valid)
+                .append(cacheKeyId, that.cacheKeyId)
                 .append(mBeanServerConnection, that.mBeanServerConnection)
                 .append(connectionQualifiedServerName, that.connectionQualifiedServerName)
                 .append(connectionServerName, that.connectionServerName)
@@ -53,6 +56,7 @@ public class JMXConnectionInfo {
     @Override
     public int hashCode() {
         return new HashCodeBuilder(17, 37)
+                .append(cacheKeyId)
                 .append(mBeanServerConnection)
                 .append(connectionQualifiedServerName)
                 .append(connectionServerName)
@@ -68,6 +72,14 @@ public class JMXConnectionInfo {
 
     public void setConnectionServerName(String connectionServerName) {
         this.connectionServerName = connectionServerName;
+    }
+
+    public String getCacheKeyId() {
+        return cacheKeyId;
+    }
+
+    public void setCacheKeyId(String cacheKeyId) {
+        this.cacheKeyId = cacheKeyId;
     }
 
     public String getName() {
