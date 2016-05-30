@@ -60,12 +60,12 @@ public class Agent extends Thread{
     private void serverStart(int port) throws IOException {
         if(serverSocketChannel == null){
             // 创建对象
-            System.out.println("开启服务");
+            log.info("开启服务");
             serverSocketChannel = ServerSocketChannel.open();
             // 使在相同主机上，关机此服务器后，再次启动依然绑定相同的端口
             serverSocketChannel.socket().setReuseAddress(true);
         }
-        System.out.println("绑定端口" + port);
+        log.info("绑定端口" + port);
         serverSocketChannel.socket().bind(new InetSocketAddress(port));
 
         work();
@@ -74,7 +74,7 @@ public class Agent extends Thread{
         for(;;){
             try {
                 SocketChannel socketChannel = serverSocketChannel.accept();
-                System.out.println("客户端连接成功：" + socketChannel.toString());
+                log.info("客户端连接成功：" + socketChannel.toString());
 
                 //启动线程,进行客户端的对话操作
                 Thread talk = new Talk(socketChannel,this);
@@ -91,9 +91,9 @@ public class Agent extends Thread{
      * 关闭服务器
      */
     void shutdown() throws IOException {
-        System.out.println("正在关闭服务器");
+        log.info("正在关闭服务器");
         serverSocketChannel.close();
-        System.out.println("------------进行调度器关闭处理-------------------");
+        log.info("------------进行调度器关闭处理-------------------");
         SchedulerFactory sf = DirectSchedulerFactory.getInstance();
         //获取所有的Scheduler
         Collection<Scheduler> schedulers;
@@ -114,16 +114,16 @@ public class Agent extends Thread{
             }
         } catch (SchedulerException e) {
             log.warn("获取Schedulers发生异常：" + e);
-            System.err.println("获取Schedulers发生异常 " + e.getMessage());
+            log.error("获取Schedulers发生异常 " + e.getMessage());
         }
-        System.out.println("调度器关闭成功");
+        log.info("调度器关闭成功");
 
-        System.out.println("关闭JMX连接");
+        log.info("关闭JMX连接");
         JMXConnection.close();
-        System.out.println("关闭数据库连接");
+        log.info("关闭数据库连接");
         OracleConnection.close();
 
-        System.out.println("服务器关闭成功");
+        log.info("服务器关闭成功");
         System.exit(0);
     }
 
@@ -208,7 +208,7 @@ public class Agent extends Thread{
         String cron = CronUtil.getCronBySecondScheduler(step);
         Trigger trigger = null;
         if(cron != null){
-            System.out.println("启动{ " + description + " }调度:" + cron);
+            log.info("启动{ " + description + " }调度:" + cron);
             trigger = newTrigger()
                     .withIdentity(id + "-agent-scheduler-trigger", "trigger-metricsScheduler")
                     .withSchedule(CronScheduleBuilder.cronSchedule(cron))
@@ -216,7 +216,7 @@ public class Agent extends Thread{
                     .withDescription(description)
                     .build();
         }else{
-            System.err.println("agent 启动失败. 调度时间配置失败");
+            log.error("agent 启动失败. 调度时间配置失败");
             System.exit(0);
         }
         return trigger;
@@ -236,7 +236,7 @@ public class Agent extends Thread{
                         !(args[0].equals("start") ||
                         args[0].equals("stop")))
         {
-            System.err.println("Syntax: program < start | stop>");
+            log.error("Syntax: program < start | stop>");
             return;
         }
 
@@ -253,7 +253,7 @@ public class Agent extends Thread{
                 client.sendCloseCommend();
                 client.talk();
             } catch (IOException e) {
-                System.out.println("Agent 未启动");
+                log.error("Agent 未启动",e);
             }
         }
 

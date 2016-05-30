@@ -52,4 +52,4 @@ client_cmd="${JAVA} \
 	-cp ${agent_classpath} ${agent_class} $1
 "
 
-nohup $client_cmd > ${agentHome}/logs/console.log 2>&1 < /dev/null &
+nohup $client_cmd > /dev/null &

@@ -118,21 +118,21 @@ public enum  AgentConfiguration {
      */
     AgentConfiguration() {
         if(StringUtils.isEmpty(System.getProperty("agent.conf.path"))){
-            System.err.println("agent 配置文件位置读取失败,请确定系统配置项:" + "agent.conf.path");
+            log.error("agent 配置文件位置读取失败,请确定系统配置项:" + "agent.conf.path");
             System.exit(0);
         }else{
             this.agentConfPath = System.getProperty("agent.conf.path");
         }
 
         if(StringUtils.isEmpty(System.getProperty("agent.quartz.conf.path"))){
-            System.err.println("quartz 配置文件位置读取失败,请确定系统配置项:" + "agent.quartz.conf.path");
+            log.error("quartz 配置文件位置读取失败,请确定系统配置项:" + "agent.quartz.conf.path");
             System.exit(0);
         }else{
             this.quartzConfPath = System.getProperty("agent.quartz.conf.path");
         }
 
         if(StringUtils.isEmpty(System.getProperty("agent.log4j.conf.path"))){
-            System.err.println("log4j 配置文件位置读取失败,请确定系统配置项:" + "agent.log4j.conf.path");
+            log.error("log4j 配置文件位置读取失败,请确定系统配置项:" + "agent.log4j.conf.path");
             System.exit(0);
         }else{
             this.log4JConfPath = System.getProperty("agent.log4j.conf.path");
@@ -162,7 +162,7 @@ public enum  AgentConfiguration {
             try {
                 this.agentPort = Integer.parseInt(agentConf.getProperty(CONF_AGENT_PORT));
             } catch (NumberFormatException e) {
-                System.err.println("Agent启动失败,端口配置无效:" + agentConf.getProperty(CONF_AGENT_PORT));
+                log.error("Agent启动失败,端口配置无效:" + agentConf.getProperty(CONF_AGENT_PORT));
                 System.exit(0);
             }
         }
@@ -178,7 +178,7 @@ public enum  AgentConfiguration {
     private void initTomcat(){
         String tomcatConfPath = System.getProperty("agent.jmx.metrics.tomcat.path");
         if(StringUtils.isEmpty(tomcatConfPath)){
-            System.err.println("tomcat的jmx配置系统属性文件未定义:agent.jmx.metrics.tomcat.path");
+            log.error("tomcat的jmx配置系统属性文件未定义:agent.jmx.metrics.tomcat.path");
             System.exit(0);
         }
         this.tomcatMetricsConfPath = tomcatConfPath;
@@ -193,7 +193,7 @@ public enum  AgentConfiguration {
     private void initZk(){
         String zkConfPath = System.getProperty("agent.jmx.metrics.zk.path");
         if(StringUtils.isEmpty(zkConfPath)){
-            System.err.println("zookeeper的jmx配置系统属性文件未定义:agent.jmx.metrics.zk.path");
+            log.error("zookeeper的jmx配置系统属性文件未定义:agent.jmx.metrics.zk.path");
             System.exit(0);
         }
         this.zkMetricsConfPath = zkConfPath;
@@ -214,7 +214,7 @@ public enum  AgentConfiguration {
 
         String property = System.getProperty("agent.metrics.elasticSearch.path");
         if(StringUtils.isEmpty(property)){
-            System.err.println("tomcat的jmx配置系统属性文件未定义:agent.metrics.elasticSearch.path");
+            log.error("tomcat的jmx配置系统属性文件未定义:agent.metrics.elasticSearch.path");
             System.exit(0);
         }
         this.elasticSearchMetricsConfPath = property;
@@ -231,7 +231,7 @@ public enum  AgentConfiguration {
     private void initJMXCommon(){
         String property = System.getProperty("agent.jmx.metrics.common.path");
         if(StringUtils.isEmpty(property)){
-            System.err.println("jmx 的公共配置系统属性文件未定义:agent.jmx.metrics.common.path");
+            log.error("jmx 的公共配置系统属性文件未定义:agent.jmx.metrics.common.path");
             System.exit(0);
         }
         this.jmxCommonMetricsConfPath = property;
@@ -242,7 +242,7 @@ public enum  AgentConfiguration {
         try {
             pps.load(new FileInputStream(System.getProperty("agent.oracle.conf.path")));
         } catch (IOException e) {
-            System.err.println("Oracle监控配置文件未指定,请指定系统属性:agent.oracle.conf.path");
+            log.error("Oracle监控配置文件未指定,请指定系统属性:agent.oracle.conf.path");
             System.exit(0);
         }
         Enumeration en = pps.propertyNames(); //得到配置文件的名字

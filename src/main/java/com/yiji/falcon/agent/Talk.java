@@ -35,7 +35,7 @@ public class Talk extends Thread {
 
     @Override
     public void run() {
-        System.out.println("线程[" + getName() + "]:启动");
+        log.info("线程[" + getName() + "]:启动");
         try {
             while (selector.select() > 0) {
                 Set readyKeys = selector.selectedKeys();
@@ -84,7 +84,7 @@ public class Talk extends Thread {
                             }
                         }
                     } catch (Exception e) {
-                        System.out.println("线程[" + getName() + "]:通道监听异常");
+                        log.info("线程[" + getName() + "]:通道监听异常",e);
                         if (key != null) {
                             // 是此SelectionKey失效，并且selector不再监控此SelectionKey事件
                             key.cancel();

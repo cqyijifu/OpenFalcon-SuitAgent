@@ -106,7 +106,7 @@ public class Client {
                 socketChannel.close();
                 //关闭服务器连接
                 selector.close();
-                System.out.println("成功关闭Agent");
+                log.info("成功关闭Agent");
                 log.info("Agent已关闭");
                 System.exit(0);
             }
