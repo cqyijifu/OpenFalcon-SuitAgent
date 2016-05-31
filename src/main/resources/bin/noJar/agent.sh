@@ -56,4 +56,4 @@ client_cmd="${JAVA} \
 	-Dagent.metrics.elasticSearch.path=${agentHome}/conf/elasticSearch/metricsConf.yml \
 	-cp ${agent_classpath} ${agent_class} $1
 "
-nohup $client_cmd > /dev/null &
+nohup $client_cmd > /dev/null 2>&1 &
