@@ -57,48 +57,52 @@ public class ElasticSearchMetricsValue extends JMXMetricsValue {
         try {
             String selfNodeId = ElasticSearchConfig.getNodeId(pid);
             String selfNodeName = ElasticSearchConfig.getNodeName(pid);
-            HashMap<String,Object> confMap = Yaml.loadType(new FileInputStream(configPath),HashMap.class);
-            if(confMap != null){
-                for (String key : confMap.keySet()) {
-                    String urlSuffix = key.substring(0,key.lastIndexOf('.'));
-                    String url = ElasticSearchConfig.getConnectionUrl(pid) + "/" + urlSuffix;
-                    Map<String,String> config = (Map<String, String>) confMap.get(key);
+            if(StringUtils.isEmpty(selfNodeId) || StringUtils.isEmpty(selfNodeName)){
+                logger.error("获取es:{} 的服务信息失败",metricsValueInfo.getJmxConnectionInfo().getName());
+            }else{
+                HashMap<String,Object> confMap = Yaml.loadType(new FileInputStream(configPath),HashMap.class);
+                if(confMap != null){
+                    for (String key : confMap.keySet()) {
+                        String urlSuffix = key.substring(0,key.lastIndexOf('.'));
+                        String url = ElasticSearchConfig.getConnectionUrl(pid) + "/" + urlSuffix;
+                        Map<String,String> config = (Map<String, String>) confMap.get(key);
 
-                    String method = config.get("method");
-                    String metrics = config.get("metrics");
-                    String valuePath = config.get("valuePath").replace("{selfNodeId}",selfNodeId).replace("{selfNodeName}",selfNodeName);
-                    String counterType = config.get("counterType");
-                    String valueExpress = config.get("valueExpress");
+                        String method = config.get("method");
+                        String metrics = config.get("metrics");
+                        String valuePath = config.get("valuePath").replace("{selfNodeId}",selfNodeId).replace("{selfNodeName}",selfNodeName);
+                        String counterType = config.get("counterType");
+                        String valueExpress = config.get("valueExpress");
 
-                    String tag = config.get("tag");
-                    if("get".equalsIgnoreCase(method)){
-                        String responseText = HttpUtil.get(url);
-                        JSONObject jsonObject = JSONObject.parseObject(responseText);
-                        if(jsonObject != null){
-                            String[] paths = valuePath.split("\\.");
-                            for(int i=0;i<paths.length;i++){
-                                if(i == paths.length -1){
-                                    Object value = jsonObject.get(paths[i]);
-                                    if(value instanceof JSONObject){
-                                        logger.error("elasticSearch http获取值异常,检查{}路径(valuePath)是否为叶子节点:{}",key,config.get("valuePath"));
+                        String tag = config.get("tag");
+                        if("get".equalsIgnoreCase(method)){
+                            String responseText = HttpUtil.get(url);
+                            JSONObject jsonObject = JSONObject.parseObject(responseText);
+                            if(jsonObject != null){
+                                String[] paths = valuePath.split("\\.");
+                                for(int i=0;i<paths.length;i++){
+                                    if(i == paths.length -1){
+                                        Object value = jsonObject.get(paths[i]);
+                                        if(value instanceof JSONObject){
+                                            logger.error("elasticSearch http获取值异常,检查{}路径(valuePath)是否为叶子节点:{}",key,config.get("valuePath"));
+                                        }else{
+                                            //服务的标识后缀名
+                                            String name = metricsValueInfo.getJmxConnectionInfo().getName();
+
+                                            FalconReportObject falconReportObject = new FalconReportObject();
+                                            setReportCommonValue(falconReportObject);
+                                            falconReportObject.setTimestamp(System.currentTimeMillis() / 1000);
+                                            falconReportObject.setMetric(getMetricsName(metrics,name));
+
+                                            falconReportObject.setValue(String.valueOf(executeJsExpress(valueExpress,value)));
+
+                                            falconReportObject.setCounterType(CounterType.valueOf(counterType));
+                                            falconReportObject.setTags(tag);
+
+                                            result.add(falconReportObject);
+                                        }
                                     }else{
-                                        //服务的标识后缀名
-                                        String name = metricsValueInfo.getJmxConnectionInfo().getName();
-
-                                        FalconReportObject falconReportObject = new FalconReportObject();
-                                        setReportCommonValue(falconReportObject);
-                                        falconReportObject.setTimestamp(System.currentTimeMillis() / 1000);
-                                        falconReportObject.setMetric(getMetricsName(metrics,name));
-
-                                        falconReportObject.setValue(String.valueOf(executeJsExpress(valueExpress,value)));
-
-                                        falconReportObject.setCounterType(CounterType.valueOf(counterType));
-                                        falconReportObject.setTags(tag);
-
-                                        result.add(falconReportObject);
+                                        jsonObject = jsonObject.getJSONObject(paths[i]);
                                     }
-                                }else{
-                                    jsonObject = jsonObject.getJSONObject(paths[i]);
                                 }
                             }
                         }

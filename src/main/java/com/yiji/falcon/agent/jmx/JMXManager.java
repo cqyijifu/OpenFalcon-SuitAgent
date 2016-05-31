@@ -36,8 +36,7 @@ public class JMXManager {
             return new ArrayList<>();
         }
 
-        boolean hasResetConnection = false;
-
+        int validCount = 0;
         List<JMXMetricsValueInfo> jmxMetricsValueInfoList = new ArrayList<>();//返回对象
         for (JMXConnectionInfo connectionInfo : mbeanConns) {//遍历JMX连接
             JMXMetricsValueInfo jmxMetricsValueInfo = new JMXMetricsValueInfo();//监控值信息对象
@@ -67,6 +66,8 @@ public class JMXManager {
 
                     //设置监控值对象
                     jmxMetricsValueInfo.setJmxObjectNameInfoList(objectNameList);
+
+                    validCount++;
                 } catch (Exception e) {
                     //jmx 连接取值异常,设置jmx连接为不可用状态,将会在下一次获取连接时进行维护
                     connectionInfo.setValid(false);
@@ -76,22 +77,18 @@ public class JMXManager {
                     jmxMetricsValueInfoList.add(jmxMetricsValueInfo);
                 }
             }else{
-                //发现不可用的jmx连接,设置需要进行JMX连接维护标识
-                hasResetConnection = true;
                 //设置返回对象-添加监控值对象,连接不可用也需要返回,以便于构建连接不可用的报告对象
                 jmxMetricsValueInfo.setJmxConnectionInfo(connectionInfo);
                 jmxMetricsValueInfoList.add(jmxMetricsValueInfo);
             }
         }
 
-        if(hasResetConnection){
+        //若JMX可用的连接数小于该服务应有的JMX连接数,则进行尝试重新构建连接
+        //将会在下一次获取监控值时生效
+        if(validCount < JMXConnection.getServerConnectCount(serverName)){
             // TODO 这里可以设置重试次数,超过次数就进行此连接的清除
-            for (JMXConnectionInfo connectionInfo : mbeanConns) {//遍历JMX连接
-                if(!connectionInfo.isValid()){
-                    log.error("发现不可用的JMX连接,尝试重新构建 {} 的jmx连接",connectionInfo.getConnectionServerName());
-                    jmxConnection.resetMBeanConnection(connectionInfo.getConnectionServerName(),connectionInfo.getCacheKeyId());
-                }
-            }
+            log.error("发现服务{}有缺失的JMX连接,尝试重新构建该服务的jmx连接",serverName);
+            jmxConnection.resetMBeanConnection(serverName);
         }
 
         return jmxMetricsValueInfoList;

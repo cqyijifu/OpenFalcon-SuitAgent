@@ -176,7 +176,7 @@ public abstract class JMXMetricsValue extends MetricsCommon{
                 result.add(generatorVariabilityReport(true,metricsValueInfo.getJmxConnectionInfo().getName()));
 
                 //添加內建报告
-                result.addAll(getInbuiltReportObjects());
+                result.addAll(getInbuiltReportObjects(metricsValueInfo));
                 Collection<FalconReportObject> inbuilt = getInbuiltReportObjectsForValid(metricsValueInfo);
                 if(inbuilt != null && !inbuilt.isEmpty()){
                     result.addAll(inbuilt);
@@ -201,56 +201,58 @@ public abstract class JMXMetricsValue extends MetricsCommon{
      *
      * @return
      */
-    private Collection<FalconReportObject> getInbuiltReportObjects() {
+    private Collection<FalconReportObject> getInbuiltReportObjects(JMXMetricsValueInfo metricsValueInfo) {
         List<FalconReportObject> result = new ArrayList<>();
+        if(metricsValueInfo == null || !metricsValueInfo.getJmxConnectionInfo().isValid()){
+            return result;
+        }
         try {
-            for (JMXMetricsValueInfo metricsValueInfo : metricsValueInfos) {
-                for (JMXObjectNameInfo objectNameInfo : metricsValueInfo.getJmxObjectNameInfoList()) {
-                    if("java.lang:type=Memory".equals(objectNameInfo.getObjectName().toString())){
-                        //服务的标识后缀名
-                        String name = objectNameInfo.getJmxConnectionInfo().getName();
+            for (JMXObjectNameInfo objectNameInfo : metricsValueInfo.getJmxObjectNameInfoList()) {
+                if("java.lang:type=Memory".equals(objectNameInfo.getObjectName().toString())){
+                    //服务的标识后缀名
+                    String name = objectNameInfo.getJmxConnectionInfo().getName();
 
-                        MemoryUsage heapMemoryUsage =  MemoryUsage.from((CompositeDataSupport)objectNameInfo.
-                                getJmxConnectionInfo().getmBeanServerConnection().getAttribute(objectNameInfo.getObjectName(), "HeapMemoryUsage"));
-                        MemoryUsage nonHeapMemoryUsage =  MemoryUsage.from((CompositeDataSupport)objectNameInfo.
-                                getJmxConnectionInfo().getmBeanServerConnection().getAttribute(objectNameInfo.getObjectName(), "NonHeapMemoryUsage"));
-                        FalconReportObject falconReportObject = new FalconReportObject();
-                        setReportCommonValue(falconReportObject);
-                        falconReportObject.setCounterType(CounterType.GAUGE);
-                        falconReportObject.setTimestamp(System.currentTimeMillis() / 1000);
-                        falconReportObject.setObjectName(objectNameInfo.getObjectName());
+                    MemoryUsage heapMemoryUsage =  MemoryUsage.from((CompositeDataSupport)objectNameInfo.
+                            getJmxConnectionInfo().getmBeanServerConnection().getAttribute(objectNameInfo.getObjectName(), "HeapMemoryUsage"));
+                    MemoryUsage nonHeapMemoryUsage =  MemoryUsage.from((CompositeDataSupport)objectNameInfo.
+                            getJmxConnectionInfo().getmBeanServerConnection().getAttribute(objectNameInfo.getObjectName(), "NonHeapMemoryUsage"));
+                    FalconReportObject falconReportObject = new FalconReportObject();
+                    setReportCommonValue(falconReportObject);
+                    falconReportObject.setCounterType(CounterType.GAUGE);
+                    falconReportObject.setTimestamp(System.currentTimeMillis() / 1000);
+                    falconReportObject.setObjectName(objectNameInfo.getObjectName());
 
-                        falconReportObject.setMetric(getMetricsName("HeapMemoryCommitted",name));
-                        falconReportObject.setValue(String.valueOf(heapMemoryUsage.getCommitted()));
-                        result.add(falconReportObject);
-                        falconReportObject.setMetric(getMetricsName("NonHeapMemoryCommitted",name));
-                        falconReportObject.setValue(String.valueOf(nonHeapMemoryUsage.getCommitted()));
-                        result.add(falconReportObject);
+                    falconReportObject.setMetric(getMetricsName("HeapMemoryCommitted",name));
+                    falconReportObject.setValue(String.valueOf(heapMemoryUsage.getCommitted()));
+                    result.add(falconReportObject);
+                    falconReportObject.setMetric(getMetricsName("NonHeapMemoryCommitted",name));
+                    falconReportObject.setValue(String.valueOf(nonHeapMemoryUsage.getCommitted()));
+                    result.add(falconReportObject);
 
-                        falconReportObject.setMetric(getMetricsName("HeapMemoryFree",name));
-                        falconReportObject.setValue(String.valueOf(heapMemoryUsage.getMax() - heapMemoryUsage.getUsed()));
-                        result.add(falconReportObject);
-                        falconReportObject.setMetric(getMetricsName("NonHeapMemoryFree",name));
-                        falconReportObject.setValue(String.valueOf(nonHeapMemoryUsage.getMax() - nonHeapMemoryUsage.getUsed()));
-                        result.add(falconReportObject);
+                    falconReportObject.setMetric(getMetricsName("HeapMemoryFree",name));
+                    falconReportObject.setValue(String.valueOf(heapMemoryUsage.getMax() - heapMemoryUsage.getUsed()));
+                    result.add(falconReportObject);
+                    falconReportObject.setMetric(getMetricsName("NonHeapMemoryFree",name));
+                    falconReportObject.setValue(String.valueOf(nonHeapMemoryUsage.getMax() - nonHeapMemoryUsage.getUsed()));
+                    result.add(falconReportObject);
 
-                        falconReportObject.setMetric(getMetricsName("HeapMemoryMax",name));
-                        falconReportObject.setValue(String.valueOf(heapMemoryUsage.getMax()));
-                        result.add(falconReportObject);
-                        falconReportObject.setMetric(getMetricsName("NonHeapMemoryMax",name));
-                        falconReportObject.setValue(String.valueOf(nonHeapMemoryUsage.getMax()));
-                        result.add(falconReportObject);
+                    falconReportObject.setMetric(getMetricsName("HeapMemoryMax",name));
+                    falconReportObject.setValue(String.valueOf(heapMemoryUsage.getMax()));
+                    result.add(falconReportObject);
+                    falconReportObject.setMetric(getMetricsName("NonHeapMemoryMax",name));
+                    falconReportObject.setValue(String.valueOf(nonHeapMemoryUsage.getMax()));
+                    result.add(falconReportObject);
 
-                        falconReportObject.setMetric(getMetricsName("HeapMemoryUsed",name));
-                        falconReportObject.setValue(String.valueOf(heapMemoryUsage.getUsed()));
-                        result.add(falconReportObject);
-                        falconReportObject.setMetric(getMetricsName("NonHeapMemoryUsed",name));
-                        falconReportObject.setValue(String.valueOf(nonHeapMemoryUsage.getUsed()));
-                        result.add(falconReportObject);
+                    falconReportObject.setMetric(getMetricsName("HeapMemoryUsed",name));
+                    falconReportObject.setValue(String.valueOf(heapMemoryUsage.getUsed()));
+                    result.add(falconReportObject);
+                    falconReportObject.setMetric(getMetricsName("NonHeapMemoryUsed",name));
+                    falconReportObject.setValue(String.valueOf(nonHeapMemoryUsage.getUsed()));
+                    result.add(falconReportObject);
 
-                    }
                 }
             }
+
         } catch (Exception e) {
             log.error("获取jmx 内置监控数据异常",e);
         }

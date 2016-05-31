@@ -176,7 +176,13 @@ public class ElasticSearchConfig {
         String netWorkHost = getNetworkHost(pid);
         int port = getHttpPort(pid);
         String url = getConnectionUrl(pid) + "/_nodes";
-        String responseText = HttpUtil.get(url);
+        String responseText;
+        try {
+            responseText = HttpUtil.get(url);
+        } catch (IOException e) {
+            log.error("访问{}异常",url,e);
+            return "";
+        }
         JSONObject responseJSON = JSONObject.parseObject(responseText);
         JSONObject nodes = responseJSON.getJSONObject("nodes");
         if(nodes != null){
