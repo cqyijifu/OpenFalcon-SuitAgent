@@ -43,13 +43,12 @@ public class ZkMetricValue extends JMXMetricsValue {
     @Override
     public Collection<FalconReportObject> getInbuiltReportObjectsForValid(JMXMetricsValueInfo metricsValueInfo) {
         boolean isLeader = false;
-        String name = "";
+        String name = metricsValueInfo.getJmxConnectionInfo().getName();
         List<FalconReportObject> result = new ArrayList<>();
         for (JMXObjectNameInfo objectNameInfo : metricsValueInfo.getJmxObjectNameInfoList()) {
             if(objectNameInfo.toString().contains("Leader")){
                 //若ObjectName中包含有 Leader 则该zk为Leader角色
                 isLeader = true;
-                name = metricsValueInfo.getJmxConnectionInfo().getName();
             }
         }
         result.add(generatorIsLeaderReport(isLeader,name));
