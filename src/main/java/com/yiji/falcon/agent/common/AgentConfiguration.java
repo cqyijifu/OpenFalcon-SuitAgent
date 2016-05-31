@@ -242,7 +242,7 @@ public enum  AgentConfiguration {
         try {
             pps.load(new FileInputStream(System.getProperty("agent.oracle.conf.path")));
         } catch (IOException e) {
-            log.error("Oracle监控配置文件未指定,请指定系统属性:agent.oracle.conf.path");
+            log.error("Oracle监控配置文件未指定,请指定系统属性:agent.oracle.conf.path",e);
             System.exit(0);
         }
         Enumeration en = pps.propertyNames(); //得到配置文件的名字

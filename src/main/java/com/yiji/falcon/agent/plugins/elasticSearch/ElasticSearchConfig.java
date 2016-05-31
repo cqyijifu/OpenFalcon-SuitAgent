@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -67,15 +68,17 @@ public class ElasticSearchConfig {
                 }
             }
             if(!"".equals(path)){
-                path = path.substring(0,path.lastIndexOf('/'));
-                path = path.substring(0,path.lastIndexOf('/'));
+                path = path.substring(0,path.lastIndexOf(File.separator));
+                path = path.substring(0,path.lastIndexOf(File.separator));
                 path += File.separator + "config" + File.separator + "elasticsearch.yml";
                 try {
                     result = Yaml.loadType(new FileInputStream(path), HashMap.class);
+                    cache.put(key,result);
                 } catch (YamlException e) {
                     log.warn("配置文件解析失败,配置文件可能未配置任何内容",e);
+                }catch (FileNotFoundException e){
+                    log.error("elasticSearch配置文件查找失败,请检查是否路径存在空格",e);
                 }
-                cache.put(key,result);
             }
         }else{
             log.error("命令 {} 执行失败,错误信息:\r\n{}",cmd,executeResult.msg);
