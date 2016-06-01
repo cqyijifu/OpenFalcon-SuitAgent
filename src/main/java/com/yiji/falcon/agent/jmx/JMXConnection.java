@@ -38,6 +38,23 @@ public abstract class JMXConnection {
     }
 
     /**
+     * 获取本地是否已开启指定的JMX服务
+     * @param serverName
+     * @return
+     */
+    public static boolean hasJMXServerInLocal(String serverName){
+        if(!StringUtils.isEmpty(serverName)){
+            List<VirtualMachineDescriptor> vms = VirtualMachine.list();
+            for (VirtualMachineDescriptor desc : vms) {
+                if(desc.displayName().contains(serverName)){
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
      * 获取JMX连接
      * @param serverName 要获取的应用的名称(如运行的main类名称)
      * @return

@@ -70,12 +70,13 @@ public enum  AgentConfiguration {
      */
     private int agentPort = 4518;
 
+    private final String falseStr = "false";
     //服务开启项
-    private boolean agentZkWork = false;
-    private boolean agentTomcatWork = false;
-    private boolean agentOracleWork = false;
-    private boolean agentElasticSearchWork = false;
-    private boolean agentLogstashWork = false;
+    private String agentZkWork = falseStr;
+    private String agentTomcatWork = falseStr;
+    private String agentOracleWork = falseStr;
+    private String agentElasticSearchWork = falseStr;
+    private String agentLogstashWork = falseStr;
 
     //Oracle
     private String oracleJDBCDriver;
@@ -332,23 +333,23 @@ public enum  AgentConfiguration {
         }
 
         if(!StringUtils.isEmpty(agentConf.getProperty(CONF_AGENT_ZK_WORK))){
-            this.agentZkWork = "true".equals(agentConf.getProperty(CONF_AGENT_ZK_WORK));
+            this.agentZkWork = agentConf.getProperty(CONF_AGENT_ZK_WORK);
         }
 
         if(!StringUtils.isEmpty(agentConf.getProperty(CONF_AGENT_TOMCAT_WORK))){
-            this.agentTomcatWork = "true".equals(agentConf.getProperty(CONF_AGENT_TOMCAT_WORK));
+            this.agentTomcatWork = agentConf.getProperty(CONF_AGENT_TOMCAT_WORK);
         }
 
         if(!StringUtils.isEmpty(agentConf.getProperty(CONF_AGENT_ORACLE_WORK))){
-            this.agentOracleWork = "true".equals(agentConf.getProperty(CONF_AGENT_ORACLE_WORK));
+            this.agentOracleWork = agentConf.getProperty(CONF_AGENT_ORACLE_WORK);
         }
 
         if(!StringUtils.isEmpty(agentConf.getProperty(CONF_AGENT_ELASTICSEARCH_WORK))){
-            this.agentElasticSearchWork = "true".equals(agentConf.getProperty(CONF_AGENT_ELASTICSEARCH_WORK));
+            this.agentElasticSearchWork = agentConf.getProperty(CONF_AGENT_ELASTICSEARCH_WORK);
         }
 
         if(!StringUtils.isEmpty(agentConf.getProperty(CONF_AGENT_LOGSTASH_WORK))){
-            this.agentLogstashWork = "true".equals(agentConf.getProperty(CONF_AGENT_LOGSTASH_WORK));
+            this.agentLogstashWork = agentConf.getProperty(CONF_AGENT_LOGSTASH_WORK);
         }
 
     }
@@ -367,14 +368,6 @@ public enum  AgentConfiguration {
 
     public int getTomcatStep() {
         return tomcatStep;
-    }
-
-    public boolean isAgentTomcatWork() {
-        return agentTomcatWork;
-    }
-
-    public boolean isAgentZkWork() {
-        return agentZkWork;
     }
 
     public String getQuartzConfPath() {
@@ -413,9 +406,6 @@ public enum  AgentConfiguration {
         return tomcatJmxServerName;
     }
 
-    public boolean isAgentOracleWork() {
-        return agentOracleWork;
-    }
 
     public String getOracleJDBCDriver() {
         return oracleJDBCDriver;
@@ -449,16 +439,8 @@ public enum  AgentConfiguration {
         return elasticSearchJmxServerName;
     }
 
-    public boolean isAgentElasticSearchWork() {
-        return agentElasticSearchWork;
-    }
-
     public String getElasticSearchMetricsConfPath() {
         return elasticSearchMetricsConfPath;
-    }
-
-    public boolean isAgentLogstashWork() {
-        return agentLogstashWork;
     }
 
     public int getLogstashStep() {
@@ -467,5 +449,25 @@ public enum  AgentConfiguration {
 
     public String getLogstashJmxServerName() {
         return logstashJmxServerName;
+    }
+
+    public String getAgentZkWork() {
+        return agentZkWork;
+    }
+
+    public String getAgentTomcatWork() {
+        return agentTomcatWork;
+    }
+
+    public String getAgentOracleWork() {
+        return agentOracleWork;
+    }
+
+    public String getAgentElasticSearchWork() {
+        return agentElasticSearchWork;
+    }
+
+    public String getAgentLogstashWork() {
+        return agentLogstashWork;
     }
 }

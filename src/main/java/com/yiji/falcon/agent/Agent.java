@@ -127,45 +127,43 @@ public class Agent extends Thread{
         System.exit(0);
     }
 
+    /**
+     * JMX服务的监控启动逻辑服务方法
+     * @param workConf
+     * @param jobClazz
+     * @param desc
+     * @param serverName
+     * @throws SchedulerException
+     */
+    private void workLogicForJMX(String workConf,Class<? extends Job> jobClazz,String desc,String serverName) throws SchedulerException {
+        if("auto".equalsIgnoreCase(workConf)){
+            if(JMXConnection.hasJMXServerInLocal(serverName)){
+                //开启服务监控
+                log.info("自动发现JMX服务:{}",serverName);
+                JobDetail job = getJobDetail(jobClazz,desc,desc + "的监控数据push调度JOB");
+                Trigger trigger = getTrigger(AgentConfiguration.INSTANCE.getZkStep(),desc,desc + "的监控数据push调度任务");
+                ScheduleJobResult scheduleJobResult = SchedulerUtil.executeScheduleJob(job,trigger);
+                workResult(scheduleJobResult);
+            }
+        }else if("true".equalsIgnoreCase(workConf)){
+            JobDetail job = getJobDetail(jobClazz,desc,desc + "的监控数据push调度JOB");
+            Trigger trigger = getTrigger(AgentConfiguration.INSTANCE.getZkStep(),desc,desc + "的监控数据push调度任务");
+            ScheduleJobResult scheduleJobResult = SchedulerUtil.executeScheduleJob(job,trigger);
+            workResult(scheduleJobResult);
+        }
+    }
+
     private void work(){
         try {
-            if(AgentConfiguration.INSTANCE.isAgentZkWork()){
-                //开启ZK
-                JobDetail job = getJobDetail(ZKReportJob.class,"zookeeper","ZK的监控数据push调度JOB");
-
-                Trigger trigger = getTrigger(AgentConfiguration.INSTANCE.getZkStep(),"zookeeper","ZK的监控数据push调度任务");
-                ScheduleJobResult scheduleJobResult = SchedulerUtil.executeScheduleJob(job,trigger);
-                workResult(scheduleJobResult);
-            }
-            if(AgentConfiguration.INSTANCE.isAgentTomcatWork()){
-                //开启ZK
-                JobDetail job = getJobDetail(TomcatReportJob.class,"tomcat","tomcat的监控数据push调度JOB");
-
-                Trigger trigger = getTrigger(AgentConfiguration.INSTANCE.getTomcatStep(),"tomcat","tomcat的监控数据push调度任务");
-                ScheduleJobResult scheduleJobResult = SchedulerUtil.executeScheduleJob(job,trigger);
-                workResult(scheduleJobResult);
-            }
-            if(AgentConfiguration.INSTANCE.isAgentOracleWork()){
+            workLogicForJMX(AgentConfiguration.INSTANCE.getAgentZkWork(),ZKReportJob.class,"zookeeper",AgentConfiguration.INSTANCE.getZkJmxServerName());
+            workLogicForJMX(AgentConfiguration.INSTANCE.getAgentTomcatWork(),TomcatReportJob.class,"tomcat",AgentConfiguration.INSTANCE.getTomcatJmxServerName());
+            workLogicForJMX(AgentConfiguration.INSTANCE.getAgentElasticSearchWork(),ElasticSearchReportJob.class,"elasticSearch",AgentConfiguration.INSTANCE.getElasticSearchJmxServerName());
+            workLogicForJMX(AgentConfiguration.INSTANCE.getAgentLogstashWork(),LogstashReportJob.class,"logstash",AgentConfiguration.INSTANCE.getLogstashJmxServerName());
+            if("true".equalsIgnoreCase(AgentConfiguration.INSTANCE.getAgentOracleWork())){
                 //开启Oracle
                 JobDetail job = getJobDetail(OracleReportJob.class,"oracle","oracle的监控数据push调度JOB");
 
                 Trigger trigger = getTrigger(AgentConfiguration.INSTANCE.getOracleStep(),"oracle","oracle的监控数据push调度任务");
-                ScheduleJobResult scheduleJobResult = SchedulerUtil.executeScheduleJob(job,trigger);
-                workResult(scheduleJobResult);
-            }
-            if(AgentConfiguration.INSTANCE.isAgentElasticSearchWork()){
-                //开启elasticSearch
-                JobDetail job = getJobDetail(ElasticSearchReportJob.class,"elasticSearch","elasticSearch的监控数据push调度JOB");
-
-                Trigger trigger = getTrigger(AgentConfiguration.INSTANCE.getElasticSearchStep(),"elasticSearch","elasticSearch的监控数据push调度任务");
-                ScheduleJobResult scheduleJobResult = SchedulerUtil.executeScheduleJob(job,trigger);
-                workResult(scheduleJobResult);
-            }
-            if(AgentConfiguration.INSTANCE.isAgentLogstashWork()){
-                //开启logstash
-                JobDetail job = getJobDetail(LogstashReportJob.class,"logstash","logstash的监控数据push调度JOB");
-
-                Trigger trigger = getTrigger(AgentConfiguration.INSTANCE.getLogstashStep(),"logstash","logstash的监控数据push调度任务");
                 ScheduleJobResult scheduleJobResult = SchedulerUtil.executeScheduleJob(job,trigger);
                 workResult(scheduleJobResult);
             }
