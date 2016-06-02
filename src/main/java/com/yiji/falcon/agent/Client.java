@@ -105,9 +105,8 @@ public class Client {
                 key.cancel();
                 socketChannel.close();
                 //关闭服务器连接
-                selector.close();
-                log.info("成功关闭Agent");
-                log.info("Agent已关闭");
+                close();
+                Agent.OUT.println("Agent已关闭成功");
                 System.exit(0);
             }
 
@@ -115,6 +114,15 @@ public class Client {
             receiveBuffer.position(temp.limit());
             receiveBuffer.compact();//删除已经打印的数据
         }
+    }
+
+    /**
+     * 关闭连接资源
+     * @throws IOException
+     */
+    public void close() throws IOException {
+        socketChannel.close();
+        selector.close();
     }
 
     /**

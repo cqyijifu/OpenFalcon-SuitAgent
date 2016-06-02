@@ -52,4 +52,16 @@ client_cmd="${JAVA} \
 	-cp ${agent_classpath} ${agent_class} $1
 "
 
-nohup $client_cmd > /dev/null 2>&1 &
+case $1 in
+start)
+	nohup $client_cmd > /dev/null 2>&1 &
+;;
+stop)
+	$client_cmd
+;;
+status)
+	$client_cmd
+;;
+*)
+    echo "Syntax: program < start | stop | status >"
+esac

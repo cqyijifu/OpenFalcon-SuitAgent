@@ -11,6 +11,7 @@ import com.yiji.falcon.agent.plugins.oracle.OracleConnection;
 import com.yiji.falcon.agent.plugins.oracle.OracleReportJob;
 import com.yiji.falcon.agent.plugins.tomcat.TomcatReportJob;
 import com.yiji.falcon.agent.util.CronUtil;
+import com.yiji.falcon.agent.util.DateUtil;
 import com.yiji.falcon.agent.util.SchedulerUtil;
 import com.yiji.falcon.agent.vo.sceduler.ScheduleJobResult;
 import com.yiji.falcon.agent.plugins.zk.ZKReportJob;
@@ -22,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
@@ -37,6 +39,9 @@ import static org.quartz.TriggerBuilder.newTrigger;
  * Created by QianLong on 16/4/25.
  */
 public class Agent extends Thread{
+
+    public static final PrintStream OUT = System.out;
+    public static final PrintStream ERR = System.err;
 
     private static final Logger log = LoggerFactory.getLogger(Agent.class);
 
@@ -230,29 +235,47 @@ public class Agent extends Thread{
     }
 
     public static void main(String[] args){
+        String errorMsg = "Syntax: program < start | stop | status >";
         if(args.length < 1 ||
-                        !(args[0].equals("start") ||
-                        args[0].equals("stop")))
+                        !("start".equals(args[0]) ||
+                                "stop".equals(args[0]) ||
+                                "status".equals(args[0])
+                        ))
         {
-            log.error("Syntax: program < start | stop>");
+            ERR.println(errorMsg);
             return;
         }
 
-        if ("start".equals(args[0])){
-            //自定义日志配置文件
-            PropertyConfigurator.configure(AgentConfiguration.INSTANCE.getLog4JConfPath());
-            Thread main = new Thread(new Agent());
-            main.setName("FalconAgent");
-            main.start();
-        }else if("stop".equals(args[0])){
-            try {
-                Client client = new Client();
-                client.start(AgentConfiguration.INSTANCE.getAgentPort());
-                client.sendCloseCommend();
-                client.talk();
-            } catch (IOException e) {
-                log.error("Agent 未启动",e);
-            }
+        switch (args[0]){
+            case "start":
+                //自定义日志配置文件
+                PropertyConfigurator.configure(AgentConfiguration.INSTANCE.getLog4JConfPath());
+                Thread main = new Agent();
+                main.setName("FalconAgent");
+                main.start();
+                break;
+            case "stop":
+                try {
+                    Client client = new Client();
+                    client.start(AgentConfiguration.INSTANCE.getAgentPort());
+                    client.sendCloseCommend();
+                    client.talk();
+                } catch (IOException e) {
+                    OUT.println("Agent Not Start");
+                }
+                break;
+            case "status":
+                try {
+                    Client client = new Client();
+                    client.start(AgentConfiguration.INSTANCE.getAgentPort());
+                    OUT.println("Agent Started On Port " + AgentConfiguration.INSTANCE.getAgentPort());
+                    client.close();
+                } catch (IOException e) {
+                    OUT.println("Agent Not Start");
+                }
+                break;
+            default:
+                OUT.println(errorMsg);
         }
 
     }

@@ -74,8 +74,8 @@ public class Talk extends Thread {
                                 buffer.position(temp.limit());//把buffer的位置设为temp的极限
                                 buffer.compact();//删除已经处理的数据
 
-                                if (outputData.equals("exit\r\n")) {
-                                    //处理exit命令
+                                if ("exit\r\n".equals(outputData)) {
+                                    //处理exit命令,关闭服务器线程
                                     key.cancel();
                                     socketChannel.close();
                                     agent.shutdown();
