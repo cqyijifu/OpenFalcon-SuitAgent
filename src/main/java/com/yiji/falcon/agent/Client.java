@@ -15,11 +15,12 @@ import java.util.Iterator;
 import java.util.Set;
 
 /**
+ * Agent主服务通信类
  * Created by QianLong on 15/5/17.
  */
 public class Client {
 
-    SocketChannel socketChannel = null;
+    private SocketChannel socketChannel = null;
     private Selector selector;
 
     private final ByteBuffer sendBuffer = ByteBuffer.allocate(1024);

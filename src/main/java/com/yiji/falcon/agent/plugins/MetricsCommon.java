@@ -17,6 +17,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 /**
+ * metrics监控公共抽象类
  * Created by QianLong on 16/5/25.
  */
 public abstract class MetricsCommon {

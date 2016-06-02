@@ -11,6 +11,9 @@ import java.nio.channels.SocketChannel;
 import java.util.Iterator;
 import java.util.Set;
 
+/**
+ * Agent主服务talk
+ */
 public class Talk extends Thread {
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());

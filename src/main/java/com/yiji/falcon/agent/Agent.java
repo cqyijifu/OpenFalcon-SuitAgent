@@ -10,11 +10,10 @@ import com.yiji.falcon.agent.plugins.logstash.LogstashReportJob;
 import com.yiji.falcon.agent.plugins.oracle.OracleConnection;
 import com.yiji.falcon.agent.plugins.oracle.OracleReportJob;
 import com.yiji.falcon.agent.plugins.tomcat.TomcatReportJob;
+import com.yiji.falcon.agent.plugins.zk.ZKReportJob;
 import com.yiji.falcon.agent.util.CronUtil;
-import com.yiji.falcon.agent.util.DateUtil;
 import com.yiji.falcon.agent.util.SchedulerUtil;
 import com.yiji.falcon.agent.vo.sceduler.ScheduleJobResult;
-import com.yiji.falcon.agent.plugins.zk.ZKReportJob;
 import com.yiji.falcon.agent.vo.sceduler.ScheduleJobStatus;
 import org.apache.log4j.PropertyConfigurator;
 import org.quartz.*;
@@ -35,7 +34,7 @@ import java.util.Collection;
 import static org.quartz.TriggerBuilder.newTrigger;
 
 /**
- * agent启动类
+ * agent服务
  * Created by QianLong on 16/4/25.
  */
 public class Agent extends Thread{
@@ -133,6 +132,29 @@ public class Agent extends Thread{
     }
 
     /**
+     * 监控服务启动
+     */
+    private void work(){
+        try {
+            workLogicForJMX(AgentConfiguration.INSTANCE.getAgentZkWork(),ZKReportJob.class,"zookeeper",AgentConfiguration.INSTANCE.getZkJmxServerName());
+            workLogicForJMX(AgentConfiguration.INSTANCE.getAgentTomcatWork(),TomcatReportJob.class,"tomcat",AgentConfiguration.INSTANCE.getTomcatJmxServerName());
+            workLogicForJMX(AgentConfiguration.INSTANCE.getAgentElasticSearchWork(),ElasticSearchReportJob.class,"elasticSearch",AgentConfiguration.INSTANCE.getElasticSearchJmxServerName());
+            workLogicForJMX(AgentConfiguration.INSTANCE.getAgentLogstashWork(),LogstashReportJob.class,"logstash",AgentConfiguration.INSTANCE.getLogstashJmxServerName());
+            if("true".equalsIgnoreCase(AgentConfiguration.INSTANCE.getAgentOracleWork())){
+                //开启Oracle
+                JobDetail job = getJobDetail(OracleReportJob.class,"oracle","oracle的监控数据push调度JOB");
+
+                Trigger trigger = getTrigger(AgentConfiguration.INSTANCE.getOracleStep(),"oracle","oracle的监控数据push调度任务");
+                ScheduleJobResult scheduleJobResult = SchedulerUtil.executeScheduleJob(job,trigger);
+                workResult(scheduleJobResult);
+            }
+        } catch (SchedulerException e) {
+            log.error("Agent启动失败 : 调度任务启动失败",e);
+            System.exit(0);
+        }
+    }
+
+    /**
      * JMX服务的监控启动逻辑服务方法
      * @param workConf
      * @param jobClazz
@@ -158,26 +180,10 @@ public class Agent extends Thread{
         }
     }
 
-    private void work(){
-        try {
-            workLogicForJMX(AgentConfiguration.INSTANCE.getAgentZkWork(),ZKReportJob.class,"zookeeper",AgentConfiguration.INSTANCE.getZkJmxServerName());
-            workLogicForJMX(AgentConfiguration.INSTANCE.getAgentTomcatWork(),TomcatReportJob.class,"tomcat",AgentConfiguration.INSTANCE.getTomcatJmxServerName());
-            workLogicForJMX(AgentConfiguration.INSTANCE.getAgentElasticSearchWork(),ElasticSearchReportJob.class,"elasticSearch",AgentConfiguration.INSTANCE.getElasticSearchJmxServerName());
-            workLogicForJMX(AgentConfiguration.INSTANCE.getAgentLogstashWork(),LogstashReportJob.class,"logstash",AgentConfiguration.INSTANCE.getLogstashJmxServerName());
-            if("true".equalsIgnoreCase(AgentConfiguration.INSTANCE.getAgentOracleWork())){
-                //开启Oracle
-                JobDetail job = getJobDetail(OracleReportJob.class,"oracle","oracle的监控数据push调度JOB");
-
-                Trigger trigger = getTrigger(AgentConfiguration.INSTANCE.getOracleStep(),"oracle","oracle的监控数据push调度任务");
-                ScheduleJobResult scheduleJobResult = SchedulerUtil.executeScheduleJob(job,trigger);
-                workResult(scheduleJobResult);
-            }
-        } catch (SchedulerException e) {
-            log.error("Agent启动失败 : 调度任务启动失败",e);
-            System.exit(0);
-        }
-    }
-
+    /**
+     * 启动结果处理
+     * @param scheduleJobResult
+     */
     private void workResult(ScheduleJobResult scheduleJobResult){
         if(scheduleJobResult.getScheduleJobStatus() == ScheduleJobStatus.SUCCESS){
             log.info("{} 启动成功",scheduleJobResult.getTriggerKey().getName());
