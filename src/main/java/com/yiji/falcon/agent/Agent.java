@@ -45,7 +45,7 @@ public class Agent extends Thread{
 
     private static final Logger log = LoggerFactory.getLogger(Agent.class);
 
-    private static ServerSocketChannel serverSocketChannel;
+    private ServerSocketChannel serverSocketChannel;
     private static final Charset charset = Charset.forName("UTF-8");
 
     @Override

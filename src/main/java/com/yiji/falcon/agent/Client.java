@@ -3,11 +3,6 @@ package com.yiji.falcon.agent;/**
  * Created by QianLong on 15/5/17.
  */
 
-import com.yiji.falcon.agent.jmx.JMXConnection;
-import com.yiji.falcon.agent.plugins.oracle.OracleConnection;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -23,8 +18,6 @@ import java.util.Set;
  * Created by QianLong on 15/5/17.
  */
 public class Client {
-
-    private final Logger log = LoggerFactory.getLogger(this.getClass());
 
     SocketChannel socketChannel = null;
     private Selector selector;
