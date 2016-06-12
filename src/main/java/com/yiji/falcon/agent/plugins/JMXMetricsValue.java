@@ -8,6 +8,7 @@ import com.yiji.falcon.agent.falcon.CounterType;
 import com.yiji.falcon.agent.falcon.FalconReportObject;
 import com.yiji.falcon.agent.jmx.vo.JMXMetricsValueInfo;
 import com.yiji.falcon.agent.jmx.vo.JMXObjectNameInfo;
+import com.yiji.falcon.agent.util.CustomerMath;
 import com.yiji.falcon.agent.util.StringUtils;
 import com.yiji.falcon.agent.vo.JMXMetricsConfiguration;
 import org.apache.commons.lang.math.NumberUtils;
@@ -233,15 +234,9 @@ public abstract class JMXMetricsValue extends MetricsCommon{
                     falconReportObject.setMetric(getMetricsName("HeapMemoryFree",name));
                     falconReportObject.setValue(String.valueOf(heapMemoryUsage.getMax() - heapMemoryUsage.getUsed()));
                     result.add(falconReportObject);
-                    falconReportObject.setMetric(getMetricsName("NonHeapMemoryFree",name));
-                    falconReportObject.setValue(String.valueOf(nonHeapMemoryUsage.getMax() - nonHeapMemoryUsage.getUsed()));
-                    result.add(falconReportObject);
 
                     falconReportObject.setMetric(getMetricsName("HeapMemoryMax",name));
                     falconReportObject.setValue(String.valueOf(heapMemoryUsage.getMax()));
-                    result.add(falconReportObject);
-                    falconReportObject.setMetric(getMetricsName("NonHeapMemoryMax",name));
-                    falconReportObject.setValue(String.valueOf(nonHeapMemoryUsage.getMax()));
                     result.add(falconReportObject);
 
                     falconReportObject.setMetric(getMetricsName("HeapMemoryUsed",name));
@@ -249,6 +244,11 @@ public abstract class JMXMetricsValue extends MetricsCommon{
                     result.add(falconReportObject);
                     falconReportObject.setMetric(getMetricsName("NonHeapMemoryUsed",name));
                     falconReportObject.setValue(String.valueOf(nonHeapMemoryUsage.getUsed()));
+                    result.add(falconReportObject);
+
+                    //堆内存使用比例
+                    falconReportObject.setMetric(getMetricsName("HeapMemoryUsedRatio",name));
+                    falconReportObject.setValue(String.valueOf(CustomerMath.div(heapMemoryUsage.getUsed(),heapMemoryUsage.getMax(),2) * 100));
                     result.add(falconReportObject);
 
                 }
