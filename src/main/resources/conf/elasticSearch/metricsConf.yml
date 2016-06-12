@@ -22,18 +22,18 @@ _cluster/health.1 :
    valueExpress : "if(value == 'green'){newValue = 3}else if(value == 'yellow'){newValue = 2} else if(value == 'red'){newValue = 1} else {newValue = 0}"
    valuePath : "status"
    counterType : "GAUGE"
-   tag : es
+   tag : "service=elasticSearch,service.type=jmx"
 
 _nodes/stats.1 :
   method : "GET"
   metrics : "nodes.stats.index_total"
   valuePath : "nodes.{selfNodeId}.indices.indexing.index_total"
   counterType : "GAUGE"
-  tag : es
+  tag : "service=elasticSearch,service.type=jmx"
 
 _nodes/stats.2 :
   method : "GET"
   metrics : "nodes.stats.fsTotal"
   valuePath : "nodes.{selfNodeId}.fs.total.total_in_bytes"
   counterType : "GAUGE"
-  tag : "es"
+  tag : "service=elasticSearch,service.type=jmx"

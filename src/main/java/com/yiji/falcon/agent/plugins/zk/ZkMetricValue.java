@@ -62,6 +62,7 @@ public class ZkMetricValue extends JMXMetricsValue {
         falconReportObject.setMetric(getMetricsName("isLeader",name));
         falconReportObject.setValue(isLeader ? "1" : "0");
         falconReportObject.setTimestamp(System.currentTimeMillis() / 1000);
+        falconReportObject.setTags("service.type=jmx,service=" + getType());
         return falconReportObject;
     }
 

@@ -52,6 +52,7 @@ public abstract class JDBCMetricsValue extends MetricsCommon{
                         reportObject.setCounterType(CounterType.GAUGE);
                         reportObject.setValue(metricsValue);
                         reportObject.setTimestamp(System.currentTimeMillis() / 1000);
+                        reportObject.setTags("service.type=database,service=" + getType());
                         setReportCommonValue(reportObject);
 
                         result.add(reportObject);

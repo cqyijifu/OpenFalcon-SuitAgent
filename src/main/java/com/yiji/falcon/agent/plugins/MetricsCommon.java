@@ -38,6 +38,7 @@ public abstract class MetricsCommon {
         falconReportObject.setCounterType(CounterType.GAUGE);
         falconReportObject.setMetric(getMetricsName("availability",name));
         falconReportObject.setValue(isAva ? "1" : "0");
+        falconReportObject.setTags("metrics.type=availability,service=" + getType());
         falconReportObject.setTimestamp(System.currentTimeMillis() / 1000);
         return falconReportObject;
     }

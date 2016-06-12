@@ -221,6 +221,7 @@ public abstract class JMXMetricsValue extends MetricsCommon{
                     falconReportObject.setCounterType(CounterType.GAUGE);
                     falconReportObject.setTimestamp(System.currentTimeMillis() / 1000);
                     falconReportObject.setObjectName(objectNameInfo.getObjectName());
+                    falconReportObject.setTags("service.type=jmx,metrics.type=jmx.common,service=" + getType());
 
                     falconReportObject.setMetric(getMetricsName("HeapMemoryCommitted",name));
                     falconReportObject.setValue(String.valueOf(heapMemoryUsage.getCommitted()));
