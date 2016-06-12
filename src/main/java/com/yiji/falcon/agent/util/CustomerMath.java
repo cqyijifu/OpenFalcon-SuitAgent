@@ -3,7 +3,6 @@ package com.yiji.falcon.agent.util;
 import java.math.BigDecimal;
 
 /**
- * Copyright 2014-2015 the original BZTWT
  * 用于金钱计算的工具类
  * @author QianLong
  * @createDate 2014-3-8
@@ -24,9 +23,7 @@ public class CustomerMath {
 	private static final int DEF_DIV_SCALE = 10;
 
 	// 这个类不能实例化
-	private CustomerMath() {
-		;
-	}
+	private CustomerMath() {}
 
 	/**
 	 * 提供精确的加法运算。
