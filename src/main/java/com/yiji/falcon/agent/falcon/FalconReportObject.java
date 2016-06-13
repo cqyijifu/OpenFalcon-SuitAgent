@@ -3,6 +3,7 @@ package com.yiji.falcon.agent.falcon;/**
  * Created by QianLong on 16/4/25.
  */
 
+import com.yiji.falcon.agent.util.StringUtils;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 
@@ -62,6 +63,20 @@ public class FalconReportObject {
                 ", tags='" + tags + '\'' +
                 ", objectName=" + objectName +
                 '}';
+    }
+
+    /**
+     * 添加tag
+     * @param newTag
+     * @return
+     */
+    public FalconReportObject appendTags(String newTag){
+        if(StringUtils.isEmpty(this.getTags())){
+            this.setTags(newTag);
+        }else{
+            this.setTags(this.getTags() + "," + newTag);
+        }
+        return this;
     }
 
     @Override

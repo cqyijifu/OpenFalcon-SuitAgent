@@ -22,7 +22,7 @@ public class OracleConnection {
     private OracleConnection(){}
 
     public static Connection getConnection() throws ClassNotFoundException, SQLException {
-        if(connection == null || !connection.isValid(0)){
+        if(connection == null || connection.isClosed()){
             //反射Oracle数据库驱动程序类
             Class.forName(AgentConfiguration.INSTANCE.getOracleJDBCDriver());
             //获取数据库连接

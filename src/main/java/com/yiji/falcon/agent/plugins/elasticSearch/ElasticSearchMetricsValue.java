@@ -7,6 +7,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.yiji.falcon.agent.common.AgentConfiguration;
 import com.yiji.falcon.agent.falcon.CounterType;
 import com.yiji.falcon.agent.falcon.FalconReportObject;
+import com.yiji.falcon.agent.falcon.MetricsType;
 import com.yiji.falcon.agent.jmx.JMXManager;
 import com.yiji.falcon.agent.jmx.vo.JMXMetricsValueInfo;
 import com.yiji.falcon.agent.plugins.JMXMetricsValue;
@@ -87,12 +88,14 @@ public class ElasticSearchMetricsValue extends JMXMetricsValue {
                                             FalconReportObject falconReportObject = new FalconReportObject();
                                             setReportCommonValue(falconReportObject);
                                             falconReportObject.setTimestamp(System.currentTimeMillis() / 1000);
-                                            falconReportObject.setMetric(getMetricsName(metrics,name));
+                                            falconReportObject.setMetric(getMetricsName(metrics));
 
                                             falconReportObject.setValue(String.valueOf(executeJsExpress(valueExpress,value)));
 
                                             falconReportObject.setCounterType(CounterType.valueOf(counterType));
-                                            falconReportObject.setTags(tag);
+
+                                            falconReportObject.appendTags(getTags(name, MetricsType.HTTPURLCONF)).
+                                                    appendTags(tag);
 
                                             result.add(falconReportObject);
                                         }

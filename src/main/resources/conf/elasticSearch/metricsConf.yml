@@ -2,13 +2,13 @@
 #				elasticSearch 监控属性 配置
 ################################################################################################
 # 配置示例说明:如
-#  _nodes/stats.1 :                                       [.符号前面的为访问es的url地址 .符号后面为保证配置的key唯一,只要不重复就可以]
+#  _nodes/stats.1 :                                         [.符号前面的为访问es的url地址 .符号后面为保证配置的key唯一,只要不重复就可以]
 #    method : "GET"                                         [url访问的方法]
 #    metrics : "index_total"                                [监控值的名称]
-#    valueExpress : "if(value == 0){newValue = 1}"        [对监控值进行转换,可选.支持js代码,原值为变量value,新值赋值给变量newValue]
+#    valueExpress : "if(value == 0){newValue = 1}"          [对监控值进行转换,可选.支持js代码,原值为变量value,新值赋值给变量newValue]
 #    valuePath : "nodes.indices.indexing.index_tota"l       [监控值的json路径]
 #    counterType : "GAUGE"                                  [数据采集项类型只能配置 GAUGE(上传什么样的值，就原封不动的存储) 或 COUNTER(存储和展现的时候，会被计算为speed，即（当前值 - 上次值）/ 时间间隔)]
-#    tag : "es"                                             [标签 (可选)]
+#    tag :                                                  [标签 (可选)]
 ################################################################################################
 #             可用变量(因有些json的结果可能会用es的节点id或节点name作为key)({}之间不要加空格):
 #             {selfNodeId}    : 节点id
@@ -18,22 +18,22 @@
 
 _cluster/health.1 :
    method : "GET"
-   metrics : "cluster.health.status"
+   metrics : "cluster-health-status"
    valueExpress : "if(value == 'green'){newValue = 3}else if(value == 'yellow'){newValue = 2} else if(value == 'red'){newValue = 1} else {newValue = 0}"
    valuePath : "status"
    counterType : "GAUGE"
-   tag : "service=elasticSearch,service.type=jmx"
+   tag : ""
 
 _nodes/stats.1 :
   method : "GET"
-  metrics : "nodes.stats.index_total"
+  metrics : "nodes-stats-index_total"
   valuePath : "nodes.{selfNodeId}.indices.indexing.index_total"
   counterType : "GAUGE"
-  tag : "service=elasticSearch,service.type=jmx"
+  tag : ""
 
 _nodes/stats.2 :
   method : "GET"
-  metrics : "nodes.stats.fsTotal"
+  metrics : "nodes-stats-fsTotal"
   valuePath : "nodes.{selfNodeId}.fs.total.total_in_bytes"
   counterType : "GAUGE"
-  tag : "service=elasticSearch,service.type=jmx"
+  tag : ""

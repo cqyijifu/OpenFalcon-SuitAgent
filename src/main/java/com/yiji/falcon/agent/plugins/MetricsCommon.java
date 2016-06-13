@@ -5,6 +5,7 @@ package com.yiji.falcon.agent.plugins;/**
 
 import com.yiji.falcon.agent.falcon.CounterType;
 import com.yiji.falcon.agent.falcon.FalconReportObject;
+import com.yiji.falcon.agent.falcon.MetricsType;
 import com.yiji.falcon.agent.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,9 +37,9 @@ public abstract class MetricsCommon {
         FalconReportObject falconReportObject = new FalconReportObject();
         setReportCommonValue(falconReportObject);
         falconReportObject.setCounterType(CounterType.GAUGE);
-        falconReportObject.setMetric(getMetricsName("availability",name));
+        falconReportObject.setMetric(getMetricsName("availability"));
         falconReportObject.setValue(isAva ? "1" : "0");
-        falconReportObject.setTags("metrics.type=availability,service=" + getType());
+        falconReportObject.appendTags(getTags(name,MetricsType.AVAILABILITY));
         falconReportObject.setTimestamp(System.currentTimeMillis() / 1000);
         return falconReportObject;
     }
@@ -91,15 +92,38 @@ public abstract class MetricsCommon {
     }
 
     /**
+     * 获取Agent计算后的服务标识tag
+     * 将自动打上service service.type agentSignName标签
+     * @param name
+     * 服务标识
+     * @return
+     */
+    public String getTags(String name,MetricsType metricsType){
+        String signName = "service=" + getType();
+        if(this.getClass().getSuperclass() == JMXMetricsValue.class){
+            signName += ",service.type=jmx";
+        }else if(this.getClass().getSuperclass() == JDBCMetricsValue.class){
+            signName += ",service.type=database";
+        }else{
+            signName += ",service.type=unKnow";
+        }
+        if(metricsType != null){
+            signName += ",metrics.type=" + metricsType.getTypeName();
+        }
+        if(StringUtils.isEmpty(name)){
+            return signName;
+        }
+        return signName + ",agentSignName=" + name;
+    }
+
+    /**
      * 获取metrics名称(进行服务区分后的名称)
      * @param metricsName
      * metrics 名字
-     * @param name
-     * 服务的标识后缀名
      * @return
      */
-    protected String getMetricsName(String metricsName, String name) {
-        return getType() + "." + metricsName + (StringUtils.isEmpty(name) ? "" : "/" + name);
+    protected String getMetricsName(String metricsName) {
+        return metricsName;
     }
 
     /**

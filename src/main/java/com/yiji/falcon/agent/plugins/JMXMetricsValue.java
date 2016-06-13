@@ -6,6 +6,7 @@ package com.yiji.falcon.agent.plugins;/**
 import com.yiji.falcon.agent.common.AgentConfiguration;
 import com.yiji.falcon.agent.falcon.CounterType;
 import com.yiji.falcon.agent.falcon.FalconReportObject;
+import com.yiji.falcon.agent.falcon.MetricsType;
 import com.yiji.falcon.agent.jmx.vo.JMXMetricsValueInfo;
 import com.yiji.falcon.agent.jmx.vo.JMXObjectNameInfo;
 import com.yiji.falcon.agent.util.CustomerMath;
@@ -95,8 +96,7 @@ public abstract class JMXMetricsValue extends MetricsCommon{
 
                 FalconReportObject requestObject = new FalconReportObject();
                 setReportCommonValue(requestObject);
-                requestObject.setMetric(getMetricsName(jmxMetricsConfiguration.getAlias(),
-                        name));//设置push obj 的 metrics
+                requestObject.setMetric(getMetricsName(jmxMetricsConfiguration.getAlias()));//设置push obj 的 metrics
                 try {
                     //设置push obj 的 Counter
                     requestObject.setCounterType(CounterType.valueOf(jmxMetricsConfiguration.getCounterType()));
@@ -104,7 +104,6 @@ public abstract class JMXMetricsValue extends MetricsCommon{
                     log.error("错误的{} counterType配置:{},只能是 {} 或 {},未修正前,将忽略此监控值",jmxMetricsConfiguration.getAlias(),jmxMetricsConfiguration.getCounterType(),CounterType.COUNTER,CounterType.GAUGE,e);
                     continue;
                 }
-                requestObject.setTags(jmxMetricsConfiguration.getTag());
                 requestObject.setTimestamp(System.currentTimeMillis() / 1000);
                 requestObject.setObjectName(jmxObjectNameInfo.getObjectName());
                 Object newValue = executeJsExpress(kitObjectNameMetrics.jmxMetricsConfiguration.getValueExpress(),metricsValue);
@@ -115,7 +114,7 @@ public abstract class JMXMetricsValue extends MetricsCommon{
                     continue;
                 }
 
-                result.add(requestObject);
+                requestObject.appendTags(getTags(name, MetricsType.JMXOBJECTCONF)).appendTags(jmxMetricsConfiguration.getTag());
 
                 //监控值重复性判断
                 FalconReportObject reportInRepeat = repeat.get(jmxMetricsConfiguration.getMetrics());
@@ -127,12 +126,10 @@ public abstract class JMXMetricsValue extends MetricsCommon{
                     if(!reportInRepeat.equals(requestObject)){
                         // 若已有记录而且不相同,进行区分保存
                         result.remove(reportInRepeat);
-                        reportInRepeat.setMetric(getMetricsName(jmxMetricsConfiguration.getMetrics() + "(" + reportInRepeat.getObjectName().toString().replace("\"","") + ")",
-                                name));
+                        reportInRepeat.appendTags(requestObject.getObjectName().toString());
                         result.add(reportInRepeat);
 
-                        requestObject.setMetric(getMetricsName(jmxMetricsConfiguration.getMetrics() + "(" + requestObject.getObjectName().toString().replace("\"","") + ")",
-                                name));
+                        requestObject.appendTags(requestObject.getObjectName().toString());
                         if(!result.contains(requestObject)){
                             result.add(requestObject);
                         }
@@ -222,32 +219,33 @@ public abstract class JMXMetricsValue extends MetricsCommon{
                     falconReportObject.setCounterType(CounterType.GAUGE);
                     falconReportObject.setTimestamp(System.currentTimeMillis() / 1000);
                     falconReportObject.setObjectName(objectNameInfo.getObjectName());
-                    falconReportObject.setTags("service.type=jmx,metrics.type=jmx.common,service=" + getType());
 
-                    falconReportObject.setMetric(getMetricsName("HeapMemoryCommitted",name));
+                    falconReportObject.appendTags(getTags(name,MetricsType.JMXOBJECTBUILDIN));
+
+                    falconReportObject.setMetric(getMetricsName("HeapMemoryCommitted"));
                     falconReportObject.setValue(String.valueOf(heapMemoryUsage.getCommitted()));
                     result.add(falconReportObject);
-                    falconReportObject.setMetric(getMetricsName("NonHeapMemoryCommitted",name));
+                    falconReportObject.setMetric(getMetricsName("NonHeapMemoryCommitted"));
                     falconReportObject.setValue(String.valueOf(nonHeapMemoryUsage.getCommitted()));
                     result.add(falconReportObject);
 
-                    falconReportObject.setMetric(getMetricsName("HeapMemoryFree",name));
+                    falconReportObject.setMetric(getMetricsName("HeapMemoryFree"));
                     falconReportObject.setValue(String.valueOf(heapMemoryUsage.getMax() - heapMemoryUsage.getUsed()));
                     result.add(falconReportObject);
 
-                    falconReportObject.setMetric(getMetricsName("HeapMemoryMax",name));
+                    falconReportObject.setMetric(getMetricsName("HeapMemoryMax"));
                     falconReportObject.setValue(String.valueOf(heapMemoryUsage.getMax()));
                     result.add(falconReportObject);
 
-                    falconReportObject.setMetric(getMetricsName("HeapMemoryUsed",name));
+                    falconReportObject.setMetric(getMetricsName("HeapMemoryUsed"));
                     falconReportObject.setValue(String.valueOf(heapMemoryUsage.getUsed()));
                     result.add(falconReportObject);
-                    falconReportObject.setMetric(getMetricsName("NonHeapMemoryUsed",name));
+                    falconReportObject.setMetric(getMetricsName("NonHeapMemoryUsed"));
                     falconReportObject.setValue(String.valueOf(nonHeapMemoryUsage.getUsed()));
                     result.add(falconReportObject);
 
                     //堆内存使用比例
-                    falconReportObject.setMetric(getMetricsName("HeapMemoryUsedRatio",name));
+                    falconReportObject.setMetric(getMetricsName("HeapMemoryUsedRatio"));
                     falconReportObject.setValue(String.valueOf(CustomerMath.div(heapMemoryUsage.getUsed(),heapMemoryUsage.getMax(),2) * 100));
                     result.add(falconReportObject);
 

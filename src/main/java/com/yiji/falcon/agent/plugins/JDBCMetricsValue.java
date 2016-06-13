@@ -6,6 +6,7 @@ package com.yiji.falcon.agent.plugins;/**
 import com.yiji.falcon.agent.common.AgentConfiguration;
 import com.yiji.falcon.agent.falcon.CounterType;
 import com.yiji.falcon.agent.falcon.FalconReportObject;
+import com.yiji.falcon.agent.falcon.MetricsType;
 import com.yiji.falcon.agent.util.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.slf4j.Logger;
@@ -16,7 +17,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * 利用JDBC获取metrics监控值抽象类
@@ -48,11 +52,11 @@ public abstract class JDBCMetricsValue extends MetricsCommon{
                         log.error("JDBC {} 的监控指标:{} 的值:{} ,不能转换为数字,将跳过此监控指标",getType(),entry.getKey(),metricsValue);
                     }else{
                         FalconReportObject reportObject = new FalconReportObject();
-                        reportObject.setMetric(getMetricsName(entry.getKey(),getName()));
+                        reportObject.setMetric(getMetricsName(entry.getKey()));
                         reportObject.setCounterType(CounterType.GAUGE);
                         reportObject.setValue(metricsValue);
                         reportObject.setTimestamp(System.currentTimeMillis() / 1000);
-                        reportObject.setTags("service.type=database,service=" + getType());
+                        reportObject.appendTags(getTags(getName(), MetricsType.SQLCONF));
                         setReportCommonValue(reportObject);
 
                         result.add(reportObject);
@@ -67,11 +71,8 @@ public abstract class JDBCMetricsValue extends MetricsCommon{
                 result.addAll(inbuilt);
             }
             result.add(generatorVariabilityReport(true,getName()));
-        } catch (SQLException e) {
+        } catch (Exception e) {
             log.warn("连接JDBC异常,创建不可用报告",e);
-            result.add(generatorVariabilityReport(false,getName()));
-        } catch (ClassNotFoundException e) {
-            log.warn("JDBC驱动加载失败",e);
             result.add(generatorVariabilityReport(false,getName()));
         }
         return result;

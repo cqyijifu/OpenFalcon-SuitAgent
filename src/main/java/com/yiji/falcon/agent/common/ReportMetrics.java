@@ -5,6 +5,7 @@ package com.yiji.falcon.agent.common;/**
 
 import com.yiji.falcon.agent.falcon.FalconReportObject;
 import com.yiji.falcon.agent.util.HttpUtil;
+import com.yiji.falcon.agent.util.StringUtils;
 import org.apache.http.HttpResponse;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -28,6 +29,10 @@ public class ReportMetrics {
     public static void push(Collection<FalconReportObject> falconReportObjectList){
         JSONArray jsonArray = new JSONArray();
         for (FalconReportObject falconReportObject : falconReportObjectList) {
+            if(!isValidTag(falconReportObject)){
+                log.error("报告对象的tag为空,此metrics将不允上报:{}",falconReportObject.toString());
+                continue;
+            }
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("endpoint",falconReportObject.getEndpoint());
             jsonObject.put("metric",falconReportObject.getMetric());
@@ -53,6 +58,11 @@ public class ReportMetrics {
      * @param falconReportObject
      */
     public static void push(FalconReportObject falconReportObject){
+        if(!isValidTag(falconReportObject)){
+            log.error("报告对象的tag为空,此metrics将不允上报:{}",falconReportObject.toString());
+            return;
+        }
+
         JSONArray jsonArray = new JSONArray();
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("endpoint",falconReportObject.getEndpoint());
@@ -71,6 +81,15 @@ public class ReportMetrics {
             log.error("post请求异常",e);
         }
         log.info("push回执:" + result);
+    }
+
+    /**
+     * 判断tag是否有效
+     * @param falconReportObject
+     * @return
+     */
+    private static boolean isValidTag(FalconReportObject falconReportObject){
+        return !StringUtils.isEmpty(falconReportObject.getTags());
     }
 
 }

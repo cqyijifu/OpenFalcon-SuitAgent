@@ -6,6 +6,7 @@ package com.yiji.falcon.agent.plugins.oracle;/**
 import com.yiji.falcon.agent.common.AgentConfiguration;
 import com.yiji.falcon.agent.falcon.CounterType;
 import com.yiji.falcon.agent.falcon.FalconReportObject;
+import com.yiji.falcon.agent.falcon.MetricsType;
 import com.yiji.falcon.agent.plugins.JDBCMetricsValue;
 
 import java.sql.Connection;
@@ -62,9 +63,9 @@ public class OracleMetricsValue extends JDBCMetricsValue {
             setReportCommonValue(falconReportObject);
             falconReportObject.setCounterType(CounterType.GAUGE);
             falconReportObject.setTimestamp(System.currentTimeMillis() / 1000);
-            falconReportObject.setMetric(getMetricsName("TSUsedPercent-" + tsName.trim(),getName()));
+            falconReportObject.setMetric(getMetricsName("TSUsedPercent-" + tsName.trim()));
             falconReportObject.setValue(percent.trim());
-            falconReportObject.setTags("service.type=database,service=" + getType());
+            falconReportObject.appendTags(getTags(getName(), MetricsType.SQLBUILDIN));
             result.add(falconReportObject);
         }
         rs.close();

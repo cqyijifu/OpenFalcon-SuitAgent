@@ -6,6 +6,7 @@ package com.yiji.falcon.agent.plugins.zk;/**
 import com.yiji.falcon.agent.common.AgentConfiguration;
 import com.yiji.falcon.agent.falcon.CounterType;
 import com.yiji.falcon.agent.falcon.FalconReportObject;
+import com.yiji.falcon.agent.falcon.MetricsType;
 import com.yiji.falcon.agent.jmx.JMXManager;
 import com.yiji.falcon.agent.jmx.vo.JMXMetricsValueInfo;
 import com.yiji.falcon.agent.jmx.vo.JMXObjectNameInfo;
@@ -59,10 +60,10 @@ public class ZkMetricValue extends JMXMetricsValue {
         FalconReportObject falconReportObject = new FalconReportObject();
         setReportCommonValue(falconReportObject);
         falconReportObject.setCounterType(CounterType.GAUGE);
-        falconReportObject.setMetric(getMetricsName("isLeader",name));
+        falconReportObject.setMetric(getMetricsName("isZookeeperLeader"));
         falconReportObject.setValue(isLeader ? "1" : "0");
         falconReportObject.setTimestamp(System.currentTimeMillis() / 1000);
-        falconReportObject.setTags("service.type=jmx,service=" + getType());
+        falconReportObject.appendTags(getTags(name, MetricsType.JMXOBJECTBUILDIN));
         return falconReportObject;
     }
 
