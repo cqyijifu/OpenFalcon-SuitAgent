@@ -3,6 +3,7 @@ package com.yiji.falcon.agent.common;/**
  * Created by QianLong on 2014/7/11 0011.
  */
 
+import com.yiji.falcon.agent.config.AgentConfiguration;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.impl.StdSchedulerFactory;

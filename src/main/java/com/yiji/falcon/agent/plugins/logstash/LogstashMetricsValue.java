@@ -3,7 +3,7 @@ package com.yiji.falcon.agent.plugins.logstash;/**
  * Created by QianLong on 16/5/30.
  */
 
-import com.yiji.falcon.agent.common.AgentConfiguration;
+import com.yiji.falcon.agent.config.AgentConfiguration;
 import com.yiji.falcon.agent.falcon.FalconReportObject;
 import com.yiji.falcon.agent.jmx.JMXManager;
 import com.yiji.falcon.agent.jmx.vo.JMXMetricsValueInfo;

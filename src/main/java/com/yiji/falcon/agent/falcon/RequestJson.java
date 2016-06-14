@@ -1,9 +1,8 @@
-package com.yiji.falcon.agent.common;/**
+package com.yiji.falcon.agent.falcon;/**
  * Copyright 2014-2015 the original ql
  * Created by QianLong on 16/4/25.
  */
 
-import com.yiji.falcon.agent.falcon.FalconReportObject;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;

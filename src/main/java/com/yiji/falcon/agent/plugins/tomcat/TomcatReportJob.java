@@ -3,7 +3,7 @@ package com.yiji.falcon.agent.plugins.tomcat;/**
  * Created by QianLong on 16/4/26.
  */
 
-import com.yiji.falcon.agent.common.ReportMetrics;
+import com.yiji.falcon.agent.falcon.ReportMetrics;
 import com.yiji.falcon.agent.plugins.JMXMetricsValue;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;

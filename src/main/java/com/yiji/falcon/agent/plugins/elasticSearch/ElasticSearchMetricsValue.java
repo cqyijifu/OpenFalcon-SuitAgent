@@ -4,7 +4,7 @@ package com.yiji.falcon.agent.plugins.elasticSearch;/**
  */
 
 import com.alibaba.fastjson.JSONObject;
-import com.yiji.falcon.agent.common.AgentConfiguration;
+import com.yiji.falcon.agent.config.AgentConfiguration;
 import com.yiji.falcon.agent.falcon.CounterType;
 import com.yiji.falcon.agent.falcon.FalconReportObject;
 import com.yiji.falcon.agent.falcon.MetricsType;

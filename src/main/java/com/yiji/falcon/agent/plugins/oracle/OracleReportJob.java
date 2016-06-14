@@ -3,7 +3,7 @@ package com.yiji.falcon.agent.plugins.oracle;/**
  * Created by QianLong on 16/5/17.
  */
 
-import com.yiji.falcon.agent.common.ReportMetrics;
+import com.yiji.falcon.agent.falcon.ReportMetrics;
 import com.yiji.falcon.agent.plugins.JDBCMetricsValue;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;

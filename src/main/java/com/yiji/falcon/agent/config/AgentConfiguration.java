@@ -1,4 +1,4 @@
-package com.yiji.falcon.agent.common;/**
+package com.yiji.falcon.agent.config;/**
  * Copyright 2014-2015 the original ql
  * Created by QianLong on 16/4/25.
  */

@@ -3,7 +3,7 @@ package com.yiji.falcon.agent.plugins.logstash;/**
  * Created by QianLong on 16/5/30.
  */
 
-import com.yiji.falcon.agent.common.ReportMetrics;
+import com.yiji.falcon.agent.falcon.ReportMetrics;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;

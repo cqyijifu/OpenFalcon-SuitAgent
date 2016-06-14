@@ -3,7 +3,7 @@ package com.yiji.falcon.agent.plugins.oracle;/**
  * Created by QianLong on 16/5/16.
  */
 
-import com.yiji.falcon.agent.common.AgentConfiguration;
+import com.yiji.falcon.agent.config.AgentConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

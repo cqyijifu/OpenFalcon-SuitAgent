@@ -1,9 +1,9 @@
-package com.yiji.falcon.agent.common;/**
+package com.yiji.falcon.agent.falcon;/**
  * Copyright 2014-2015 the original ql
  * Created by QianLong on 16/4/26.
  */
 
-import com.yiji.falcon.agent.falcon.FalconReportObject;
+import com.yiji.falcon.agent.config.AgentConfiguration;
 import com.yiji.falcon.agent.util.HttpUtil;
 import com.yiji.falcon.agent.util.StringUtils;
 import org.apache.http.HttpResponse;
