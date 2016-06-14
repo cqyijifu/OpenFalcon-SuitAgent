@@ -58,12 +58,12 @@ public abstract class JMXConnection {
      * 获取JMX连接
      * @param serverName 要获取的应用的名称(如运行的main类名称)
      * @return
-     * null : 应用连接获取失败
      * @throws IOException
      */
     public synchronized List<JMXConnectionInfo> getMBeanConnection(String serverName){
         if(StringUtils.isEmpty(serverName)){
             log.error("获取JMX连接的serverName不能为空");
+            return new ArrayList<>();
         }
         if(this.getClass() == JMXConnection.class){
             log.warn("警告:不应该直接实例化 {} 调用此方法 {}",JMXConnection.class.getName(),"getMBeanConnection()");
