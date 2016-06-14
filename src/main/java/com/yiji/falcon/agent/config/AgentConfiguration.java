@@ -21,6 +21,7 @@ import java.util.Properties;
 public enum  AgentConfiguration {
 
     INSTANCE;
+
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
     /**
@@ -70,6 +71,11 @@ public enum  AgentConfiguration {
      */
     private int agentPort = 4518;
 
+    /**
+     * agent自动发现服务刷新周期
+     */
+    private int agentFlushTime = 300;
+
     private final String falseStr = "false";
     //服务开启项
     private String agentZkWork = falseStr;
@@ -86,6 +92,7 @@ public enum  AgentConfiguration {
     private final Map<String,String> oracleGenericQueries = new HashMap<>();
 
     private static final String CONF_AGENT_ENDPOINT = "agent.endpoint";
+    private static final String CONF_AGENT_FLUSH_TIME = "agent.flush.time";
 
     private static final String CONF_AGENT_ZK_METRICS_STEP = "agent.zk.metrics.step";
     private static final String CONF_AGENT_TOMCAT_METRICS_STEP = "agent.tomcat.metrics.step";
@@ -163,7 +170,7 @@ public enum  AgentConfiguration {
             try {
                 this.agentPort = Integer.parseInt(agentConf.getProperty(CONF_AGENT_PORT));
             } catch (NumberFormatException e) {
-                log.error("Agent启动失败,端口配置无效:" + agentConf.getProperty(CONF_AGENT_PORT));
+                log.error("Agent启动失败,端口配置{}无效:{}", CONF_AGENT_PORT, agentConf.getProperty(CONF_AGENT_PORT));
                 System.exit(0);
             }
         }
@@ -173,6 +180,17 @@ public enum  AgentConfiguration {
             System.exit(0);
         }
         this.agentPushUrl = agentConf.getProperty(CONF_AGENT_FALCON_PUSH_URL);
+
+        if(StringUtils.isEmpty(agentConf.getProperty(CONF_AGENT_FLUSH_TIME))){
+            log.error("Agent启动失败,未指定配置:{}", CONF_AGENT_FLUSH_TIME);
+            System.exit(0);
+        }
+        try {
+            this.agentFlushTime = Integer.parseInt(agentConf.getProperty(CONF_AGENT_FLUSH_TIME));
+        } catch (NumberFormatException e) {
+            log.error("Agent启动失败,自动发现服务的刷新周期配置{}无效:{}",CONF_AGENT_FLUSH_TIME,agentConf.getProperty(CONF_AGENT_FLUSH_TIME));
+            System.exit(0);
+        }
 
     }
 
@@ -469,5 +487,9 @@ public enum  AgentConfiguration {
 
     public String getAgentLogstashWork() {
         return agentLogstashWork;
+    }
+
+    public int getAgentFlushTime() {
+        return agentFlushTime;
     }
 }

@@ -5,18 +5,11 @@ package com.yiji.falcon.agent;/**
 
 import com.yiji.falcon.agent.config.AgentConfiguration;
 import com.yiji.falcon.agent.jmx.JMXConnection;
-import com.yiji.falcon.agent.plugins.elasticSearch.ElasticSearchReportJob;
-import com.yiji.falcon.agent.plugins.logstash.LogstashReportJob;
 import com.yiji.falcon.agent.plugins.oracle.OracleConnection;
-import com.yiji.falcon.agent.plugins.oracle.OracleReportJob;
-import com.yiji.falcon.agent.plugins.tomcat.TomcatReportJob;
-import com.yiji.falcon.agent.plugins.zk.ZKReportJob;
-import com.yiji.falcon.agent.util.CronUtil;
-import com.yiji.falcon.agent.util.SchedulerUtil;
-import com.yiji.falcon.agent.vo.sceduler.ScheduleJobResult;
-import com.yiji.falcon.agent.vo.sceduler.ScheduleJobStatus;
 import org.apache.log4j.PropertyConfigurator;
-import org.quartz.*;
+import org.quartz.Scheduler;
+import org.quartz.SchedulerException;
+import org.quartz.SchedulerFactory;
 import org.quartz.impl.DirectSchedulerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,7 +24,8 @@ import java.nio.channels.SocketChannel;
 import java.nio.charset.Charset;
 import java.util.Collection;
 
-import static org.quartz.TriggerBuilder.newTrigger;
+import static com.yiji.falcon.agent.common.AgentWorkLogic.autoWorkLogic;
+import static com.yiji.falcon.agent.common.AgentWorkLogic.confWorkLogic;
 
 /**
  * agent服务
@@ -136,99 +130,15 @@ public class Agent extends Thread{
      */
     private void work(){
         try {
-            workLogicForJMX(AgentConfiguration.INSTANCE.getAgentZkWork(),ZKReportJob.class,"zookeeper",AgentConfiguration.INSTANCE.getZkJmxServerName());
-            workLogicForJMX(AgentConfiguration.INSTANCE.getAgentTomcatWork(),TomcatReportJob.class,"tomcat",AgentConfiguration.INSTANCE.getTomcatJmxServerName());
-            workLogicForJMX(AgentConfiguration.INSTANCE.getAgentElasticSearchWork(),ElasticSearchReportJob.class,"elasticSearch",AgentConfiguration.INSTANCE.getElasticSearchJmxServerName());
-            workLogicForJMX(AgentConfiguration.INSTANCE.getAgentLogstashWork(),LogstashReportJob.class,"logstash",AgentConfiguration.INSTANCE.getLogstashJmxServerName());
-            if("true".equalsIgnoreCase(AgentConfiguration.INSTANCE.getAgentOracleWork())){
-                //开启Oracle
-                JobDetail job = getJobDetail(OracleReportJob.class,"oracle","oracle的监控数据push调度JOB");
+            //启动配置指定的work启动
+            confWorkLogic();
 
-                Trigger trigger = getTrigger(AgentConfiguration.INSTANCE.getOracleStep(),"oracle","oracle的监控数据push调度任务");
-                ScheduleJobResult scheduleJobResult = SchedulerUtil.executeScheduleJob(job,trigger);
-                workResult(scheduleJobResult);
-            }
+            //进行一次服务自动发现
+            autoWorkLogic();
         } catch (SchedulerException e) {
             log.error("Agent启动失败 : 调度任务启动失败",e);
             System.exit(0);
         }
-    }
-
-    /**
-     * JMX服务的监控启动逻辑服务方法
-     * @param workConf
-     * @param jobClazz
-     * @param desc
-     * @param serverName
-     * @throws SchedulerException
-     */
-    private void workLogicForJMX(String workConf,Class<? extends Job> jobClazz,String desc,String serverName) throws SchedulerException {
-        if("auto".equalsIgnoreCase(workConf)){
-            if(JMXConnection.hasJMXServerInLocal(serverName)){
-                //开启服务监控
-                log.info("自动发现JMX服务:{}",serverName);
-                JobDetail job = getJobDetail(jobClazz,desc,desc + "的监控数据push调度JOB");
-                Trigger trigger = getTrigger(AgentConfiguration.INSTANCE.getZkStep(),desc,desc + "的监控数据push调度任务");
-                ScheduleJobResult scheduleJobResult = SchedulerUtil.executeScheduleJob(job,trigger);
-                workResult(scheduleJobResult);
-            }
-        }else if("true".equalsIgnoreCase(workConf)){
-            JobDetail job = getJobDetail(jobClazz,desc,desc + "的监控数据push调度JOB");
-            Trigger trigger = getTrigger(AgentConfiguration.INSTANCE.getZkStep(),desc,desc + "的监控数据push调度任务");
-            ScheduleJobResult scheduleJobResult = SchedulerUtil.executeScheduleJob(job,trigger);
-            workResult(scheduleJobResult);
-        }
-    }
-
-    /**
-     * 启动结果处理
-     * @param scheduleJobResult
-     */
-    private void workResult(ScheduleJobResult scheduleJobResult){
-        if(scheduleJobResult.getScheduleJobStatus() == ScheduleJobStatus.SUCCESS){
-            log.info("{} 启动成功",scheduleJobResult.getTriggerKey().getName());
-        }else if(scheduleJobResult.getScheduleJobStatus() == ScheduleJobStatus.FAILED){
-            log.error("{} 启动失败",scheduleJobResult.getTriggerKey().getName());
-        }
-    }
-
-    /**
-     * 获取计划任务JOB
-     * @param job
-     * @param id
-     * @param description
-     * @return
-     */
-    private JobDetail getJobDetail(Class <? extends Job> job,String id,String description){
-        return JobBuilder.newJob(job)
-                .withIdentity(id + "-scheduler-job", "job-metricsScheduler")
-                .withDescription(description)
-                .build();
-    }
-
-    /**
-     * 获取调度器
-     * @param step
-     * @param id
-     * @param description
-     * @return
-     */
-    private Trigger getTrigger(int step,String id,String description){
-        String cron = CronUtil.getCronBySecondScheduler(step);
-        Trigger trigger = null;
-        if(cron != null){
-            log.info("启动{ " + description + " }调度:" + cron);
-            trigger = newTrigger()
-                    .withIdentity(id + "-agent-scheduler-trigger", "trigger-metricsScheduler")
-                    .withSchedule(CronScheduleBuilder.cronSchedule(cron))
-                    .startNow()
-                    .withDescription(description)
-                    .build();
-        }else{
-            log.error("agent 启动失败. 调度时间配置失败");
-            System.exit(0);
-        }
-        return trigger;
     }
 
     static String decode(ByteBuffer buffer){

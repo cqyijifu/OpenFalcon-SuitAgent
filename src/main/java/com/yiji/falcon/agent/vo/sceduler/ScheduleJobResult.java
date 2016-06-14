@@ -3,7 +3,9 @@ package com.yiji.falcon.agent.vo.sceduler;/**
  * Created by QianLong on 2014/7/11 0011.
  */
 
+import org.quartz.JobDetail;
 import org.quartz.JobKey;
+import org.quartz.Trigger;
 import org.quartz.TriggerKey;
 
 import java.io.Serializable;
@@ -17,7 +19,20 @@ public class ScheduleJobResult implements Serializable {
 
     private TriggerKey triggerKey;
     private JobKey jobKey;
+    private JobDetail jobDetail;
+    private Trigger trigger;
     private ScheduleJobStatus scheduleJobStatus;
+
+    @Override
+    public String toString() {
+        return "ScheduleJobResult{" +
+                "triggerKey=" + triggerKey +
+                ", jobKey=" + jobKey +
+                ", jobDetail=" + jobDetail +
+                ", trigger=" + trigger +
+                ", scheduleJobStatus=" + scheduleJobStatus +
+                '}';
+    }
 
     public TriggerKey getTriggerKey() {
         return triggerKey;
@@ -42,5 +57,21 @@ public class ScheduleJobResult implements Serializable {
 
     public void setScheduleJobStatus(ScheduleJobStatus scheduleJobStatus) {
         this.scheduleJobStatus = scheduleJobStatus;
+    }
+
+    public JobDetail getJobDetail() {
+        return jobDetail;
+    }
+
+    public void setJobDetail(JobDetail jobDetail) {
+        this.jobDetail = jobDetail;
+    }
+
+    public Trigger getTrigger() {
+        return trigger;
+    }
+
+    public void setTrigger(Trigger trigger) {
+        this.trigger = trigger;
     }
 }

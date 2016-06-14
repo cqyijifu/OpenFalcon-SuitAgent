@@ -36,6 +36,8 @@ public class SchedulerUtil {
             //不满足计划任务的创建条件，返回scheduleJobResult值类
             return scheduleJobResult;
         }
+        scheduleJobResult.setJobDetail(job);
+        scheduleJobResult.setTrigger(trigger);
         //开始分配计划任务
         Scheduler scheduler  = SchedulerFactory.getScheduler();
         //开始判断是否存在相同的计划任务
