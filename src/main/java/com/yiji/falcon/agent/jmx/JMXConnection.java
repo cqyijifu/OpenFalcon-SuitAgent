@@ -65,7 +65,6 @@ public abstract class JMXConnection {
         if(StringUtils.isEmpty(serverName)){
             log.error("获取JMX连接的serverName不能为空");
         }
-        //TODO 后期可以加入配置重置刷新JMX连接
         if(this.getClass() == JMXConnection.class){
             log.warn("警告:不应该直接实例化 {} 调用此方法 {}",JMXConnection.class.getName(),"getMBeanConnection()");
         }
