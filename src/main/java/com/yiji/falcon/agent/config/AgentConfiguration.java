@@ -9,10 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 /**
  * 系统配置
@@ -57,6 +54,7 @@ public enum  AgentConfiguration {
     private int oracleStep = 60;
     private int elasticSearchStep = 60;
     private int logstashStep = 60;
+    private int yijiBootStep = 60;
 
     /**
      * JMX 连接服务名
@@ -65,6 +63,7 @@ public enum  AgentConfiguration {
     private String tomcatJmxServerName = null;
     private String elasticSearchJmxServerName = null;
     private String logstashJmxServerName = null;
+    private List<String> yijiBootJmxServerName = new ArrayList<>();
 
     /**
      * agent启动端口
@@ -83,6 +82,7 @@ public enum  AgentConfiguration {
     private String agentOracleWork = falseStr;
     private String agentElasticSearchWork = falseStr;
     private String agentLogstashWork = falseStr;
+    private String agentYijiBootWork = falseStr;
 
     //Oracle
     private String oracleJDBCDriver;
@@ -99,6 +99,7 @@ public enum  AgentConfiguration {
     private static final String CONF_AGENT_ORACLE_METRICS_STEP = "agent.oracle.metrics.step";
     private static final String CONF_AGENT_ELASTICSEARCH_METRICS_STEP = "agent.elasticSearch.metrics.step";
     private static final String CONF_AGENT_LOGSTASH_METRICS_STEP = "agent.logstash.metrics.step";
+    private static final String CONF_AGENT_YIJIBOOT_METRICS_STEP = "agent.yijiboot.metrics.step";
 
     private static final String CONF_AGENT_FALCON_PUSH_URL = "agent.falcon.push.url";
     private static final String CONF_AGENT_PORT = "agent.port";
@@ -107,12 +108,14 @@ public enum  AgentConfiguration {
     private static final String CONF_AGENT_TOMCAT_JMX_SERVER_NAME = "agent.tomcat.jmx.serverName";
     private static final String CONF_AGENT_ELASTICSEARCH_JMX_SERVER_NAME = "agent.elasticSearch.jmx.serverName";
     private static final String CONF_AGENT_LOGSTASH_JMX_SERVER_NAME = "agent.logstash.jmx.serverName";
+    private static final String CONF_AGENT_YIJIBOOT_JMX_SERVER_NAME = "agent.yijiboot.jmx.serverName";
 
     private static final String CONF_AGENT_ZK_WORK = "agent.zk.work";
     private static final String CONF_AGENT_ORACLE_WORK = "agent.oracle.work";
     private static final String CONF_AGENT_TOMCAT_WORK = "agent.tomcat.work";
     private static final String CONF_AGENT_ELASTICSEARCH_WORK = "agent.elasticSearch.work";
     private static final String CONF_AGENT_LOGSTASH_WORK = "agent.logstash.work";
+    private static final String CONF_AGENT_YIJIBOOT_WORK = "agent.yijiboot.work";
 
     private static final String CONF_AGENT_ORACLE_JDBC_DRIVER = "agent.oracle.jdbc.driver";
     private static final String CONF_AGENT_ORACLE_JDBC_URL = "agent.oracle.jdbc.url";
@@ -154,14 +157,15 @@ public enum  AgentConfiguration {
             System.exit(0);
         }
         init();
-        initJMXCommon();
         initWork();
         initStep();
+        initJMXCommon();
         initOracle();
         initTomcat();
         initZk();
         initElasticSearch();
         initLogstash();
+        initYijiBoot();
     }
 
     private void init(){
@@ -247,6 +251,14 @@ public enum  AgentConfiguration {
         this.logstashJmxServerName = agentConf.getProperty(CONF_AGENT_LOGSTASH_JMX_SERVER_NAME);
     }
 
+    private void initYijiBoot(){
+        if("true".equalsIgnoreCase(this.agentYijiBootWork) && StringUtils.isEmpty(agentConf.getProperty(CONF_AGENT_YIJIBOOT_JMX_SERVER_NAME))){
+            log.error("Agent启动失败,设置了yiji-boot监控就必须配置服务名:{}", CONF_AGENT_YIJIBOOT_JMX_SERVER_NAME);
+            System.exit(0);
+        }
+        Collections.addAll(this.yijiBootJmxServerName, agentConf.getProperty(CONF_AGENT_YIJIBOOT_JMX_SERVER_NAME).split(","));
+    }
+
     private void initJMXCommon(){
         String property = System.getProperty("agent.jmx.metrics.common.path");
         if(StringUtils.isEmpty(property)){
@@ -302,6 +314,7 @@ public enum  AgentConfiguration {
         setInitStep(CONF_AGENT_ORACLE_METRICS_STEP,2);
         setInitStep(CONF_AGENT_ELASTICSEARCH_METRICS_STEP,1);
         setInitStep(CONF_AGENT_LOGSTASH_METRICS_STEP,5);
+        setInitStep(CONF_AGENT_YIJIBOOT_METRICS_STEP,6);
     }
 
     /**
@@ -335,6 +348,9 @@ public enum  AgentConfiguration {
                         break;
                     case 5:
                         this.logstashStep = value;
+                        break;
+                    case 6:
+                        this.yijiBootStep = value;
                         break;
                     default:break;
                 }
@@ -370,6 +386,18 @@ public enum  AgentConfiguration {
             this.agentLogstashWork = agentConf.getProperty(CONF_AGENT_LOGSTASH_WORK);
         }
 
+        if(!StringUtils.isEmpty(agentConf.getProperty(CONF_AGENT_YIJIBOOT_WORK))){
+            this.agentYijiBootWork = agentConf.getProperty(CONF_AGENT_YIJIBOOT_WORK);
+        }
+
+    }
+
+    public String getAgentYijiBootWork() {
+        return agentYijiBootWork;
+    }
+
+    public List<String> getYijiBootJmxServerName() {
+        return yijiBootJmxServerName;
     }
 
     public int getElasticSearchStep() {
@@ -423,7 +451,6 @@ public enum  AgentConfiguration {
     public String getTomcatJmxServerName() {
         return tomcatJmxServerName;
     }
-
 
     public String getOracleJDBCDriver() {
         return oracleJDBCDriver;
@@ -491,5 +518,9 @@ public enum  AgentConfiguration {
 
     public int getAgentFlushTime() {
         return agentFlushTime;
+    }
+
+    public int getYijiBootStep() {
+        return yijiBootStep;
     }
 }

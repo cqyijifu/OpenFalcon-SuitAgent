@@ -1,6 +1,6 @@
-package com.yiji.falcon.agent.plugins.logstash;/**
- * Copyright 2014-2015 the original ql
- * Created by QianLong on 16/5/30.
+package com.yiji.falcon.agent.plugins.yijiBoot;/**
+ * Copyright 2016-2017 the original ql
+ * Created by QianLong on 16/6/15.
  */
 
 import com.yiji.falcon.agent.config.AgentConfiguration;
@@ -14,9 +14,21 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * Created by QianLong on 16/5/30.
+ * Created by QianLong on 16/6/15.
  */
-public class LogstashMetricsValue extends JMXMetricsValue {
+public class YijiBootMetricsValue extends JMXMetricsValue {
+
+    //yijiBoot的jar文件名称,也是yijiBoot的JMC连接名
+    private String appJarName;
+
+    /**
+     * 需单独指定相应的yijiBoot应用的jar文件名称
+     * @param appJarName
+     */
+    public YijiBootMetricsValue(String appJarName) {
+        this.appJarName = appJarName;
+    }
+
     /**
      * 获取所有的具体服务的JMX监控值VO
      *
@@ -24,7 +36,7 @@ public class LogstashMetricsValue extends JMXMetricsValue {
      */
     @Override
     protected List<JMXMetricsValueInfo> getMetricsValueInfos() {
-        return JMXManager.getJmxMetricValue(getServerName(),new LogstashJMXConnection());
+        return JMXManager.getJmxMetricValue(getServerName(),new YijiBootJMXConnection(getAppJarName().replace(".jar","")));
     }
 
     /**
@@ -46,7 +58,7 @@ public class LogstashMetricsValue extends JMXMetricsValue {
      */
     @Override
     public int getStep() {
-        return AgentConfiguration.INSTANCE.getLogstashStep();
+        return AgentConfiguration.INSTANCE.getYijiBootStep();
     }
 
     /**
@@ -76,7 +88,7 @@ public class LogstashMetricsValue extends JMXMetricsValue {
      */
     @Override
     public String getServerName() {
-        return AgentConfiguration.INSTANCE.getLogstashJmxServerName();
+        return getAppJarName();
     }
 
     /**
@@ -86,6 +98,10 @@ public class LogstashMetricsValue extends JMXMetricsValue {
      */
     @Override
     public String getType() {
-        return "logstash";
+        return "yijiBoot";
+    }
+
+    public String getAppJarName() {
+        return appJarName;
     }
 }

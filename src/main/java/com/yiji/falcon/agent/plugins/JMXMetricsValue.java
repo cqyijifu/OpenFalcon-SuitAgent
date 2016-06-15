@@ -28,11 +28,6 @@ import java.util.*;
  */
 public abstract class JMXMetricsValue extends MetricsCommon{
     private final Logger log = LoggerFactory.getLogger(this.getClass());
-    protected List<JMXMetricsValueInfo> metricsValueInfos;
-
-    public JMXMetricsValue() {
-        this.metricsValueInfos = getMetricsValueInfos();
-    }
 
     /**
      * 获取配置文件配置的监控值
@@ -146,6 +141,7 @@ public abstract class JMXMetricsValue extends MetricsCommon{
      * @throws IOException
      */
     public Collection<FalconReportObject> getReportObjects() throws IOException {
+        List<JMXMetricsValueInfo> metricsValueInfos = getMetricsValueInfos();
         Set<FalconReportObject> result = new HashSet<>();
 
         if(metricsValueInfos == null || metricsValueInfos.isEmpty()){
