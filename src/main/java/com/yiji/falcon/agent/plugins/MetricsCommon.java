@@ -93,7 +93,7 @@ public abstract class MetricsCommon {
 
     /**
      * 获取Agent计算后的服务标识tag
-     * 将自动打上service service.type agentSignName标签
+     * 将自动打上service service.type agentSignName,metrics.type标签
      * @param name
      * 服务标识
      * @return
