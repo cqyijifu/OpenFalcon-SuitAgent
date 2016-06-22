@@ -1,7 +1,8 @@
-package com.yiji.falcon.agent.plugins.elasticSearch;/**
- * Copyright 2014-2015 the original ql
- * Created by QianLong on 16/5/24.
+/*
+ * www.yiji.com Inc.
+ * Copyright (c) 2016 All Rights Reserved
  */
+package com.yiji.falcon.agent.plugins.elasticSearch;
 
 import com.alibaba.fastjson.JSONObject;
 import com.yiji.falcon.agent.config.AgentConfiguration;
@@ -21,8 +22,13 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.*;
 
+/*
+ * 修订记录:
+ * guqiu@yiji.com 2016-06-22 17:48 创建
+ */
+
 /**
- * Created by QianLong on 16/5/24.
+ * @author guqiu@yiji.com
  */
 public class ElasticSearchMetricsValue extends JMXMetricsValue {
 

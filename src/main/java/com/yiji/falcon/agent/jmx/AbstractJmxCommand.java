@@ -1,3 +1,7 @@
+/*
+ * www.yiji.com Inc.
+ * Copyright (c) 2016 All Rights Reserved
+ */
 package com.yiji.falcon.agent.jmx;
 
 import java.io.File;
@@ -8,6 +12,14 @@ import java.net.URLClassLoader;
 import java.util.List;
 import java.util.Properties;
 
+/*
+ * 修订记录:
+ * guqiu@yiji.com 2016-06-22 17:48 创建
+ */
+
+/**
+ * @author guqiu@yiji.com
+ */
 public class AbstractJmxCommand {
     private static final String CONNECTOR_ADDRESS =
         "com.sun.management.jmxremote.localConnectorAddress";

@@ -1,3 +1,7 @@
+/*
+ * www.yiji.com Inc.
+ * Copyright (c) 2016 All Rights Reserved
+ */
 package com.yiji.falcon.agent.util;
 
 import org.slf4j.Logger;
@@ -7,12 +11,13 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/*
+ * 修订记录:
+ * guqiu@yiji.com 2016-06-22 17:48 创建
+ */
+
 /**
- * Copyright 2014-2015 the original ql
- * 文件操作工具类
- * 
- * @author qianlong
- * 
+ * @author guqiu@yiji.com
  */
 public class FileUtil {
 

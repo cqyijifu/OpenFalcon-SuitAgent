@@ -1,7 +1,8 @@
-package com.yiji.falcon.agent.config;/**
- * Copyright 2014-2015 the original ql
- * Created by QianLong on 16/4/25.
+/*
+ * www.yiji.com Inc.
+ * Copyright (c) 2016 All Rights Reserved
  */
+package com.yiji.falcon.agent.config;
 
 import com.yiji.falcon.agent.util.StringUtils;
 import org.slf4j.Logger;
@@ -11,9 +12,14 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.*;
 
+/*
+ * 修订记录:
+ * guqiu@yiji.com 2016-06-22 17:48 创建
+ */
+
 /**
  * 系统配置
- * Created by QianLong on 16/4/25.
+ * @author guqiu@yiji.com
  */
 public enum  AgentConfiguration {
 

@@ -1,7 +1,8 @@
-package com.yiji.falcon.agent.plugins.tomcat;/**
- * Copyright 2014-2015 the original ql
- * Created by QianLong on 16/5/3.
+/*
+ * www.yiji.com Inc.
+ * Copyright (c) 2016 All Rights Reserved
  */
+package com.yiji.falcon.agent.plugins.tomcat;
 
 import com.yiji.falcon.agent.config.AgentConfiguration;
 import com.yiji.falcon.agent.falcon.FalconReportObject;
@@ -15,8 +16,13 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+/*
+ * 修订记录:
+ * guqiu@yiji.com 2016-06-22 17:48 创建
+ */
+
 /**
- * Created by QianLong on 16/5/3.
+ * @author guqiu@yiji.com
  */
 public class TomcatMetricsValue extends JMXMetricsValue {
     private final Logger log = LoggerFactory.getLogger(this.getClass());

@@ -1,7 +1,8 @@
-package com.yiji.falcon.agent.plugins.oracle;/**
- * Copyright 2014-2015 the original ql
- * Created by QianLong on 16/5/16.
+/*
+ * www.yiji.com Inc.
+ * Copyright (c) 2016 All Rights Reserved
  */
+package com.yiji.falcon.agent.plugins.oracle;
 
 import com.yiji.falcon.agent.config.AgentConfiguration;
 import org.slf4j.Logger;
@@ -11,8 +12,13 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
+/*
+ * 修订记录:
+ * guqiu@yiji.com 2016-06-22 17:48 创建
+ */
+
 /**
- * Created by QianLong on 16/5/16.
+ * @author guqiu@yiji.com
  */
 public class OracleConnection {
     private static final Logger log = LoggerFactory.getLogger(OracleConnection.class);

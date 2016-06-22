@@ -1,3 +1,7 @@
+/*
+ * www.yiji.com Inc.
+ * Copyright (c) 2016 All Rights Reserved
+ */
 package com.yiji.falcon.agent.util;
 
 import java.text.ParseException;
@@ -6,10 +10,13 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
+/*
+ * 修订记录:
+ * guqiu@yiji.com 2016-06-22 17:48 创建
+ */
+
 /**
- * 日期工具类
- * @author QianLong
- * @createDate 2014-3-8
+ * @author guqiu@yiji.com
  */
 public class DateUtil {
 

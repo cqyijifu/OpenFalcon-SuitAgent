@@ -1,14 +1,20 @@
-package com.yiji.falcon.agent.util;/**
- * Copyright 2014-2015 the original BZTWT
- * Created by wenPeiSheng on 2014/7/14.
+/*
+ * www.yiji.com Inc.
+ * Copyright (c) 2016 All Rights Reserved
  */
+package com.yiji.falcon.agent.util;
 
 import java.util.Calendar;
 import java.util.Date;
 
+/*
+ * 修订记录:
+ * guqiu@yiji.com 2016-06-22 17:48 创建
+ */
+
 /**
  * Cron工具类
- * @author QianL
+ * @author guqiu@yiji.com
  */
 public class CronUtil {
 

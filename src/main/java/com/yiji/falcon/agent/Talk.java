@@ -1,3 +1,7 @@
+/*
+ * www.yiji.com Inc.
+ * Copyright (c) 2016 All Rights Reserved
+ */
 package com.yiji.falcon.agent;
 
 import org.slf4j.Logger;
@@ -11,8 +15,14 @@ import java.nio.channels.SocketChannel;
 import java.util.Iterator;
 import java.util.Set;
 
+/*
+ * 修订记录:
+ * guqiu@yiji.com 2016-06-22 17:48 创建
+ */
+
 /**
  * Agent主服务talk
+ * @author guqiu@yiji.com
  */
 public class Talk extends Thread {
 

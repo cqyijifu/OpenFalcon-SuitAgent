@@ -1,7 +1,8 @@
-package com.yiji.falcon.agent.plugins;/**
- * Copyright 2014-2015 the original ql
- * Created by QianLong on 16/5/17.
+/*
+ * www.yiji.com Inc.
+ * Copyright (c) 2016 All Rights Reserved
  */
+package com.yiji.falcon.agent.plugins;
 
 import com.yiji.falcon.agent.config.AgentConfiguration;
 import com.yiji.falcon.agent.falcon.CounterType;
@@ -22,9 +23,14 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+/*
+ * 修订记录:
+ * guqiu@yiji.com 2016-06-22 17:48 创建
+ */
+
 /**
  * 利用JDBC获取metrics监控值抽象类
- * Created by QianLong on 16/5/17.
+ * @author guqiu@yiji.com
  */
 public abstract class JDBCMetricsValue extends MetricsCommon{
     private final Logger log = LoggerFactory.getLogger(this.getClass());

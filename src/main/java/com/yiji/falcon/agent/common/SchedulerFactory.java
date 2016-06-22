@@ -1,17 +1,21 @@
-package com.yiji.falcon.agent.common;/**
- * Copyright 2014-2015 the original BZTWT
- * Created by QianLong on 2014/7/11 0011.
+/*
+ * www.yiji.com Inc.
+ * Copyright (c) 2016 All Rights Reserved
  */
+package com.yiji.falcon.agent.common;
 
 import com.yiji.falcon.agent.config.AgentConfiguration;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.impl.StdSchedulerFactory;
 
+/*
+ * 修订记录:
+ * guqiu@yiji.com 2016-06-22 17:48 创建
+ */
+
 /**
- * 计划任务工厂类
- * Copyright 2014-2015 the original BZTWT
- * Created by QianLong on 2014/7/11 0011.
+ * @author guqiu@yiji.com
  */
 public class SchedulerFactory {
 

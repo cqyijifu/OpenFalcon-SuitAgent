@@ -1,7 +1,8 @@
-package com.yiji.falcon.agent;/**
- * Copyright 2014-2015 the original ql
- * Created by QianLong on 16/4/25.
+/*
+ * www.yiji.com Inc.
+ * Copyright (c) 2016 All Rights Reserved
  */
+package com.yiji.falcon.agent;
 
 import com.yiji.falcon.agent.config.AgentConfiguration;
 import com.yiji.falcon.agent.jmx.JMXConnection;
@@ -27,9 +28,14 @@ import java.util.Collection;
 import static com.yiji.falcon.agent.common.AgentWorkLogic.autoWorkLogic;
 import static com.yiji.falcon.agent.common.AgentWorkLogic.confWorkLogic;
 
+/*
+ * 修订记录:
+ * guqiu@yiji.com 2016-06-22 17:48 创建
+ */
+
 /**
  * agent服务
- * Created by QianLong on 16/4/25.
+ * @author guqiu@yiji.com
  */
 public class Agent extends Thread{
 

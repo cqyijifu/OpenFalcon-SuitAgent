@@ -1,7 +1,8 @@
-package com.yiji.falcon.agent.plugins.yijiBoot;/**
- * Copyright 2016-2017 the original ql
- * Created by QianLong on 16/6/15.
+/*
+ * www.yiji.com Inc.
+ * Copyright (c) 2016 All Rights Reserved
  */
+package com.yiji.falcon.agent.plugins.yijiBoot;
 
 import com.yiji.falcon.agent.falcon.ReportMetrics;
 import com.yiji.falcon.agent.util.StringUtils;
@@ -11,8 +12,13 @@ import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/*
+ * 修订记录:
+ * guqiu@yiji.com 2016-06-22 17:48 创建
+ */
+
 /**
- * Created by QianLong on 16/6/15.
+ * @author guqiu@yiji.com
  */
 public class YijiBootReportJob implements Job {
     private final Logger log = LoggerFactory.getLogger(this.getClass());

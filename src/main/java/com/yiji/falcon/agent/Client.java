@@ -1,7 +1,8 @@
-package com.yiji.falcon.agent;/**
- * Copyright 2014-2015 the original BZTWT
- * Created by QianLong on 15/5/17.
+/*
+ * www.yiji.com Inc.
+ * Copyright (c) 2016 All Rights Reserved
  */
+package com.yiji.falcon.agent;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -14,9 +15,14 @@ import java.nio.charset.Charset;
 import java.util.Iterator;
 import java.util.Set;
 
+/*
+ * 修订记录:
+ * guqiu@yiji.com 2016-06-22 17:48 创建
+ */
+
 /**
  * Agent主服务通信类
- * Created by QianLong on 15/5/17.
+ * @author guqiu@yiji.com
  */
 public class Client {
 

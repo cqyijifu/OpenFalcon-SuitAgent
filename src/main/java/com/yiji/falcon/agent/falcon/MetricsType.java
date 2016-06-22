@@ -1,10 +1,16 @@
-package com.yiji.falcon.agent.falcon;/**
- * Copyright 2014-2015 the original ql
- * Created by QianLong on 16/6/13.
+/*
+ * www.yiji.com Inc.
+ * Copyright (c) 2016 All Rights Reserved
+ */
+package com.yiji.falcon.agent.falcon;
+
+/*
+ * 修订记录:
+ * guqiu@yiji.com 2016-06-22 17:48 创建
  */
 
 /**
- * Created by QianLong on 16/6/13.
+ * @author guqiu@yiji.com
  */
 public enum MetricsType {
 

@@ -1,7 +1,8 @@
-package com.yiji.falcon.agent.jmx;/**
- * Copyright 2014-2015 the original ql
- * Created by QianLong on 16/3/21.
+/*
+ * www.yiji.com Inc.
+ * Copyright (c) 2016 All Rights Reserved
  */
+package com.yiji.falcon.agent.jmx;
 
 import com.sun.tools.attach.VirtualMachine;
 import com.sun.tools.attach.VirtualMachineDescriptor;
@@ -18,9 +19,14 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/*
+ * 修订记录:
+ * guqiu@yiji.com 2016-06-22 17:48 创建
+ */
+
 /**
  * 此类需要具体的监控对象(如ZK,Tomcat等进行继承)
- * Created by QianLong on 16/3/21.
+ * @author guqiu@yiji.com
  */
 public abstract class JMXConnection {
     private static final Logger log = LoggerFactory.getLogger(JMXConnection.class);

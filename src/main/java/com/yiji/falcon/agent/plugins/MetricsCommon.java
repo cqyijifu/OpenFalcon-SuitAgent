@@ -1,7 +1,8 @@
-package com.yiji.falcon.agent.plugins;/**
- * Copyright 2014-2015 the original ql
- * Created by QianLong on 16/5/25.
+/*
+ * www.yiji.com Inc.
+ * Copyright (c) 2016 All Rights Reserved
  */
+package com.yiji.falcon.agent.plugins;
 
 import com.yiji.falcon.agent.falcon.CounterType;
 import com.yiji.falcon.agent.falcon.FalconReportObject;
@@ -17,9 +18,14 @@ import javax.script.ScriptException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
+/*
+ * 修订记录:
+ * guqiu@yiji.com 2016-06-22 17:48 创建
+ */
+
 /**
  * metrics监控公共抽象类
- * Created by QianLong on 16/5/25.
+ * @author guqiu@yiji.com
  */
 public abstract class MetricsCommon {
 

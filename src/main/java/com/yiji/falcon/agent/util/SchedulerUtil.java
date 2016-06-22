@@ -1,7 +1,8 @@
-package com.yiji.falcon.agent.util;/**
- * Copyright 2014-2015 the original ql
- * Created by QianLong on 16/4/26.
+/*
+ * www.yiji.com Inc.
+ * Copyright (c) 2016 All Rights Reserved
  */
+package com.yiji.falcon.agent.util;
 
 import com.yiji.falcon.agent.common.SchedulerFactory;
 import com.yiji.falcon.agent.vo.sceduler.ScheduleJobResult;
@@ -13,9 +14,14 @@ import org.quartz.Trigger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/*
+ * 修订记录:
+ * guqiu@yiji.com 2016-06-22 17:48 创建
+ */
+
 /**
  * 计划任务辅助工具类
- * Created by QianLong on 16/4/26.
+ * @author guqiu@yiji.com
  */
 public class SchedulerUtil {
 

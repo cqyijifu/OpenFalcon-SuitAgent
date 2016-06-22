@@ -1,7 +1,8 @@
-package com.yiji.falcon.agent.plugins.logstash;/**
- * Copyright 2014-2015 the original ql
- * Created by QianLong on 16/5/30.
+/*
+ * www.yiji.com Inc.
+ * Copyright (c) 2016 All Rights Reserved
  */
+package com.yiji.falcon.agent.plugins.logstash;
 
 import com.yiji.falcon.agent.config.AgentConfiguration;
 import com.yiji.falcon.agent.falcon.FalconReportObject;
@@ -13,8 +14,13 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+/*
+ * 修订记录:
+ * guqiu@yiji.com 2016-06-22 17:48 创建
+ */
+
 /**
- * Created by QianLong on 16/5/30.
+ * @author guqiu@yiji.com
  */
 public class LogstashMetricsValue extends JMXMetricsValue {
     /**

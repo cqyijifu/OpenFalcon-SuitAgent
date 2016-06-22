@@ -1,3 +1,7 @@
+/*
+ * www.yiji.com Inc.
+ * Copyright (c) 2016 All Rights Reserved
+ */
 package com.yiji.falcon.agent.util;
 
 import java.io.BufferedInputStream;
@@ -5,8 +9,14 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+/*
+ * 修订记录:
+ * guqiu@yiji.com 2016-06-22 17:48 创建
+ */
+
 /**
  * 命令执行
+ * @author guqiu@yiji.com
  */
 public class CommendUtil {
 

@@ -1,7 +1,8 @@
-package com.yiji.falcon.agent.common;/**
- * Copyright 2016-2017 the original ql
- * Created by QianLong on 16/6/14.
+/*
+ * www.yiji.com Inc.
+ * Copyright (c) 2016 All Rights Reserved
  */
+package com.yiji.falcon.agent.common;
 
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
@@ -11,9 +12,14 @@ import org.slf4j.LoggerFactory;
 
 import static com.yiji.falcon.agent.common.AgentWorkLogic.autoWorkLogic;
 
+/*
+ * 修订记录:
+ * guqiu@yiji.com 2016-06-22 17:48 创建
+ */
+
 /**
  * agent自动发现服务JOB
- * Created by QianLong on 16/6/14.
+ * @author guqiu@yiji.com
  */
 public class AgentFlushJob implements Job{
     private final Logger log = LoggerFactory.getLogger(this.getClass());

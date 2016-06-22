@@ -1,7 +1,8 @@
-package com.yiji.falcon.agent.plugins.oracle;/**
- * Copyright 2014-2015 the original ql
- * Created by QianLong on 16/5/16.
+/*
+ * www.yiji.com Inc.
+ * Copyright (c) 2016 All Rights Reserved
  */
+package com.yiji.falcon.agent.plugins.oracle;
 
 import com.yiji.falcon.agent.config.AgentConfiguration;
 import com.yiji.falcon.agent.falcon.CounterType;
@@ -18,9 +19,14 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+/*
+ * 修订记录:
+ * guqiu@yiji.com 2016-06-22 17:48 创建
+ */
+
 /**
  * Oracle数据库的监控
- * Created by QianLong on 16/5/16.
+ * @author guqiu@yiji.com
  */
 public class OracleMetricsValue extends JDBCMetricsValue {
 

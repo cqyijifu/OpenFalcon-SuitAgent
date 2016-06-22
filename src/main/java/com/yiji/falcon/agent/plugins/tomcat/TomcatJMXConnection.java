@@ -1,7 +1,8 @@
-package com.yiji.falcon.agent.plugins.tomcat;/**
- * Copyright 2014-2015 the original ql
- * Created by QianLong on 16/5/3.
+/*
+ * www.yiji.com Inc.
+ * Copyright (c) 2016 All Rights Reserved
  */
+package com.yiji.falcon.agent.plugins.tomcat;
 
 import com.yiji.falcon.agent.jmx.JMXConnection;
 import org.slf4j.Logger;
@@ -13,8 +14,13 @@ import javax.management.ObjectInstance;
 import javax.management.ObjectName;
 import java.util.Set;
 
+/*
+ * 修订记录:
+ * guqiu@yiji.com 2016-06-22 17:48 创建
+ */
+
 /**
- * Created by QianLong on 16/5/3.
+ * @author guqiu@yiji.com
  */
 public class TomcatJMXConnection extends JMXConnection {
     private final Logger log = LoggerFactory.getLogger(this.getClass());

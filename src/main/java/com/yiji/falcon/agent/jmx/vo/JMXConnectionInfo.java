@@ -1,16 +1,21 @@
-package com.yiji.falcon.agent.jmx.vo;/**
- * Copyright 2014-2015 the original ql
- * Created by QianLong on 16/4/28.
+/*
+ * www.yiji.com Inc.
+ * Copyright (c) 2016 All Rights Reserved
  */
+package com.yiji.falcon.agent.jmx.vo;
 
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 
 import javax.management.MBeanServerConnection;
 
+/*
+ * 修订记录:
+ * guqiu@yiji.com 2016-06-22 17:48 创建
+ */
+
 /**
- * JMX连接信息
- * Created by QianLong on 16/4/28.
+ * @author guqiu@yiji.com
  */
 public class JMXConnectionInfo {
     private String cacheKeyId;//JMX缓存的key的唯一id

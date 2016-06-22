@@ -1,7 +1,8 @@
-package com.yiji.falcon.agent.common;/**
- * Copyright 2016-2017 the original ql
- * Created by QianLong on 16/6/14.
+/*
+ * www.yiji.com Inc.
+ * Copyright (c) 2016 All Rights Reserved
  */
+package com.yiji.falcon.agent.common;
 
 import com.yiji.falcon.agent.config.AgentConfiguration;
 import com.yiji.falcon.agent.jmx.JMXConnection;
@@ -24,9 +25,13 @@ import java.util.concurrent.ConcurrentSkipListSet;
 
 import static org.quartz.TriggerBuilder.newTrigger;
 
+/*
+ * 修订记录:
+ * guqiu@yiji.com 2016-06-22 17:48 创建
+ */
+
 /**
- * Agent Work Logic
- * Created by QianLong on 16/6/14.
+ * @author guqiu@yiji.com
  */
 public class AgentWorkLogic {
 

@@ -1,7 +1,8 @@
-package com.yiji.falcon.agent.falcon;/**
- * Copyright 2014-2015 the original ql
- * Created by QianLong on 16/4/25.
+/*
+ * www.yiji.com Inc.
+ * Copyright (c) 2016 All Rights Reserved
  */
+package com.yiji.falcon.agent.falcon;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -10,8 +11,13 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
+/*
+ * 修订记录:
+ * guqiu@yiji.com 2016-06-22 17:48 创建
+ */
+
 /**
- * Created by QianLong on 16/4/25.
+ * @author guqiu@yiji.com
  */
 public class RequestJson {
 

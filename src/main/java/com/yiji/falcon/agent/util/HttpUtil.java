@@ -1,7 +1,8 @@
-package com.yiji.falcon.agent.util;/**
- * Copyright 2014-2015 the original BZTWT
- * Created by QianLong on 2014/4/16 0016.
+/*
+ * www.yiji.com Inc.
+ * Copyright (c) 2016 All Rights Reserved
  */
+package com.yiji.falcon.agent.util;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -23,10 +24,13 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/*
+ * 修订记录:
+ * guqiu@yiji.com 2016-06-22 17:48 创建
+ */
+
 /**
- * Request请求发送工具类
- * Copyright 2014-2015 the original BZTWT
- * Created by QianLong on 2014/4/16 0016.
+ * @author guqiu@yiji.com
  */
 public class HttpUtil {
 

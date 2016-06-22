@@ -1,11 +1,18 @@
+/*
+ * www.yiji.com Inc.
+ * Copyright (c) 2016 All Rights Reserved
+ */
 package com.yiji.falcon.agent.util;
 
 import java.math.BigDecimal;
 
+/*
+ * 修订记录:
+ * guqiu@yiji.com 2016-06-22 17:48 创建
+ */
+
 /**
- * 用于金钱计算的工具类
- * @author QianLong
- * @createDate 2014-3-8
+ * @author guqiu@yiji.com
  */
 public class CustomerMath {
 

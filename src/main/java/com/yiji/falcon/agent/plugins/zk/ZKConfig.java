@@ -1,7 +1,8 @@
-package com.yiji.falcon.agent.plugins.zk;/**
- * Copyright 2014-2015 the original ql
- * Created by QianLong on 16/5/31.
+/*
+ * www.yiji.com Inc.
+ * Copyright (c) 2016 All Rights Reserved
  */
+package com.yiji.falcon.agent.plugins.zk;
 
 import com.yiji.falcon.agent.plugins.elasticSearch.ElasticSearchConfig;
 import com.yiji.falcon.agent.util.CommendUtil;
@@ -19,8 +20,13 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static com.yiji.falcon.agent.util.CommendUtil.exec;
 
+/*
+ * 修订记录:
+ * guqiu@yiji.com 2016-06-22 17:48 创建
+ */
+
 /**
- * Created by QianLong on 16/5/31.
+ * @author guqiu@yiji.com
  */
 public class ZKConfig {
     private static final Logger log = LoggerFactory.getLogger(ElasticSearchConfig.class);
