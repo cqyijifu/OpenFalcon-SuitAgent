@@ -7,7 +7,7 @@ package com.yiji.falcon.agent.common;
 import com.yiji.falcon.agent.config.AgentConfiguration;
 import com.yiji.falcon.agent.jmx.JMXConnection;
 import com.yiji.falcon.agent.plugins.JDBCPlugin;
-import com.yiji.falcon.agent.plugins.PluginActivateType;
+import com.yiji.falcon.agent.plugins.util.PluginActivateType;
 import com.yiji.falcon.agent.util.CronUtil;
 import com.yiji.falcon.agent.util.SchedulerUtil;
 import com.yiji.falcon.agent.util.StringUtils;

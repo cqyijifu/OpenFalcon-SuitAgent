@@ -14,9 +14,9 @@ import com.yiji.falcon.agent.falcon.MetricsType;
 import com.yiji.falcon.agent.jmx.vo.JMXMetricsValueInfo;
 import com.yiji.falcon.agent.jmx.vo.JMXObjectNameInfo;
 import com.yiji.falcon.agent.plugins.JMXPlugin;
-import com.yiji.falcon.agent.plugins.MetricsCommon;
+import com.yiji.falcon.agent.plugins.metrics.MetricsCommon;
 import com.yiji.falcon.agent.plugins.Plugin;
-import com.yiji.falcon.agent.plugins.PluginActivateType;
+import com.yiji.falcon.agent.plugins.util.PluginActivateType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

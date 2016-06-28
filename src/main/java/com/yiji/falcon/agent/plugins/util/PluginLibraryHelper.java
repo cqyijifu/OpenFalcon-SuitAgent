@@ -2,7 +2,7 @@
  * www.yiji.com Inc.
  * Copyright (c) 2016 All Rights Reserved
  */
-package com.yiji.falcon.agent.plugins;
+package com.yiji.falcon.agent.plugins.util;
 /*
  * 修订记录:
  * guqiu@yiji.com 2016-06-23 16:27 创建
@@ -10,6 +10,9 @@ package com.yiji.falcon.agent.plugins;
 
 import com.google.common.reflect.ClassPath;
 import com.yiji.falcon.agent.config.AgentConfiguration;
+import com.yiji.falcon.agent.plugins.JDBCPlugin;
+import com.yiji.falcon.agent.plugins.JMXPlugin;
+import com.yiji.falcon.agent.plugins.Plugin;
 import com.yiji.falcon.agent.util.PropertiesUtil;
 import com.yiji.falcon.agent.util.StringUtils;
 import org.slf4j.Logger;

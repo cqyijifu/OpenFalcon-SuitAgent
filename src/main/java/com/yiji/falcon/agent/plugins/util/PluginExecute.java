@@ -2,13 +2,17 @@
  * www.yiji.com Inc.
  * Copyright (c) 2016 All Rights Reserved
  */
-package com.yiji.falcon.agent.plugins;
+package com.yiji.falcon.agent.plugins.util;
 /*
  * 修订记录:
  * guqiu@yiji.com 2016-06-24 11:12 创建
  */
 
 import com.yiji.falcon.agent.common.AgentJobHelper;
+import com.yiji.falcon.agent.plugins.JDBCPlugin;
+import com.yiji.falcon.agent.plugins.JMXPlugin;
+import com.yiji.falcon.agent.plugins.job.JDBCPluginJob;
+import com.yiji.falcon.agent.plugins.job.JMXPluginJob;
 import com.yiji.falcon.agent.util.StringUtils;
 import org.quartz.JobDataMap;
 import org.quartz.SchedulerException;

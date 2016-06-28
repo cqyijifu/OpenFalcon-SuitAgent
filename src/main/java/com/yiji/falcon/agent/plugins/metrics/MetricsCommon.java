@@ -2,12 +2,15 @@
  * www.yiji.com Inc.
  * Copyright (c) 2016 All Rights Reserved
  */
-package com.yiji.falcon.agent.plugins;
+package com.yiji.falcon.agent.plugins.metrics;
 
 import com.yiji.falcon.agent.config.AgentConfiguration;
 import com.yiji.falcon.agent.falcon.CounterType;
 import com.yiji.falcon.agent.falcon.FalconReportObject;
 import com.yiji.falcon.agent.falcon.MetricsType;
+import com.yiji.falcon.agent.plugins.JDBCPlugin;
+import com.yiji.falcon.agent.plugins.JMXPlugin;
+import com.yiji.falcon.agent.plugins.Plugin;
 import com.yiji.falcon.agent.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +44,7 @@ public class MetricsCommon {
      * @param serverName
      * @return
      */
-    public static FalconReportObject generatorVariabilityReport(boolean isAva, String agentSignName,int step,Plugin plugin,String serverName){
+    public static FalconReportObject generatorVariabilityReport(boolean isAva, String agentSignName, int step, Plugin plugin, String serverName){
         FalconReportObject falconReportObject = new FalconReportObject();
         setReportCommonValue(falconReportObject,step);
         falconReportObject.setCounterType(CounterType.GAUGE);

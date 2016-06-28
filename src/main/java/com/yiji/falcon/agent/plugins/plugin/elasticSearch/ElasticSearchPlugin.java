@@ -14,9 +14,9 @@ import com.yiji.falcon.agent.falcon.FalconReportObject;
 import com.yiji.falcon.agent.falcon.MetricsType;
 import com.yiji.falcon.agent.jmx.vo.JMXMetricsValueInfo;
 import com.yiji.falcon.agent.plugins.JMXPlugin;
-import com.yiji.falcon.agent.plugins.MetricsCommon;
+import com.yiji.falcon.agent.plugins.metrics.MetricsCommon;
 import com.yiji.falcon.agent.plugins.Plugin;
-import com.yiji.falcon.agent.plugins.PluginActivateType;
+import com.yiji.falcon.agent.plugins.util.PluginActivateType;
 import com.yiji.falcon.agent.util.HttpUtil;
 import com.yiji.falcon.agent.util.StringUtils;
 import org.ho.yaml.Yaml;
@@ -29,7 +29,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.*;
 
-import static com.yiji.falcon.agent.plugins.MetricsCommon.executeJsExpress;
+import static com.yiji.falcon.agent.plugins.metrics.MetricsCommon.executeJsExpress;
 
 /**
  * @author guqiu@yiji.com

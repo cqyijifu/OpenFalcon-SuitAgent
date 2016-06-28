@@ -12,8 +12,8 @@ import com.yiji.falcon.agent.falcon.CounterType;
 import com.yiji.falcon.agent.falcon.FalconReportObject;
 import com.yiji.falcon.agent.falcon.MetricsType;
 import com.yiji.falcon.agent.plugins.JDBCPlugin;
-import com.yiji.falcon.agent.plugins.MetricsCommon;
-import com.yiji.falcon.agent.plugins.PluginActivateType;
+import com.yiji.falcon.agent.plugins.metrics.MetricsCommon;
+import com.yiji.falcon.agent.plugins.util.PluginActivateType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,7 +23,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import static com.yiji.falcon.agent.plugins.MetricsCommon.getMetricsName;
+import static com.yiji.falcon.agent.plugins.metrics.MetricsCommon.getMetricsName;
 
 /**
  * @author guqiu@yiji.com

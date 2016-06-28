@@ -4,7 +4,7 @@
  */
 package com.yiji.falcon.agent.common;
 
-import com.yiji.falcon.agent.plugins.PluginExecute;
+import com.yiji.falcon.agent.plugins.util.PluginExecute;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;

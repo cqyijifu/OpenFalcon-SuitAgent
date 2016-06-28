@@ -2,7 +2,7 @@
  * www.yiji.com Inc.
  * Copyright (c) 2016 All Rights Reserved
  */
-package com.yiji.falcon.agent.plugins;
+package com.yiji.falcon.agent.plugins.util;
 /*
  * 修订记录:
  * guqiu@yiji.com 2016-06-24 11:18 创建

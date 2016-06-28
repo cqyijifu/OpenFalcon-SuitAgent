@@ -8,6 +8,8 @@ package com.yiji.falcon.agent.plugins;
  * guqiu@yiji.com 2016-06-23 16:56 创建
  */
 
+import com.yiji.falcon.agent.plugins.util.PluginActivateType;
+
 import java.util.Map;
 
 /**

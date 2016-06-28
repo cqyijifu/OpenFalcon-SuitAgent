@@ -2,7 +2,7 @@
  * www.yiji.com Inc.
  * Copyright (c) 2016 All Rights Reserved
  */
-package com.yiji.falcon.agent.plugins;
+package com.yiji.falcon.agent.plugins.job;
 /*
  * 修订记录:
  * guqiu@yiji.com 2016-06-24 13:42 创建
@@ -11,6 +11,8 @@ package com.yiji.falcon.agent.plugins;
 import com.yiji.falcon.agent.falcon.ReportMetrics;
 import com.yiji.falcon.agent.jmx.JMXManager;
 import com.yiji.falcon.agent.jmx.vo.JMXMetricsValueInfo;
+import com.yiji.falcon.agent.plugins.metrics.JMXMetricsValue;
+import com.yiji.falcon.agent.plugins.JMXPlugin;
 import org.quartz.Job;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;

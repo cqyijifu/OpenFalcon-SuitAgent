@@ -12,7 +12,7 @@ import com.yiji.falcon.agent.falcon.FalconReportObject;
 import com.yiji.falcon.agent.jmx.vo.JMXMetricsValueInfo;
 import com.yiji.falcon.agent.plugins.JMXPlugin;
 import com.yiji.falcon.agent.plugins.Plugin;
-import com.yiji.falcon.agent.plugins.PluginActivateType;
+import com.yiji.falcon.agent.plugins.util.PluginActivateType;
 
 import javax.management.MBeanServerConnection;
 import java.util.ArrayList;
