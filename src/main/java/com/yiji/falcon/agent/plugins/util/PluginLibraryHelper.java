@@ -85,7 +85,7 @@ public class PluginLibraryHelper {
                         continue;
                     }
                     plugins.add(plugin);
-                    logger.info("成功注册插件:{}",clazzName);
+                    logger.info("成功注册插件:{},启动方式:{}",clazzName,plugin.activateType().getDesc());
                 }
             }
         } catch (Exception e) {
