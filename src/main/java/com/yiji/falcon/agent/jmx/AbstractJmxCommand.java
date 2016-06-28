@@ -40,7 +40,7 @@ public class AbstractJmxCommand {
      * 返回查找的JMX本地连接地址或查找失败返回Null
      */
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    protected String findJMXUrlByProcessId(int pid) {
+    public String findJMXUrlByProcessId(int pid) {
 
         if (isSunJVM()) {
             try {

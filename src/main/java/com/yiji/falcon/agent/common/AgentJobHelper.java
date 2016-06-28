@@ -6,12 +6,8 @@ package com.yiji.falcon.agent.common;
 
 import com.yiji.falcon.agent.config.AgentConfiguration;
 import com.yiji.falcon.agent.jmx.JMXConnection;
-import com.yiji.falcon.agent.plugins.elasticSearch.ElasticSearchReportJob;
-import com.yiji.falcon.agent.plugins.logstash.LogstashReportJob;
-import com.yiji.falcon.agent.plugins.oracle.OracleReportJob;
-import com.yiji.falcon.agent.plugins.tomcat.TomcatReportJob;
-import com.yiji.falcon.agent.plugins.yijiBoot.YijiBootReportJob;
-import com.yiji.falcon.agent.plugins.zk.ZKReportJob;
+import com.yiji.falcon.agent.plugins.JDBCPlugin;
+import com.yiji.falcon.agent.plugins.PluginActivateType;
 import com.yiji.falcon.agent.util.CronUtil;
 import com.yiji.falcon.agent.util.SchedulerUtil;
 import com.yiji.falcon.agent.util.StringUtils;
@@ -33,9 +29,9 @@ import static org.quartz.TriggerBuilder.newTrigger;
 /**
  * @author guqiu@yiji.com
  */
-public class AgentWorkLogic {
+public class AgentJobHelper {
 
-    private static final Logger log = LoggerFactory.getLogger(AgentWorkLogic.class);
+    private static final Logger log = LoggerFactory.getLogger(AgentJobHelper.class);
 
     //正在work的job记录
     private static final ConcurrentSkipListSet<String> worked = new ConcurrentSkipListSet<>();
@@ -60,31 +56,10 @@ public class AgentWorkLogic {
     }
 
     /**
-     * 进行一次服务自动发现work启动
+     * Agent监控服务自动发现定时刷新功能
      * @throws SchedulerException
      */
-    public static void autoWorkLogic() throws SchedulerException {
-        autoWorkLogicForJMX(AgentConfiguration.INSTANCE.getAgentZkWork(),ZKReportJob.class,"zookeeper",AgentConfiguration.INSTANCE.getZkJmxServerName(),new JobDataMap());
-        autoWorkLogicForJMX(AgentConfiguration.INSTANCE.getAgentTomcatWork(),TomcatReportJob.class,"tomcat",AgentConfiguration.INSTANCE.getTomcatJmxServerName(),new JobDataMap());
-        autoWorkLogicForJMX(AgentConfiguration.INSTANCE.getAgentElasticSearchWork(),ElasticSearchReportJob.class,"elasticSearch",AgentConfiguration.INSTANCE.getElasticSearchJmxServerName(),new JobDataMap());
-        autoWorkLogicForJMX(AgentConfiguration.INSTANCE.getAgentLogstashWork(),LogstashReportJob.class,"logstash",AgentConfiguration.INSTANCE.getLogstashJmxServerName(),new JobDataMap());
-
-        for (String serverName : AgentConfiguration.INSTANCE.getYijiBootJmxServerName()) {
-            //分别启动不同的yijiBoot应用
-            if(!StringUtils.isEmpty(serverName)){
-                JobDataMap jobDataMap = new JobDataMap();
-                jobDataMap.put("appJarName",serverName);
-                autoWorkLogicForJMX(AgentConfiguration.INSTANCE.getAgentYijiBootWork(),YijiBootReportJob.class,"yijiBoot-" + serverName,serverName,jobDataMap);
-            }
-        }
-
-    }
-
-    /**
-     * 配置启动的work启动逻辑
-     */
-    public static void confWorkLogic() throws SchedulerException {
-
+    public static void agentFlush() throws SchedulerException {
         String agentFlush = "AgentFlush";
         if(AgentConfiguration.INSTANCE.getAgentFlushTime() != 0 &&
                 !isHasWorked(agentFlush)){
@@ -97,46 +72,69 @@ public class AgentWorkLogic {
         }else{
             log.info("Agent监控服务自动发现定时刷新功能未开启");
         }
-
-        String oracle = "oracle";
-        if("true".equalsIgnoreCase(AgentConfiguration.INSTANCE.getAgentOracleWork()) &&
-                !isHasWorked(oracle)){
-            //开启Oracle
-            JobDetail job = getJobDetail(OracleReportJob.class,oracle, oracle +"的监控数据push调度JOB",new JobDataMap());
-
-            Trigger trigger = getTrigger(AgentConfiguration.INSTANCE.getOracleStep(),oracle, oracle + "的监控数据push调度任务");
-            ScheduleJobResult scheduleJobResult = SchedulerUtil.executeScheduleJob(job,trigger);
-            workResult(scheduleJobResult,oracle);
-        }
     }
 
     /**
      * JMX服务的监控启动逻辑服务方法
-     * @param workConf
+     * @param pluginName
+     * @param pluginActivateType
+     * @param step
      * @param jobClazz
      * @param desc
      * @param serverName
+     * @param jmxServerName
+     * @param jobDataMap
      * @throws SchedulerException
      */
-    private static void autoWorkLogicForJMX(String workConf, Class<? extends Job> jobClazz, String desc, String serverName,JobDataMap jobDataMap) throws SchedulerException {
+    public synchronized static void pluginWorkForJMX(String pluginName, PluginActivateType pluginActivateType, int step, Class<? extends Job> jobClazz, String desc, String serverName,String jmxServerName, JobDataMap jobDataMap) throws SchedulerException {
         //只有指定job未启动过的情况下才进行work开启
         if(!isHasWorked(serverName)){
-            if("auto".equalsIgnoreCase(workConf)){
-                if(JMXConnection.hasJMXServerInLocal(serverName)){
+            if(pluginActivateType == PluginActivateType.AUTO){
+                if(JMXConnection.hasJMXServerInLocal(jmxServerName)){
                     //开启服务监控
-                    log.info("自动发现JMX服务:{}",serverName);
-                    JobDetail job = getJobDetail(jobClazz,desc,desc + "的监控数据push调度JOB",jobDataMap);
-                    Trigger trigger = getTrigger(AgentConfiguration.INSTANCE.getZkStep(),desc,desc + "的监控数据push调度任务");
-                    ScheduleJobResult scheduleJobResult = SchedulerUtil.executeScheduleJob(job,trigger);
-                    workResult(scheduleJobResult,serverName);
+                    log.info("发现服务 {} , 启动插件 {} ",serverName,pluginName);
+                    doJob(jobClazz,desc,step,jobDataMap,serverName);
                 }
-            }else if("true".equalsIgnoreCase(workConf)){
-                JobDetail job = getJobDetail(jobClazz,desc,desc + "的监控数据push调度JOB",jobDataMap);
-                Trigger trigger = getTrigger(AgentConfiguration.INSTANCE.getZkStep(),desc,desc + "的监控数据push调度任务");
-                ScheduleJobResult scheduleJobResult = SchedulerUtil.executeScheduleJob(job,trigger);
-                workResult(scheduleJobResult,serverName);
+            }else if(pluginActivateType == PluginActivateType.FORCE){
+                doJob(jobClazz,desc,step,jobDataMap,serverName);
             }
         }
+    }
+
+    /**
+     * JDBC服务的监控启动逻辑服务方法
+     * @param jdbcPlugin
+     * @param pluginName
+     * @param pluginActivateType
+     * @param step
+     * @param jobClazz
+     * @param serverName
+     * @param desc
+     * @param jobDataMap
+     * @throws SchedulerException
+     */
+    public synchronized static void pluginWorkForJDBC(JDBCPlugin jdbcPlugin ,String pluginName, PluginActivateType pluginActivateType, int step, Class<? extends Job> jobClazz, String serverName,String desc, JobDataMap jobDataMap) throws SchedulerException {
+        //只有指定job未启动过的情况下才进行work开启
+        if(!isHasWorked(serverName)){
+            if(pluginActivateType == PluginActivateType.AUTO){
+                try {
+                    jdbcPlugin.getConnection();
+                    //连接获取成功,开启服务监控
+                    log.info("发现服务 {} , 启动插件 {} ",serverName,pluginName);
+                    doJob(jobClazz,desc,step,jobDataMap,serverName);
+                } catch (Exception ignored) {
+                }
+            }else if(pluginActivateType == PluginActivateType.FORCE){
+                doJob(jobClazz,desc,step,jobDataMap,serverName);
+            }
+        }
+    }
+
+    private static void doJob(Class<? extends Job> jobClazz,String desc,int step,JobDataMap jobDataMap,String serverName) throws SchedulerException {
+        JobDetail job = getJobDetail(jobClazz,desc,desc + "的监控数据push调度JOB",jobDataMap);
+        Trigger trigger = getTrigger(step,desc,desc + "的监控数据push调度任务");
+        ScheduleJobResult scheduleJobResult = SchedulerUtil.executeScheduleJob(job,trigger);
+        workResult(scheduleJobResult,serverName);
     }
 
     /**

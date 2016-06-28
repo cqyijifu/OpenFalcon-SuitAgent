@@ -4,13 +4,12 @@
  */
 package com.yiji.falcon.agent.common;
 
+import com.yiji.falcon.agent.plugins.PluginExecute;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static com.yiji.falcon.agent.common.AgentWorkLogic.autoWorkLogic;
 
 /*
  * 修订记录:
@@ -26,8 +25,8 @@ public class AgentFlushJob implements Job{
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
         try {
-            log.info("开始自动扫描监控服务");
-            autoWorkLogic();
+            log.info("开始自动扫描插件服务");
+            PluginExecute.run();
         } catch (Exception e) {
             log.error("agent运行异常",e);
         }

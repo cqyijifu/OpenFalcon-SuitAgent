@@ -4,6 +4,7 @@
  */
 package com.yiji.falcon.agent.plugins;
 
+import com.yiji.falcon.agent.config.AgentConfiguration;
 import com.yiji.falcon.agent.falcon.CounterType;
 import com.yiji.falcon.agent.falcon.FalconReportObject;
 import com.yiji.falcon.agent.falcon.MetricsType;
@@ -24,28 +25,29 @@ import java.net.UnknownHostException;
  */
 
 /**
- * metrics监控公共抽象类
+ * metrics监控公共类
  * @author guqiu@yiji.com
  */
-public abstract class MetricsCommon {
+public class MetricsCommon {
 
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+    private static final Logger logger = LoggerFactory.getLogger(MetricsCommon.class);
 
     /**
      * 创建指定可用性的报告对象
      * @param isAva
-     * 是否可用
-     * @param name
-     * 服务的标识后缀名
+     * @param agentSignName
+     * @param step
+     * @param plugin
+     * @param serverName
      * @return
      */
-    FalconReportObject generatorVariabilityReport(boolean isAva, String name){
+    public static FalconReportObject generatorVariabilityReport(boolean isAva, String agentSignName,int step,Plugin plugin,String serverName){
         FalconReportObject falconReportObject = new FalconReportObject();
-        setReportCommonValue(falconReportObject);
+        setReportCommonValue(falconReportObject,step);
         falconReportObject.setCounterType(CounterType.GAUGE);
         falconReportObject.setMetric(getMetricsName("availability"));
         falconReportObject.setValue(isAva ? "1" : "0");
-        falconReportObject.appendTags(getTags(name,MetricsType.AVAILABILITY));
+        falconReportObject.appendTags(getTags(agentSignName,plugin,serverName,MetricsType.AVAILABILITY));
         falconReportObject.setTimestamp(System.currentTimeMillis() / 1000);
         return falconReportObject;
     }
@@ -55,7 +57,7 @@ public abstract class MetricsCommon {
      * @param endPoint
      * @return
      */
-    protected String getEndpointByTrans(String endPoint){
+    public static String getEndpointByTrans(String endPoint){
         String hostIP = "unKnowHostIP";
         String hostName = "unKnowHostName";
         try {
@@ -78,12 +80,12 @@ public abstract class MetricsCommon {
      * @return
      * 返回新值或返回原值(执行失败时)
      */
-    protected Object executeJsExpress(String express, Object value){
+    public static Object executeJsExpress(String express, Object value){
         Object newValue = value;
         if(!StringUtils.isEmpty(express)){
             try {
                 ScriptEngineManager manager = new ScriptEngineManager();
-                ScriptEngine engine = manager.getEngineByName("javascript");
+                ScriptEngine engine = manager.getEngineByName("nashorn");
                 engine.put("value", value);
                 engine.put("newValue", "");
                 engine.getBindings(ScriptContext.ENGINE_SCOPE);
@@ -99,16 +101,17 @@ public abstract class MetricsCommon {
 
     /**
      * 获取Agent计算后的服务标识tag
-     * 将自动打上service service.type agentSignName,metrics.type标签
-     * @param name
-     * 服务标识
+     * @param agentSignName
+     * @param plugin
+     * @param serverName
+     * @param metricsType
      * @return
      */
-    public String getTags(String name,MetricsType metricsType){
-        String signName = "service=" + getType();
-        if(this.getClass().getSuperclass() == JMXMetricsValue.class){
+    public static String getTags(String agentSignName,Plugin plugin,String serverName,MetricsType metricsType){
+        String signName = "service=" + serverName;
+        if(JMXPlugin.class.isAssignableFrom(plugin.getClass())){
             signName += ",service.type=jmx";
-        }else if(this.getClass().getSuperclass() == JDBCMetricsValue.class){
+        }else if(JDBCPlugin.class.isAssignableFrom(plugin.getClass())){
             signName += ",service.type=database";
         }else{
             signName += ",service.type=unKnow";
@@ -116,10 +119,10 @@ public abstract class MetricsCommon {
         if(metricsType != null){
             signName += ",metrics.type=" + metricsType.getTypeName();
         }
-        if(StringUtils.isEmpty(name)){
+        if(StringUtils.isEmpty(agentSignName)){
             return signName;
         }
-        return signName + ",agentSignName=" + name;
+        return signName + ",agentSignName=" + agentSignName;
     }
 
     /**
@@ -128,20 +131,19 @@ public abstract class MetricsCommon {
      * metrics 名字
      * @return
      */
-    protected String getMetricsName(String metricsName) {
+    public static String getMetricsName(String metricsName) {
         return metricsName;
     }
 
     /**
-     * 监控类型
-     * @return
-     */
-    public abstract String getType();
-
-    /**
-     * 设置报告对象公共的属性
+     * 设置FalconReportObject共有的属性值
      * @param falconReportObject
+     * @param step
      */
-    public abstract void setReportCommonValue(FalconReportObject falconReportObject);
-
+    public static void setReportCommonValue(FalconReportObject falconReportObject,int step){
+        if(falconReportObject != null){
+            falconReportObject.setEndpoint(getEndpointByTrans(AgentConfiguration.INSTANCE.getAgentEndpoint()));
+            falconReportObject.setStep(step);
+        }
+    }
 }

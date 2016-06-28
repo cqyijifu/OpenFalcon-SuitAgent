@@ -43,17 +43,15 @@ agent_classpath="${agent_classpath}:${agentHome}/lib/tools.jar"
 agent_classpath="${agent_classpath}:${agentHome}/lib/ojdbc5-11.2.0.2.0.jar"
 agent_classpath="${agent_classpath}:${agentHome}/lib/jyaml-1.3.jar"
 agent_classpath="${agent_classpath}:${agentHome}/lib/fastjson-1.2.11.jar"
+agent_classpath="${agent_classpath}:${agentHome}/lib/guava-18.0.jar"
 agent_class=com.yiji.falcon.agent.Agent
 
 client_cmd="${JAVA} \
 	-Dagent.conf.path=${agentHome}/conf/agent.properties \
-	-Dagent.oracle.conf.path=${agentHome}/conf/oracle/metricsSql.properties \
 	-Dagent.quartz.conf.path=${agentHome}/conf/quartz.properties \
 	-Dagent.log4j.conf.path=${agentHome}/conf/log4j.properties \
-	-Dagent.jmx.metrics.zk.path=${agentHome}/conf/jmx/zookeeper.properties \
-	-Dagent.jmx.metrics.tomcat.path=${agentHome}/conf/jmx/tomcat.properties \
 	-Dagent.jmx.metrics.common.path=${agentHome}/conf/jmx/common.properties \
-	-Dagent.metrics.elasticSearch.path=${agentHome}/conf/elasticSearch/metricsConf.yml \
+	-Dagent.plugin.conf.dir=${agentHome}/conf/plugin \
 	-cp ${agent_classpath} ${agent_class} $1
 "
 

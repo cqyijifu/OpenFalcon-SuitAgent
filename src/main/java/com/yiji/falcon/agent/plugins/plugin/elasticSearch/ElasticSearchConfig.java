@@ -2,7 +2,7 @@
  * www.yiji.com Inc.
  * Copyright (c) 2016 All Rights Reserved
  */
-package com.yiji.falcon.agent.plugins.elasticSearch;
+package com.yiji.falcon.agent.plugins.plugin.elasticSearch;
 
 import com.alibaba.fastjson.JSONObject;
 import com.yiji.falcon.agent.util.CommendUtil;

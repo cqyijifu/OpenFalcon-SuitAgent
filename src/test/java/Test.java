@@ -3,16 +3,12 @@
  * Created by QianLong on 16/5/3.
  */
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.yiji.falcon.agent.plugins.oracle.OracleMetricsValue;
 import com.yiji.falcon.agent.util.HttpUtil;
 
 import java.io.IOException;
 import java.security.Provider;
 import java.security.Security;
-import java.sql.SQLException;
 import java.util.Map;
 
 /**
@@ -29,17 +25,6 @@ public class Test {
             }
         }
     }
-
-    @org.junit.Test
-    public void jdbcTest() throws SQLException, ClassNotFoundException {
-        OracleMetricsValue service = new OracleMetricsValue();
-
-//        for (Map.Entry<String, String> entry : service.getAllMetrics().entrySet()) {
-//            System.out.println(entry.getKey() + " : " + entry.getValue());
-//        }
-
-    }
-
     @org.junit.Test
     public void esTest() throws IOException {
         String selfNodeId = "";

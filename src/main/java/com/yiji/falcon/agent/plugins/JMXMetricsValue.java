@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.management.openmbean.CompositeDataSupport;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.lang.management.MemoryUsage;
@@ -32,8 +33,17 @@ import java.util.*;
  * 从JMX获取监控值抽象类
  * @author guqiu@yiji.com
  */
-public abstract class JMXMetricsValue extends MetricsCommon{
+public class JMXMetricsValue{
     private final Logger log = LoggerFactory.getLogger(this.getClass());
+
+
+    private JMXPlugin jmxPlugin;
+    private List<JMXMetricsValueInfo> jmxMetricsValueInfos;
+
+    public JMXMetricsValue(JMXPlugin jmxPlugin, List<JMXMetricsValueInfo> jmxMetricsValueInfos) {
+        this.jmxPlugin = jmxPlugin;
+        this.jmxMetricsValueInfos = jmxMetricsValueInfos;
+    }
 
     /**
      * 获取配置文件配置的监控值
@@ -43,9 +53,45 @@ public abstract class JMXMetricsValue extends MetricsCommon{
         Set<JMXMetricsConfiguration> jmxMetricsConfigurations = new HashSet<>();
 
         setMetricsConfig("agent.common.metrics.type.",AgentConfiguration.INSTANCE.getJmxCommonMetricsConfPath(),jmxMetricsConfigurations);
-        setMetricsConfig(getBasePropertiesKey(),getMetricsConfPath(),jmxMetricsConfigurations);
+        setMetricsConfig(jmxPlugin.basePropertiesKey(),
+                AgentConfiguration.INSTANCE.getPluginConfPath() + File.separator + jmxPlugin.configFileName(),jmxMetricsConfigurations);
 
         return jmxMetricsConfigurations;
+    }
+
+    /**
+     * 设置配置的jmx监控属性
+     * @param basePropertiesKey
+     * 配置属性的前缀key值
+     * @param propertiesPath
+     * 监控属性的配置文件路径
+     * @param jmxMetricsConfigurations
+     * 需要保存的集合对象
+     * @throws IOException
+     */
+    private void setMetricsConfig(String basePropertiesKey,String propertiesPath,Set<JMXMetricsConfiguration> jmxMetricsConfigurations) throws IOException {
+
+        if(!StringUtils.isEmpty(basePropertiesKey) &&
+                !StringUtils.isEmpty(propertiesPath)){
+            Properties properties = new Properties();
+            properties.load(new FileInputStream(propertiesPath));
+            for (int i = 1; i <= 100; i++) {
+                String objectName = basePropertiesKey + i +".objectName";
+                if(!StringUtils.isEmpty(properties.getProperty(objectName))){
+                    JMXMetricsConfiguration metricsConfiguration = new JMXMetricsConfiguration();
+                    metricsConfiguration.setObjectName(properties.getProperty(objectName));//设置ObjectName
+                    metricsConfiguration.setCounterType(properties.getProperty(basePropertiesKey + i + ".counterType"));//设置counterType
+                    metricsConfiguration.setMetrics(properties.getProperty(basePropertiesKey + i + ".metrics"));//设置metrics
+                    metricsConfiguration.setValueExpress(properties.getProperty(basePropertiesKey + i + ".valueExpress"));//设置metrics
+                    String tag = properties.getProperty(basePropertiesKey + i + ".tag");
+                    metricsConfiguration.setTag(StringUtils.isEmpty(tag) ? "" : tag);//设置tag
+                    String alias = properties.getProperty(basePropertiesKey + i + ".alias");
+                    metricsConfiguration.setAlias(StringUtils.isEmpty(alias) ? metricsConfiguration.getMetrics() : alias);
+
+                    jmxMetricsConfigurations.add(metricsConfiguration);
+                }
+            }
+        }
     }
 
     /**
@@ -96,8 +142,8 @@ public abstract class JMXMetricsValue extends MetricsCommon{
                 String name = metricsValueInfo.getJmxConnectionInfo().getName();
 
                 FalconReportObject requestObject = new FalconReportObject();
-                setReportCommonValue(requestObject);
-                requestObject.setMetric(getMetricsName(jmxMetricsConfiguration.getAlias()));//设置push obj 的 metrics
+                MetricsCommon.setReportCommonValue(requestObject,jmxPlugin.step());
+                requestObject.setMetric(MetricsCommon.getMetricsName(jmxMetricsConfiguration.getAlias()));//设置push obj 的 metrics
                 try {
                     //设置push obj 的 Counter
                     requestObject.setCounterType(CounterType.valueOf(jmxMetricsConfiguration.getCounterType()));
@@ -107,7 +153,7 @@ public abstract class JMXMetricsValue extends MetricsCommon{
                 }
                 requestObject.setTimestamp(System.currentTimeMillis() / 1000);
                 requestObject.setObjectName(jmxObjectNameInfo.getObjectName());
-                Object newValue = executeJsExpress(kitObjectNameMetrics.jmxMetricsConfiguration.getValueExpress(),metricsValue);
+                Object newValue = MetricsCommon.executeJsExpress(kitObjectNameMetrics.jmxMetricsConfiguration.getValueExpress(),metricsValue);
                 if(NumberUtils.isNumber(String.valueOf(newValue))){
                     requestObject.setValue(String.valueOf(newValue));
                 }else{
@@ -115,7 +161,7 @@ public abstract class JMXMetricsValue extends MetricsCommon{
                     continue;
                 }
 
-                requestObject.appendTags(getTags(name, MetricsType.JMXOBJECTCONF)).appendTags(jmxMetricsConfiguration.getTag());
+                requestObject.appendTags(MetricsCommon.getTags(name,jmxPlugin,jmxPlugin.serverName(), MetricsType.JMXOBJECTCONF)).appendTags(jmxMetricsConfiguration.getTag());
 
                 //监控值重复性判断
                 FalconReportObject reportInRepeat = repeat.get(jmxMetricsConfiguration.getMetrics());
@@ -147,21 +193,20 @@ public abstract class JMXMetricsValue extends MetricsCommon{
      * @throws IOException
      */
     public Collection<FalconReportObject> getReportObjects() throws IOException {
-        List<JMXMetricsValueInfo> metricsValueInfos = getMetricsValueInfos();
         Set<FalconReportObject> result = new HashSet<>();
 
-        if(metricsValueInfos == null || metricsValueInfos.isEmpty()){
+        if(jmxMetricsValueInfos == null || jmxMetricsValueInfos.isEmpty()){
             //当第一次启动agent时,当前服务未启动
             //获取不到监控值,返回所有zk不可用的监控报告
-            log.error(getType() + " JMX 连接获取失败");
-            result.add(generatorVariabilityReport(false,"allUnVariability"));
+            log.error(jmxPlugin.serverName() + " JMX 连接获取失败");
+            result.add(MetricsCommon.generatorVariabilityReport(false,"allUnVariability",jmxPlugin.step(),jmxPlugin,jmxPlugin.serverName()));
             return result;
         }
-        for (JMXMetricsValueInfo metricsValueInfo : metricsValueInfos) {
+        for (JMXMetricsValueInfo metricsValueInfo : jmxMetricsValueInfos) {
 
             if(!metricsValueInfo.getJmxConnectionInfo().isValid()){
                 //该连接不可用,添加该 jmx不可用的监控报告
-                result.add(generatorVariabilityReport(false,metricsValueInfo.getJmxConnectionInfo().getName()));
+                result.add(MetricsCommon.generatorVariabilityReport(false,metricsValueInfo.getJmxConnectionInfo().getName(),jmxPlugin.step(),jmxPlugin,jmxPlugin.serverName()));
             }else{
 
                 Set<KitObjectNameMetrics> kitObjectNameMetricsSet = new HashSet<>();
@@ -173,11 +218,11 @@ public abstract class JMXMetricsValue extends MetricsCommon{
                 result.addAll(generatorReportObject(kitObjectNameMetricsSet,metricsValueInfo));
 
                 //添加可用性报告
-                result.add(generatorVariabilityReport(true,metricsValueInfo.getJmxConnectionInfo().getName()));
+                result.add(MetricsCommon.generatorVariabilityReport(true,metricsValueInfo.getJmxConnectionInfo().getName(),jmxPlugin.step(),jmxPlugin,jmxPlugin.serverName()));
 
                 //添加內建报告
                 result.addAll(getInbuiltReportObjects(metricsValueInfo));
-                Collection<FalconReportObject> inbuilt = getInbuiltReportObjectsForValid(metricsValueInfo);
+                Collection<FalconReportObject> inbuilt = jmxPlugin.inbuiltReportObjectsForValid(metricsValueInfo);
                 if(inbuilt != null && !inbuilt.isEmpty()){
                     result.addAll(inbuilt);
                 }
@@ -217,37 +262,37 @@ public abstract class JMXMetricsValue extends MetricsCommon{
                     MemoryUsage nonHeapMemoryUsage =  MemoryUsage.from((CompositeDataSupport)objectNameInfo.
                             getJmxConnectionInfo().getmBeanServerConnection().getAttribute(objectNameInfo.getObjectName(), "NonHeapMemoryUsage"));
                     FalconReportObject falconReportObject = new FalconReportObject();
-                    setReportCommonValue(falconReportObject);
+                    MetricsCommon.setReportCommonValue(falconReportObject,jmxPlugin.step());
                     falconReportObject.setCounterType(CounterType.GAUGE);
                     falconReportObject.setTimestamp(System.currentTimeMillis() / 1000);
                     falconReportObject.setObjectName(objectNameInfo.getObjectName());
 
-                    falconReportObject.appendTags(getTags(name,MetricsType.JMXOBJECTBUILDIN));
+                    falconReportObject.appendTags(MetricsCommon.getTags(name,jmxPlugin,jmxPlugin.serverName(),MetricsType.JMXOBJECTBUILDIN));
 
-                    falconReportObject.setMetric(getMetricsName("HeapMemoryCommitted"));
+                    falconReportObject.setMetric(MetricsCommon.getMetricsName("HeapMemoryCommitted"));
                     falconReportObject.setValue(String.valueOf(heapMemoryUsage.getCommitted()));
                     result.add(falconReportObject);
-                    falconReportObject.setMetric(getMetricsName("NonHeapMemoryCommitted"));
+                    falconReportObject.setMetric(MetricsCommon.getMetricsName("NonHeapMemoryCommitted"));
                     falconReportObject.setValue(String.valueOf(nonHeapMemoryUsage.getCommitted()));
                     result.add(falconReportObject);
 
-                    falconReportObject.setMetric(getMetricsName("HeapMemoryFree"));
+                    falconReportObject.setMetric(MetricsCommon.getMetricsName("HeapMemoryFree"));
                     falconReportObject.setValue(String.valueOf(heapMemoryUsage.getMax() - heapMemoryUsage.getUsed()));
                     result.add(falconReportObject);
 
-                    falconReportObject.setMetric(getMetricsName("HeapMemoryMax"));
+                    falconReportObject.setMetric(MetricsCommon.getMetricsName("HeapMemoryMax"));
                     falconReportObject.setValue(String.valueOf(heapMemoryUsage.getMax()));
                     result.add(falconReportObject);
 
-                    falconReportObject.setMetric(getMetricsName("HeapMemoryUsed"));
+                    falconReportObject.setMetric(MetricsCommon.getMetricsName("HeapMemoryUsed"));
                     falconReportObject.setValue(String.valueOf(heapMemoryUsage.getUsed()));
                     result.add(falconReportObject);
-                    falconReportObject.setMetric(getMetricsName("NonHeapMemoryUsed"));
+                    falconReportObject.setMetric(MetricsCommon.getMetricsName("NonHeapMemoryUsed"));
                     falconReportObject.setValue(String.valueOf(nonHeapMemoryUsage.getUsed()));
                     result.add(falconReportObject);
 
                     //堆内存使用比例
-                    falconReportObject.setMetric(getMetricsName("HeapMemoryUsedRatio"));
+                    falconReportObject.setMetric(MetricsCommon.getMetricsName("HeapMemoryUsedRatio"));
                     falconReportObject.setValue(String.valueOf(CustomerMath.div(heapMemoryUsage.getUsed(),heapMemoryUsage.getMax(),2) * 100));
                     result.add(falconReportObject);
 
@@ -260,91 +305,4 @@ public abstract class JMXMetricsValue extends MetricsCommon{
         return result;
     }
 
-    /**
-     * 设置报告对象公共的属性
-     * endpoint
-     * step
-     * @param falconReportObject
-     */
-    @Override
-    public void setReportCommonValue(FalconReportObject falconReportObject){
-        if(falconReportObject != null){
-            falconReportObject.setEndpoint(getEndpointByTrans(AgentConfiguration.INSTANCE.getAgentEndpoint()));
-            falconReportObject.setStep(getStep());
-        }
-    }
-
-    /**
-     * 设置配置的jmx监控属性
-     * @param basePropertiesKey
-     * 配置属性的前缀key值
-     * @param propertiesPath
-     * 监控属性的配置文件路径
-     * @param jmxMetricsConfigurations
-     * 需要保存的集合对象
-     * @throws IOException
-     */
-    private void setMetricsConfig(String basePropertiesKey,String propertiesPath,Set<JMXMetricsConfiguration> jmxMetricsConfigurations) throws IOException {
-
-        if(!StringUtils.isEmpty(basePropertiesKey) &&
-                !StringUtils.isEmpty(propertiesPath)){
-            Properties properties = new Properties();
-            properties.load(new FileInputStream(propertiesPath));
-            for (int i = 1; i <= 100; i++) {
-                String objectName = basePropertiesKey + i +".objectName";
-                if(!StringUtils.isEmpty(properties.getProperty(objectName))){
-                    JMXMetricsConfiguration metricsConfiguration = new JMXMetricsConfiguration();
-                    metricsConfiguration.setObjectName(properties.getProperty(objectName));//设置ObjectName
-                    metricsConfiguration.setCounterType(properties.getProperty(basePropertiesKey + i + ".counterType"));//设置counterType
-                    metricsConfiguration.setMetrics(properties.getProperty(basePropertiesKey + i + ".metrics"));//设置metrics
-                    metricsConfiguration.setValueExpress(properties.getProperty(basePropertiesKey + i + ".valueExpress"));//设置metrics
-                    String tag = properties.getProperty(basePropertiesKey + i + ".tag");
-                    metricsConfiguration.setTag(StringUtils.isEmpty(tag) ? "" : tag);//设置tag
-                    String alias = properties.getProperty(basePropertiesKey + i + ".alias");
-                    metricsConfiguration.setAlias(StringUtils.isEmpty(alias) ? metricsConfiguration.getMetrics() : alias);
-
-                    jmxMetricsConfigurations.add(metricsConfiguration);
-                }
-            }
-        }
-    }
-
-    /**
-     * 获取所有的具体服务的JMX监控值VO
-     * @return
-     */
-    protected abstract List<JMXMetricsValueInfo> getMetricsValueInfos();
-
-    /**
-     * 当可用时的內建监控报告
-     * 此方法只有在监控对象可用时,才会调用,并加入到所有的监控值报告中(getReportObjects)
-     * @param metricsValueInfo
-     * 当前的JMXMetricsValueInfo信息
-     * @return
-     */
-    protected abstract Collection<FalconReportObject> getInbuiltReportObjectsForValid(JMXMetricsValueInfo metricsValueInfo);
-
-    /**
-     * 获取step
-     * @return
-     */
-    public abstract int getStep();
-
-    /**
-     * 自定义的监控属性的监控值基础配置名
-     * @return
-     */
-    public abstract String getBasePropertiesKey();
-
-    /**
-     * 自定义的监控属性的配置文件位置
-     * @return
-     */
-    public abstract String getMetricsConfPath();
-
-    /**
-     * JMX连接的服务名
-     * @return
-     */
-    public abstract String getServerName();
 }

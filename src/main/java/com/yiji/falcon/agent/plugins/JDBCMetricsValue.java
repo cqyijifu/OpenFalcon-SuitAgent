@@ -8,13 +8,14 @@ import com.yiji.falcon.agent.config.AgentConfiguration;
 import com.yiji.falcon.agent.falcon.CounterType;
 import com.yiji.falcon.agent.falcon.FalconReportObject;
 import com.yiji.falcon.agent.falcon.MetricsType;
+import com.yiji.falcon.agent.util.PropertiesUtil;
 import com.yiji.falcon.agent.util.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -32,15 +33,14 @@ import java.util.Set;
  * 利用JDBC获取metrics监控值抽象类
  * @author guqiu@yiji.com
  */
-public abstract class JDBCMetricsValue extends MetricsCommon{
+public class JDBCMetricsValue {
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
-    /**
-     * 当可用时的內建监控报告
-     * 此方法只有在监控对象可用时,才会调用,并加入到所有的监控值报告中(getReportObjects)
-     * @return
-     */
-    protected abstract Collection<FalconReportObject> getInbuiltReportObjectsForValid() throws SQLException, ClassNotFoundException;
+    private JDBCPlugin jdbcPlugin;
+
+    public JDBCMetricsValue(JDBCPlugin jdbcPlugin) {
+        this.jdbcPlugin = jdbcPlugin;
+    }
 
     /**
      * 获取所有的监控值报告
@@ -51,37 +51,58 @@ public abstract class JDBCMetricsValue extends MetricsCommon{
         Set<FalconReportObject> result = new HashSet<>();
         Map<String,String> allMetrics = getAllMetricsQuery();
         try {
-            for (Map.Entry<String, String> entry : allMetrics.entrySet()) {
+            jdbcPlugin.getConnection();
+        } catch (Exception e) {
+            log.warn("连接JDBC异常,创建不可用报告",e);
+            result.add(MetricsCommon.generatorVariabilityReport(false,jdbcPlugin.agentSignName(),jdbcPlugin.step(),jdbcPlugin,jdbcPlugin.serverName()));
+            return result;
+        }
+
+        for (Map.Entry<String, String> entry : allMetrics.entrySet()) {
+            try {
                 String metricsValue = getMetricsValue(entry.getValue());
                 if (!StringUtils.isEmpty(metricsValue)){
                     if(!NumberUtils.isNumber(metricsValue)){
-                        log.error("JDBC {} 的监控指标:{} 的值:{} ,不能转换为数字,将跳过此监控指标",getType(),entry.getKey(),metricsValue);
+                        log.error("JDBC {} 的监控指标:{} 的值:{} ,不能转换为数字,将跳过此监控指标",jdbcPlugin.serverName(),entry.getKey(),metricsValue);
                     }else{
                         FalconReportObject reportObject = new FalconReportObject();
-                        reportObject.setMetric(getMetricsName(entry.getKey()));
+                        reportObject.setMetric(MetricsCommon.getMetricsName(entry.getKey()));
                         reportObject.setCounterType(CounterType.GAUGE);
                         reportObject.setValue(metricsValue);
                         reportObject.setTimestamp(System.currentTimeMillis() / 1000);
-                        reportObject.appendTags(getTags(getName(), MetricsType.SQLCONF));
-                        setReportCommonValue(reportObject);
+                        reportObject.appendTags(MetricsCommon.getTags(jdbcPlugin.agentSignName(),jdbcPlugin,jdbcPlugin.serverName(), MetricsType.SQLCONF));
+                        MetricsCommon.setReportCommonValue(reportObject,jdbcPlugin.step());
 
                         result.add(reportObject);
                     }
                 }else{
-                    log.warn("JDBC {} 的监控指标:{} 未获取到值,将跳过此监控指标",getType(),entry.getKey());
+                    log.warn("JDBC {} 的监控指标:{} 未获取到值,将跳过此监控指标",jdbcPlugin.serverName(),entry.getKey());
                 }
+            } catch (Exception e) {
+                log.error("SQL 查询异常,跳过监控属性 {}",entry.getKey(),e);
             }
+        }
+
+        try {
             //添加內建报告
-            Collection<FalconReportObject> inbuilt = getInbuiltReportObjectsForValid();
+            Collection<FalconReportObject> inbuilt = jdbcPlugin.inbuiltReportObjectsForValid();
             if(inbuilt != null && !inbuilt.isEmpty()){
                 result.addAll(inbuilt);
             }
-            result.add(generatorVariabilityReport(true,getName()));
         } catch (Exception e) {
-            log.warn("连接JDBC异常,创建不可用报告",e);
-            result.add(generatorVariabilityReport(false,getName()));
+            log.error("插件內建报告获取异常",e);
         }
+        result.add(MetricsCommon.generatorVariabilityReport(true,jdbcPlugin.agentSignName(),jdbcPlugin.step(),jdbcPlugin,jdbcPlugin.serverName()));
+
         return result;
+    }
+
+    /**
+     * 获取配置文件所有的监控配置
+     * @return
+     */
+    private Map<String, String> getAllMetricsQuery() {
+        return PropertiesUtil.getAllPropertiesByFileName(AgentConfiguration.INSTANCE.getPluginConfPath() + File.separator + jdbcPlugin.metricsConfName());
     }
 
     /**
@@ -93,7 +114,7 @@ public abstract class JDBCMetricsValue extends MetricsCommon{
         String result = "";
         if(!StringUtils.isEmpty(sql)){
             //创建该连接下的PreparedStatement对象
-            PreparedStatement pstmt = getConnection().prepareStatement(sql);
+            PreparedStatement pstmt = jdbcPlugin.getConnection().prepareStatement(sql);
 
             //执行查询语句，将数据保存到ResultSet对象中
             ResultSet rs = pstmt.executeQuery();
@@ -108,46 +129,4 @@ public abstract class JDBCMetricsValue extends MetricsCommon{
         return result;
     }
 
-    /**
-     * 所有的metrics的查询语句
-     * metrics指标名 : 对应的查询语句
-     * @return
-     */
-    public abstract Map<String,String> getAllMetricsQuery();
-
-
-
-    /**
-     * 设置报告对象公共的属性
-     * endpoint
-     * step
-     * @param falconReportObject
-     */
-    @Override
-    public void setReportCommonValue(FalconReportObject falconReportObject){
-        if(falconReportObject != null){
-            falconReportObject.setEndpoint(getEndpointByTrans(AgentConfiguration.INSTANCE.getAgentEndpoint()));
-            falconReportObject.setStep(getStep());
-        }
-    }
-
-    /**
-     * 获取JDBC连接
-     * @return
-     * @throws SQLException
-     * @throws ClassNotFoundException
-     */
-    public abstract Connection getConnection() throws SQLException,ClassNotFoundException;
-
-    /**
-     * 获取step
-     * @return
-     */
-    public abstract int getStep();
-
-    /**
-     * 报告对象的连接标识名
-     * @return
-     */
-    public abstract String getName();
 }

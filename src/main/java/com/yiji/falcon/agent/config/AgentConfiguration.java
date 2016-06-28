@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.*;
+import java.util.Properties;
 
 /*
  * 修订记录:
@@ -39,37 +39,22 @@ public enum  AgentConfiguration {
      * push到falcon的地址
      */
     private String agentPushUrl = null;
+
+    /**
+     * 插件配置的目录
+     */
+    private String pluginConfPath;
+
     /**
      * 服务配置文件路径
      */
     private String agentConfPath = null;
     private String jmxCommonMetricsConfPath = null;
-    private String zkMetricsConfPath = null;
-    private String tomcatMetricsConfPath = null;
-    private String elasticSearchMetricsConfPath = null;
 
     /**
      * agent监控指标的主体说明
      */
     private String agentEndpoint = "";
-    /**
-     * 数据采集周期
-     */
-    private int zkStep = 60;
-    private int tomcatStep = 60;
-    private int oracleStep = 60;
-    private int elasticSearchStep = 60;
-    private int logstashStep = 60;
-    private int yijiBootStep = 60;
-
-    /**
-     * JMX 连接服务名
-     */
-    private String zkJmxServerName = null;
-    private String tomcatJmxServerName = null;
-    private String elasticSearchJmxServerName = null;
-    private String logstashJmxServerName = null;
-    private List<String> yijiBootJmxServerName = new ArrayList<>();
 
     /**
      * agent启动端口
@@ -81,52 +66,12 @@ public enum  AgentConfiguration {
      */
     private int agentFlushTime = 300;
 
-    private final String falseStr = "false";
-    //服务开启项
-    private String agentZkWork = falseStr;
-    private String agentTomcatWork = falseStr;
-    private String agentOracleWork = falseStr;
-    private String agentElasticSearchWork = falseStr;
-    private String agentLogstashWork = falseStr;
-    private String agentYijiBootWork = falseStr;
-
-    //Oracle
-    private String oracleJDBCDriver;
-    private String oracleJDBCUrl;
-    private String oracleJDBCUsername;
-    private String oracleJDBCPassword;
-    private final Map<String,String> oracleGenericQueries = new HashMap<>();
 
     private static final String CONF_AGENT_ENDPOINT = "agent.endpoint";
     private static final String CONF_AGENT_FLUSH_TIME = "agent.flush.time";
 
-    private static final String CONF_AGENT_ZK_METRICS_STEP = "agent.zk.metrics.step";
-    private static final String CONF_AGENT_TOMCAT_METRICS_STEP = "agent.tomcat.metrics.step";
-    private static final String CONF_AGENT_ORACLE_METRICS_STEP = "agent.oracle.metrics.step";
-    private static final String CONF_AGENT_ELASTICSEARCH_METRICS_STEP = "agent.elasticSearch.metrics.step";
-    private static final String CONF_AGENT_LOGSTASH_METRICS_STEP = "agent.logstash.metrics.step";
-    private static final String CONF_AGENT_YIJIBOOT_METRICS_STEP = "agent.yijiboot.metrics.step";
-
     private static final String CONF_AGENT_FALCON_PUSH_URL = "agent.falcon.push.url";
     private static final String CONF_AGENT_PORT = "agent.port";
-
-    private static final String CONF_AGENT_ZK_JMX_SERVER_NAME = "agent.zk.jmx.serverName";
-    private static final String CONF_AGENT_TOMCAT_JMX_SERVER_NAME = "agent.tomcat.jmx.serverName";
-    private static final String CONF_AGENT_ELASTICSEARCH_JMX_SERVER_NAME = "agent.elasticSearch.jmx.serverName";
-    private static final String CONF_AGENT_LOGSTASH_JMX_SERVER_NAME = "agent.logstash.jmx.serverName";
-    private static final String CONF_AGENT_YIJIBOOT_JMX_SERVER_NAME = "agent.yijiboot.jmx.serverName";
-
-    private static final String CONF_AGENT_ZK_WORK = "agent.zk.work";
-    private static final String CONF_AGENT_ORACLE_WORK = "agent.oracle.work";
-    private static final String CONF_AGENT_TOMCAT_WORK = "agent.tomcat.work";
-    private static final String CONF_AGENT_ELASTICSEARCH_WORK = "agent.elasticSearch.work";
-    private static final String CONF_AGENT_LOGSTASH_WORK = "agent.logstash.work";
-    private static final String CONF_AGENT_YIJIBOOT_WORK = "agent.yijiboot.work";
-
-    private static final String CONF_AGENT_ORACLE_JDBC_DRIVER = "agent.oracle.jdbc.driver";
-    private static final String CONF_AGENT_ORACLE_JDBC_URL = "agent.oracle.jdbc.url";
-    private static final String CONF_AGENT_ORACLE_JDBC_USERNAME = "agent.oracle.jdbc.username";
-    private static final String CONF_AGENT_ORACLE_JDBC_PSWD = "agent.oracle.jdbc.password";
 
     private Properties agentConf = null;
 
@@ -139,6 +84,13 @@ public enum  AgentConfiguration {
             System.exit(0);
         }else{
             this.agentConfPath = System.getProperty("agent.conf.path");
+        }
+
+        if(StringUtils.isEmpty(System.getProperty("agent.plugin.conf.dir"))){
+            log.error("agent 配置文件位置读取失败,请确定系统配置项:" + "agent.plugin.conf.dir");
+            System.exit(0);
+        }else{
+            this.pluginConfPath = System.getProperty("agent.plugin.conf.dir");
         }
 
         if(StringUtils.isEmpty(System.getProperty("agent.quartz.conf.path"))){
@@ -163,18 +115,14 @@ public enum  AgentConfiguration {
             System.exit(0);
         }
         init();
-        initWork();
-        initStep();
         initJMXCommon();
-        initOracle();
-        initTomcat();
-        initZk();
-        initElasticSearch();
-        initLogstash();
-        initYijiBoot();
     }
 
     private void init(){
+
+        if(!StringUtils.isEmpty(agentConf.getProperty(CONF_AGENT_ENDPOINT))){
+            this.agentEndpoint = agentConf.getProperty(CONF_AGENT_ENDPOINT);
+        }
 
         if(!StringUtils.isEmpty(agentConf.getProperty(CONF_AGENT_PORT))){
             try {
@@ -204,67 +152,6 @@ public enum  AgentConfiguration {
 
     }
 
-    private void initTomcat(){
-        String tomcatConfPath = System.getProperty("agent.jmx.metrics.tomcat.path");
-        if(StringUtils.isEmpty(tomcatConfPath)){
-            log.error("tomcat的jmx配置系统属性文件未定义:agent.jmx.metrics.tomcat.path");
-            System.exit(0);
-        }
-        this.tomcatMetricsConfPath = tomcatConfPath;
-
-        if(StringUtils.isEmpty(agentConf.getProperty(CONF_AGENT_TOMCAT_JMX_SERVER_NAME))){
-            log.error("Agent启动失败,未定义 tomcat 的 jmx 服务名配置:{}", CONF_AGENT_TOMCAT_JMX_SERVER_NAME);
-            System.exit(0);
-        }
-        this.tomcatJmxServerName = agentConf.getProperty(CONF_AGENT_TOMCAT_JMX_SERVER_NAME);
-    }
-
-    private void initZk(){
-        String zkConfPath = System.getProperty("agent.jmx.metrics.zk.path");
-        if(StringUtils.isEmpty(zkConfPath)){
-            log.error("zookeeper的jmx配置系统属性文件未定义:agent.jmx.metrics.zk.path");
-            System.exit(0);
-        }
-        this.zkMetricsConfPath = zkConfPath;
-
-        if(StringUtils.isEmpty(agentConf.getProperty(CONF_AGENT_ZK_JMX_SERVER_NAME))){
-            log.error("Agent启动失败,未定义 zk 的 jmx 服务名配置:{}", CONF_AGENT_ZK_JMX_SERVER_NAME);
-            System.exit(0);
-        }
-        this.zkJmxServerName = agentConf.getProperty(CONF_AGENT_ZK_JMX_SERVER_NAME);
-    }
-
-    private void initElasticSearch(){
-        if(StringUtils.isEmpty(agentConf.getProperty(CONF_AGENT_ELASTICSEARCH_JMX_SERVER_NAME))){
-            log.error("Agent启动失败,未定义 zk 的 jmx 服务名配置:{}", CONF_AGENT_ELASTICSEARCH_JMX_SERVER_NAME);
-            System.exit(0);
-        }
-        this.elasticSearchJmxServerName = agentConf.getProperty(CONF_AGENT_ELASTICSEARCH_JMX_SERVER_NAME);
-
-        String property = System.getProperty("agent.metrics.elasticSearch.path");
-        if(StringUtils.isEmpty(property)){
-            log.error("tomcat的jmx配置系统属性文件未定义:agent.metrics.elasticSearch.path");
-            System.exit(0);
-        }
-        this.elasticSearchMetricsConfPath = property;
-    }
-
-    private void initLogstash(){
-        if(StringUtils.isEmpty(agentConf.getProperty(CONF_AGENT_LOGSTASH_JMX_SERVER_NAME))){
-            log.error("Agent启动失败,未定义 zk 的 jmx 服务名配置:{}", CONF_AGENT_LOGSTASH_JMX_SERVER_NAME);
-            System.exit(0);
-        }
-        this.logstashJmxServerName = agentConf.getProperty(CONF_AGENT_LOGSTASH_JMX_SERVER_NAME);
-    }
-
-    private void initYijiBoot(){
-        if("true".equalsIgnoreCase(this.agentYijiBootWork) && StringUtils.isEmpty(agentConf.getProperty(CONF_AGENT_YIJIBOOT_JMX_SERVER_NAME))){
-            log.error("Agent启动失败,设置了yiji-boot监控就必须配置服务名:{}", CONF_AGENT_YIJIBOOT_JMX_SERVER_NAME);
-            System.exit(0);
-        }
-        Collections.addAll(this.yijiBootJmxServerName, agentConf.getProperty(CONF_AGENT_YIJIBOOT_JMX_SERVER_NAME).split(","));
-    }
-
     private void initJMXCommon(){
         String property = System.getProperty("agent.jmx.metrics.common.path");
         if(StringUtils.isEmpty(property)){
@@ -272,154 +159,6 @@ public enum  AgentConfiguration {
             System.exit(0);
         }
         this.jmxCommonMetricsConfPath = property;
-    }
-
-    private void initOracle(){
-        Properties pps = new Properties();
-        try {
-            pps.load(new FileInputStream(System.getProperty("agent.oracle.conf.path")));
-        } catch (IOException e) {
-            log.error("Oracle监控配置文件未指定,请指定系统属性:agent.oracle.conf.path",e);
-            System.exit(0);
-        }
-        Enumeration en = pps.propertyNames(); //得到配置文件的名字
-        while(en.hasMoreElements()) {
-            String strKey = (String) en.nextElement();
-            String strValue = pps.getProperty(strKey);
-            oracleGenericQueries.put(strKey,strValue);
-        }
-
-        if(StringUtils.isEmpty(agentConf.getProperty(CONF_AGENT_ORACLE_JDBC_DRIVER))){
-            log.error("Agent启动失败,未定义 oracle 的 jdbc 配置:{}", CONF_AGENT_ORACLE_JDBC_DRIVER);
-            System.exit(0);
-        }
-        this.oracleJDBCDriver = agentConf.getProperty(CONF_AGENT_ORACLE_JDBC_DRIVER);
-
-        if(StringUtils.isEmpty(agentConf.getProperty(CONF_AGENT_ORACLE_JDBC_URL))){
-            log.error("Agent启动失败,未定义 oracle 的 jdbc 配置:{}", CONF_AGENT_ORACLE_JDBC_URL);
-            System.exit(0);
-        }
-        this.oracleJDBCUrl = agentConf.getProperty(CONF_AGENT_ORACLE_JDBC_URL);
-
-        if(StringUtils.isEmpty(agentConf.getProperty(CONF_AGENT_ORACLE_JDBC_USERNAME))){
-            log.error("Agent启动失败,未定义 oracle 的 jdbc 配置:{}", CONF_AGENT_ORACLE_JDBC_USERNAME);
-            System.exit(0);
-        }
-        this.oracleJDBCUsername = agentConf.getProperty(CONF_AGENT_ORACLE_JDBC_USERNAME);
-
-        if(StringUtils.isEmpty(agentConf.getProperty(CONF_AGENT_ORACLE_JDBC_PSWD))){
-            log.error("Agent启动失败,未定义 oracle 的 jdbc 配置:{}", CONF_AGENT_ORACLE_JDBC_PSWD);
-            System.exit(0);
-        }
-        this.oracleJDBCPassword = agentConf.getProperty(CONF_AGENT_ORACLE_JDBC_PSWD);
-    }
-
-    private void initStep(){
-        setInitStep(CONF_AGENT_ZK_METRICS_STEP,4);
-        setInitStep(CONF_AGENT_TOMCAT_METRICS_STEP,3);
-        setInitStep(CONF_AGENT_ORACLE_METRICS_STEP,2);
-        setInitStep(CONF_AGENT_ELASTICSEARCH_METRICS_STEP,1);
-        setInitStep(CONF_AGENT_LOGSTASH_METRICS_STEP,5);
-        setInitStep(CONF_AGENT_YIJIBOOT_METRICS_STEP,6);
-    }
-
-    /**
-     * 设置step配置
-     * @param stepConf
-     * step配置名
-     * @param type
-     * 设置的类型
-     */
-    private void setInitStep(String stepConf,int type){
-        if(!StringUtils.isEmpty(agentConf.getProperty(stepConf))){
-            try {
-                int value = Integer.parseInt(agentConf.getProperty(stepConf));
-                if(value >= 24 * 60 * 60){
-                    log.error("配置文件: {} 的 {} 配置的值非法 Agent启动失败",this.agentConfPath, stepConf);
-                    System.exit(0);
-                }
-                switch (type){
-                    case 1 :
-                        this.elasticSearchStep = value;
-                        break;
-
-                    case 2:
-                        this.oracleStep = value;
-                        break;
-                    case 3:
-                        this.tomcatStep = value;
-                        break;
-                    case 4:
-                        this.zkStep = value;
-                        break;
-                    case 5:
-                        this.logstashStep = value;
-                        break;
-                    case 6:
-                        this.yijiBootStep = value;
-                        break;
-                    default:break;
-                }
-            } catch (NumberFormatException e) {
-                log.error("配置文件: {} 的 {} 配置的值非法 Agent启动失败",this.agentConfPath, stepConf);
-                System.exit(0);
-            }
-        }
-    }
-
-    private void initWork(){
-        if(!StringUtils.isEmpty(agentConf.getProperty(CONF_AGENT_ENDPOINT))){
-            this.agentEndpoint = agentConf.getProperty(CONF_AGENT_ENDPOINT);
-        }
-
-        if(!StringUtils.isEmpty(agentConf.getProperty(CONF_AGENT_ZK_WORK))){
-            this.agentZkWork = agentConf.getProperty(CONF_AGENT_ZK_WORK);
-        }
-
-        if(!StringUtils.isEmpty(agentConf.getProperty(CONF_AGENT_TOMCAT_WORK))){
-            this.agentTomcatWork = agentConf.getProperty(CONF_AGENT_TOMCAT_WORK);
-        }
-
-        if(!StringUtils.isEmpty(agentConf.getProperty(CONF_AGENT_ORACLE_WORK))){
-            this.agentOracleWork = agentConf.getProperty(CONF_AGENT_ORACLE_WORK);
-        }
-
-        if(!StringUtils.isEmpty(agentConf.getProperty(CONF_AGENT_ELASTICSEARCH_WORK))){
-            this.agentElasticSearchWork = agentConf.getProperty(CONF_AGENT_ELASTICSEARCH_WORK);
-        }
-
-        if(!StringUtils.isEmpty(agentConf.getProperty(CONF_AGENT_LOGSTASH_WORK))){
-            this.agentLogstashWork = agentConf.getProperty(CONF_AGENT_LOGSTASH_WORK);
-        }
-
-        if(!StringUtils.isEmpty(agentConf.getProperty(CONF_AGENT_YIJIBOOT_WORK))){
-            this.agentYijiBootWork = agentConf.getProperty(CONF_AGENT_YIJIBOOT_WORK);
-        }
-
-    }
-
-    public String getAgentYijiBootWork() {
-        return agentYijiBootWork;
-    }
-
-    public List<String> getYijiBootJmxServerName() {
-        return yijiBootJmxServerName;
-    }
-
-    public int getElasticSearchStep() {
-        return elasticSearchStep;
-    }
-
-    public int getOracleStep() {
-        return oracleStep;
-    }
-
-    public Map<String, String> getOracleGenericQueries() {
-        return oracleGenericQueries;
-    }
-
-    public int getTomcatStep() {
-        return tomcatStep;
     }
 
     public String getQuartzConfPath() {
@@ -434,10 +173,6 @@ public enum  AgentConfiguration {
         return agentPort;
     }
 
-    public String getZkJmxServerName(){
-        return this.zkJmxServerName;
-    }
-
     public String getAgentPushUrl(){
         return this.agentPushUrl;
     }
@@ -450,83 +185,15 @@ public enum  AgentConfiguration {
         return this.agentConfPath;
     }
 
-    public int getZkStep(){
-        return this.zkStep;
-    }
-
-    public String getTomcatJmxServerName() {
-        return tomcatJmxServerName;
-    }
-
-    public String getOracleJDBCDriver() {
-        return oracleJDBCDriver;
-    }
-
-    public String getOracleJDBCUrl() {
-        return oracleJDBCUrl;
-    }
-
-    public String getOracleJDBCUsername() {
-        return oracleJDBCUsername;
-    }
-
-    public String getOracleJDBCPassword() {
-        return oracleJDBCPassword;
-    }
-
-    public String getZkMetricsConfPath() {
-        return zkMetricsConfPath;
-    }
-
-    public String getTomcatMetricsConfPath() {
-        return tomcatMetricsConfPath;
-    }
-
     public String getJmxCommonMetricsConfPath() {
         return jmxCommonMetricsConfPath;
-    }
-
-    public String getElasticSearchJmxServerName() {
-        return elasticSearchJmxServerName;
-    }
-
-    public String getElasticSearchMetricsConfPath() {
-        return elasticSearchMetricsConfPath;
-    }
-
-    public int getLogstashStep() {
-        return logstashStep;
-    }
-
-    public String getLogstashJmxServerName() {
-        return logstashJmxServerName;
-    }
-
-    public String getAgentZkWork() {
-        return agentZkWork;
-    }
-
-    public String getAgentTomcatWork() {
-        return agentTomcatWork;
-    }
-
-    public String getAgentOracleWork() {
-        return agentOracleWork;
-    }
-
-    public String getAgentElasticSearchWork() {
-        return agentElasticSearchWork;
-    }
-
-    public String getAgentLogstashWork() {
-        return agentLogstashWork;
     }
 
     public int getAgentFlushTime() {
         return agentFlushTime;
     }
 
-    public int getYijiBootStep() {
-        return yijiBootStep;
+    public String getPluginConfPath() {
+        return pluginConfPath;
     }
 }

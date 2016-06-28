@@ -6,7 +6,9 @@ package com.yiji.falcon.agent;
 
 import com.yiji.falcon.agent.config.AgentConfiguration;
 import com.yiji.falcon.agent.jmx.JMXConnection;
-import com.yiji.falcon.agent.plugins.oracle.OracleConnection;
+import com.yiji.falcon.agent.plugins.JDBCPlugin;
+import com.yiji.falcon.agent.plugins.PluginExecute;
+import com.yiji.falcon.agent.plugins.PluginLibraryHelper;
 import org.apache.log4j.PropertyConfigurator;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
@@ -24,9 +26,6 @@ import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.Charset;
 import java.util.Collection;
-
-import static com.yiji.falcon.agent.common.AgentWorkLogic.autoWorkLogic;
-import static com.yiji.falcon.agent.common.AgentWorkLogic.confWorkLogic;
 
 /*
  * 修订记录:
@@ -125,7 +124,14 @@ public class Agent extends Thread{
         log.info("关闭JMX连接");
         JMXConnection.close();
         log.info("关闭数据库连接");
-        OracleConnection.close();
+        PluginLibraryHelper.getJDBCPlugins().forEach(plugin -> {
+            try {
+                JDBCPlugin jdbcPlugin = (JDBCPlugin) plugin;
+                jdbcPlugin.close();
+            } catch (Exception e) {
+                log.error("数据库关闭异常",e);
+            }
+        });
 
         log.info("服务器关闭成功");
         System.exit(0);
@@ -136,13 +142,12 @@ public class Agent extends Thread{
      */
     private void work(){
         try {
-            //启动配置指定的work启动
-            confWorkLogic();
-
-            //进行一次服务自动发现
-            autoWorkLogic();
-        } catch (SchedulerException e) {
-            log.error("Agent启动失败 : 调度任务启动失败",e);
+            //注册插件
+            new PluginLibraryHelper().register();
+            //运行插件
+            PluginExecute.start();
+        } catch (Exception e) {
+            log.error("Agent启动失败",e);
             System.exit(0);
         }
     }

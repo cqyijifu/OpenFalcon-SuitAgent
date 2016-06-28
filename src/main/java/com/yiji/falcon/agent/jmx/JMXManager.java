@@ -10,8 +10,9 @@ import com.yiji.falcon.agent.jmx.vo.JMXObjectNameInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.management.*;
-import java.io.IOException;
+import javax.management.MBeanAttributeInfo;
+import javax.management.ObjectInstance;
+import javax.management.ObjectName;
 import java.util.*;
 
 /*
@@ -30,13 +31,10 @@ public class JMXManager {
      * 获取指定应用的名称(如运行的main类名称)所有的jmx值
      * @param serverName
      * @return
-     * @throws IOException
-     * @throws IntrospectionException
-     * @throws InstanceNotFoundException
-     * @throws ReflectionException
      */
-    public synchronized static List<JMXMetricsValueInfo> getJmxMetricValue(String serverName, JMXConnection jmxConnection){
-        List<JMXConnectionInfo> mbeanConns = jmxConnection.getMBeanConnection(serverName);
+    public synchronized static List<JMXMetricsValueInfo> getJmxMetricValue(String serverName){
+        JMXConnection jmxConnection = new JMXConnection(serverName);
+        List<JMXConnectionInfo> mbeanConns = jmxConnection.getMBeanConnection();
         if(mbeanConns == null || mbeanConns.isEmpty()){
             log.error("获取应用 {} jmx连接失败,请检查应用是否已启动",serverName);
             return new ArrayList<>();
@@ -94,7 +92,7 @@ public class JMXManager {
         if(validCount < JMXConnection.getServerConnectCount(serverName)){
             // TODO 这里可以设置重试次数,超过次数就进行此连接的清除
             log.error("发现服务{}有缺失的JMX连接,尝试重新构建该服务的jmx连接",serverName);
-            jmxConnection.resetMBeanConnection(serverName);
+            jmxConnection.resetMBeanConnection();
         }
 
         return jmxMetricsValueInfoList;

@@ -2,9 +2,9 @@
  * www.yiji.com Inc.
  * Copyright (c) 2016 All Rights Reserved
  */
-package com.yiji.falcon.agent.plugins.zk;
+package com.yiji.falcon.agent.plugins.plugin.zk;
 
-import com.yiji.falcon.agent.plugins.elasticSearch.ElasticSearchConfig;
+import com.yiji.falcon.agent.plugins.plugin.elasticSearch.ElasticSearchConfig;
 import com.yiji.falcon.agent.util.CommendUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
