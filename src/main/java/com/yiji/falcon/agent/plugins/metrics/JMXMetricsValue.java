@@ -31,7 +31,7 @@ import java.util.*;
  */
 
 /**
- * 从JMX获取监控值抽象类
+ * JMX监控值
  * @author guqiu@yiji.com
  */
 public class JMXMetricsValue{
@@ -41,6 +41,11 @@ public class JMXMetricsValue{
     private JMXPlugin jmxPlugin;
     private List<JMXMetricsValueInfo> jmxMetricsValueInfos;
 
+    /**
+     * JMX监控值
+     * @param jmxPlugin
+     * @param jmxMetricsValueInfos
+     */
     public JMXMetricsValue(JMXPlugin jmxPlugin, List<JMXMetricsValueInfo> jmxMetricsValueInfos) {
         this.jmxPlugin = jmxPlugin;
         this.jmxMetricsValueInfos = jmxMetricsValueInfos;
@@ -74,22 +79,24 @@ public class JMXMetricsValue{
 
         if(!StringUtils.isEmpty(basePropertiesKey) &&
                 !StringUtils.isEmpty(propertiesPath)){
-            Properties properties = new Properties();
-            properties.load(new FileInputStream(propertiesPath));
-            for (int i = 1; i <= 100; i++) {
-                String objectName = basePropertiesKey + i +".objectName";
-                if(!StringUtils.isEmpty(properties.getProperty(objectName))){
-                    JMXMetricsConfiguration metricsConfiguration = new JMXMetricsConfiguration();
-                    metricsConfiguration.setObjectName(properties.getProperty(objectName));//设置ObjectName
-                    metricsConfiguration.setCounterType(properties.getProperty(basePropertiesKey + i + ".counterType"));//设置counterType
-                    metricsConfiguration.setMetrics(properties.getProperty(basePropertiesKey + i + ".metrics"));//设置metrics
-                    metricsConfiguration.setValueExpress(properties.getProperty(basePropertiesKey + i + ".valueExpress"));//设置metrics
-                    String tag = properties.getProperty(basePropertiesKey + i + ".tag");
-                    metricsConfiguration.setTag(StringUtils.isEmpty(tag) ? "" : tag);//设置tag
-                    String alias = properties.getProperty(basePropertiesKey + i + ".alias");
-                    metricsConfiguration.setAlias(StringUtils.isEmpty(alias) ? metricsConfiguration.getMetrics() : alias);
+            try (FileInputStream in = new FileInputStream(propertiesPath)){
+                Properties properties = new Properties();
+                properties.load(in);
+                for (int i = 1; i <= 100; i++) {
+                    String objectName = basePropertiesKey + i +".objectName";
+                    if(!StringUtils.isEmpty(properties.getProperty(objectName))){
+                        JMXMetricsConfiguration metricsConfiguration = new JMXMetricsConfiguration();
+                        metricsConfiguration.setObjectName(properties.getProperty(objectName));//设置ObjectName
+                        metricsConfiguration.setCounterType(properties.getProperty(basePropertiesKey + i + ".counterType"));//设置counterType
+                        metricsConfiguration.setMetrics(properties.getProperty(basePropertiesKey + i + ".metrics"));//设置metrics
+                        metricsConfiguration.setValueExpress(properties.getProperty(basePropertiesKey + i + ".valueExpress"));//设置metrics
+                        String tag = properties.getProperty(basePropertiesKey + i + ".tag");
+                        metricsConfiguration.setTag(StringUtils.isEmpty(tag) ? "" : tag);//设置tag
+                        String alias = properties.getProperty(basePropertiesKey + i + ".alias");
+                        metricsConfiguration.setAlias(StringUtils.isEmpty(alias) ? metricsConfiguration.getMetrics() : alias);
 
-                    jmxMetricsConfigurations.add(metricsConfiguration);
+                        jmxMetricsConfigurations.add(metricsConfiguration);
+                    }
                 }
             }
         }

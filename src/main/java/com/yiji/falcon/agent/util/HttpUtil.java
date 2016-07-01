@@ -127,7 +127,7 @@ public class HttpUtil {
         if(conn != null){
             String result = "";
             try(OutputStream write = conn.getOutputStream()){
-                write.write(param.getBytes());
+                write.write(param.getBytes("utf-8"));
                 result = convertToString(conn.getInputStream());
             } catch (IOException e) {
                 log.error("写出请求发生异常",e);

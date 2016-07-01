@@ -56,24 +56,23 @@ public class CommendUtil {
         ProcessBuilder pb = new ProcessBuilder(sh);
         Process process = pb.start();
 
-        ByteArrayOutputStream resultOutStream = new ByteArrayOutputStream();
-        InputStream errorInStream = new BufferedInputStream(process.getErrorStream());
-        InputStream processInStream = new BufferedInputStream(process.getInputStream());
-        int num;
-        byte[] bs = new byte[1024];
-        while ((num = errorInStream.read(bs)) != -1) {
-            resultOutStream.write(bs, 0, num);
-        }
-        while ((num = processInStream.read(bs)) != -1) {
-            resultOutStream.write(bs, 0, num);
-            result.isSuccess = true;
+        try(ByteArrayOutputStream resultOutStream = new ByteArrayOutputStream();
+            InputStream errorInStream = new BufferedInputStream(process.getErrorStream());
+            InputStream processInStream = new BufferedInputStream(process.getInputStream())){
+
+            int num;
+            byte[] bs = new byte[1024];
+            while ((num = errorInStream.read(bs)) != -1) {
+                resultOutStream.write(bs, 0, num);
+            }
+            while ((num = processInStream.read(bs)) != -1) {
+                resultOutStream.write(bs, 0, num);
+                result.isSuccess = true;
+            }
+
+            result.msg = new String(resultOutStream.toByteArray(),"utf-8");
         }
 
-        result.msg = new String(resultOutStream.toByteArray());
-
-        errorInStream.close();
-        processInStream.close();
-        resultOutStream.close();
         process.destroy();
 
         return result;

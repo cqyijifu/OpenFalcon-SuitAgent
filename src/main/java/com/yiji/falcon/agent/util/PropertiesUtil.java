@@ -36,8 +36,8 @@ public class PropertiesUtil {
         File configFile = new File(file);
         if(configFile.exists()){
             Properties pps = new Properties();
-            try {
-                pps.load(new FileInputStream(configFile));
+            try (FileInputStream in = new FileInputStream(configFile)){
+                pps.load(in);
             } catch (IOException e) {
                 log.error("配置文件配置获取失败",e);
             }

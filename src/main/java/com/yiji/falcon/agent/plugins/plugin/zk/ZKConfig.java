@@ -6,6 +6,7 @@ package com.yiji.falcon.agent.plugins.plugin.zk;
 
 import com.yiji.falcon.agent.plugins.plugin.elasticSearch.ElasticSearchConfig;
 import com.yiji.falcon.agent.util.CommendUtil;
+import com.yiji.falcon.agent.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,8 +73,8 @@ public class ZKConfig {
                 path += File.separator + "conf" + File.separator + "zoo.cfg";
 
                 Properties pps = new Properties();
-                try {
-                    pps.load(new FileInputStream(path));
+                try (FileInputStream in = new FileInputStream(path)){
+                    pps.load(in);
                     Enumeration en = pps.propertyNames(); //得到配置文件的名字
                     while(en.hasMoreElements()) {
                         String strKey = (String) en.nextElement();
@@ -101,7 +102,7 @@ public class ZKConfig {
      */
     public static String getClientPort(int pid) throws IOException {
         String port = String.valueOf(getConfig(pid).get("clientPort"));
-        if(port == null){
+        if(StringUtils.isEmpty(port)){
             //未配置,返回默认配置值
             return "2182";
         }

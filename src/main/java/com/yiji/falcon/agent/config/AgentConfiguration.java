@@ -108,9 +108,9 @@ public enum  AgentConfiguration {
         }
 
         agentConf = new Properties();
-        try {
-            agentConf.load(new FileInputStream(this.agentConfPath));
-        } catch (IOException e) {
+        try(FileInputStream in = new FileInputStream(this.agentConfPath)){
+            agentConf.load(in);
+        }catch (IOException e) {
             log.error("{} 配置文件读取失败 Agent启动失败",this.agentConfPath);
             System.exit(0);
         }
