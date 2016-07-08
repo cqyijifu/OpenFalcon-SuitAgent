@@ -167,8 +167,11 @@ public class ElasticSearchPlugin implements JMXPlugin {
     /**
      * 插件初始化操作
      * 该方法将会在插件运行前进行调用
-     *
-     * @param properties 插件指定的配置文件的全部配置信息(若未指定 {@link Plugin#configFileName()} ,则传null)
+     * @param properties
+     * 包含的配置:
+     * 1、插件目录绝对路径的(key 为 pluginDir),可利用此属性进行插件自定制资源文件读取
+     * 2、插件指定的配置文件的全部配置信息(参见 {@link com.yiji.falcon.agent.plugins.Plugin#configFileName()} 接口项)
+     * 3、授权配置项(参见 {@link com.yiji.falcon.agent.plugins.Plugin#authorizationKeyPrefix()} 接口项
      */
     @Override
     public void init(Map<String, String> properties) {

@@ -21,7 +21,10 @@ public interface Plugin {
      * 插件初始化操作
      * 该方法将会在插件运行前进行调用
      * @param properties
-     * 插件指定的配置文件的全部配置信息以及一个包含插件目录绝对路径的key : pluginDir
+     * 包含的配置:
+     * 1、插件目录绝对路径的(key 为 pluginDir),可利用此属性进行插件自定制资源文件读取
+     * 2、插件指定的配置文件的全部配置信息(参见 {@link com.yiji.falcon.agent.plugins.Plugin#configFileName()} 接口项)
+     * 3、授权配置项(参见 {@link com.yiji.falcon.agent.plugins.Plugin#authorizationKeyPrefix()} 接口项
      */
     void init(Map<String,String> properties);
 
@@ -43,6 +46,24 @@ public interface Plugin {
     default String configFileName(){
         String className = this.getClass().getSimpleName();
         return className.substring(0,1).toLowerCase() + className.substring(1) + ".properties";
+    }
+
+    /**
+     * 授权登陆配置的key前缀(配置在authorization.properties文件中)
+     * 将会通过init方法的map属性中,将符合该插件的授权配置传入,以供插件进行初始化操作
+     *
+     * 如 authorizationKeyPrefix = authorization.prefix , 并且在配置文件中配置了如下信息:
+     * authorization.prefix.xxx1 = xxx1
+     * authorization.prefix.xxx2 = xxx2
+     * 则init中的map中将会传入该KV:
+     * authorization.prefix.xxx1 : xxx1
+     * authorization.prefix.xxx2 : xxx2
+     *
+     * @return
+     * 若不覆盖此方法,默认返回空,既该插件无需授权配置
+     */
+    default String authorizationKeyPrefix(){
+        return "";
     }
 
     /**

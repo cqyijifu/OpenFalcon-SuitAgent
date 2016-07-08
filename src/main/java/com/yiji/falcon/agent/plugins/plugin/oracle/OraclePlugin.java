@@ -39,6 +39,11 @@ public class OraclePlugin implements JDBCPlugin {
     private int step;
     private PluginActivateType pluginActivateType;
 
+    @Override
+    public String authorizationKeyPrefix() {
+        return "Oracle";
+    }
+
     /**
      * 获取JDBC连接
      *
@@ -131,15 +136,18 @@ public class OraclePlugin implements JDBCPlugin {
     /**
      * 插件初始化操作
      * 该方法将会在插件运行前进行调用
-     *
-     * @param properties 插件指定的配置文件的全部配置信息以及一个包含插件目录绝对路径的key : pluginDir
+     * @param properties
+     * 包含的配置:
+     * 1、插件目录绝对路径的(key 为 pluginDir),可利用此属性进行插件自定制资源文件读取
+     * 2、插件指定的配置文件的全部配置信息(参见 {@link com.yiji.falcon.agent.plugins.Plugin#configFileName()} 接口项)
+     * 3、授权配置项(参见 {@link com.yiji.falcon.agent.plugins.Plugin#authorizationKeyPrefix()} 接口项
      */
     @Override
     public void init(Map<String, String> properties) {
-        driver_jdbc = properties.get("jdbc.driver");
-        url_jdbc = properties.get("jdbc.url");
-        username_jdbc = properties.get("jdbc.username");
-        password_jdbc = properties.get("jdbc.password");
+        driver_jdbc = properties.get("Oracle.jdbc.driver");
+        url_jdbc = properties.get("Oracle.jdbc.url");
+        username_jdbc = properties.get("Oracle.jdbc.username");
+        password_jdbc = properties.get("Oracle.jdbc.password");
         step = Integer.parseInt(properties.get("step"));
         pluginActivateType = PluginActivateType.valueOf(properties.get("pluginActivateType"));
     }

@@ -45,6 +45,8 @@ public enum  AgentConfiguration {
      */
     private String pluginConfPath;
 
+    private String authorizationConfPath;
+
     /**
      * 服务配置文件路径
      */
@@ -72,6 +74,7 @@ public enum  AgentConfiguration {
 
     private static final String CONF_AGENT_FALCON_PUSH_URL = "agent.falcon.push.url";
     private static final String CONF_AGENT_PORT = "agent.port";
+    private static final String AUTHORIZATION_CONF_PATH = "authorization.conf.path";
 
     private Properties agentConf = null;
 
@@ -80,10 +83,17 @@ public enum  AgentConfiguration {
      */
     AgentConfiguration() {
         if(StringUtils.isEmpty(System.getProperty("agent.conf.path"))){
-            log.error("agent 配置文件位置读取失败,请确定系统配置项:" + "agent.conf.path");
+            log.error("agent agent.properties 配置文件位置读取失败,请确定系统配置项:" + "agent.conf.path");
             System.exit(0);
         }else{
             this.agentConfPath = System.getProperty("agent.conf.path");
+        }
+
+        if(StringUtils.isEmpty(System.getProperty(AUTHORIZATION_CONF_PATH))){
+            log.error("agent authorization.properties 配置文件位置读取失败,请确定系统配置项:" + AUTHORIZATION_CONF_PATH);
+            System.exit(0);
+        }else{
+            this.authorizationConfPath = System.getProperty(AUTHORIZATION_CONF_PATH);
         }
 
         if(StringUtils.isEmpty(System.getProperty("agent.plugin.conf.dir"))){
@@ -195,5 +205,9 @@ public enum  AgentConfiguration {
 
     public String getPluginConfPath() {
         return pluginConfPath;
+    }
+
+    public String getAuthorizationConfPath() {
+        return authorizationConfPath;
     }
 }

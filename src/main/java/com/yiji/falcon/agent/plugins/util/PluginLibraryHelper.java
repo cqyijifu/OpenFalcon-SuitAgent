@@ -73,12 +73,22 @@ public class PluginLibraryHelper {
                     //插件初始化操作
                     Map<String,String> config = new HashMap<>();
                     config.put("pluginDir",AgentConfiguration.INSTANCE.getPluginConfPath());
-                    if(StringUtils.isEmpty(plugin.configFileName())){
-                        plugin.init(config);
-                    }else{
+                    if(!StringUtils.isEmpty(plugin.configFileName())){
+                        //指定了插件名,传入插件配置
                         config.putAll(PropertiesUtil.getAllPropertiesByFileName(AgentConfiguration.INSTANCE.getPluginConfPath() + File.separator + plugin.configFileName()));
-                        plugin.init(config);
                     }
+                    String authorizationKeyPrefix = plugin.authorizationKeyPrefix();
+                    if(!StringUtils.isEmpty(authorizationKeyPrefix)){
+                        //传入授权配置
+                        Map<String,String> authorizationConf = PropertiesUtil.getAllPropertiesByFileName(AgentConfiguration.INSTANCE.getAuthorizationConfPath());
+                        authorizationConf.entrySet().stream().filter(entry -> entry.getKey() != null &&
+                                entry.getKey().contains(authorizationKeyPrefix)).forEach(entry -> {
+                            config.put(entry.getKey(), entry.getValue());
+                        });
+                    }
+                    //初始化插件配置
+                    plugin.init(config);
+
                     String avaStr = pluginAvailable(plugin);
                     if(avaStr != null){
                         logger.warn("插件 {} 无效 : {}",clazz.getName(),avaStr);
