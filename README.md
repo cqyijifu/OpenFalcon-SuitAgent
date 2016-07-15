@@ -146,22 +146,23 @@
                     - 公共的metrics数据  
                     - CPU利用率 
                     - 内存利用率
+                    
                 - 内存和CPU的目前测试的支持设备
-                    - Cisco IOS(Version 12) 
-                    - Cisco NX-OS(Version 6)
-                    - Cisco IOS XR(Version 5) 
-                    - Cisco IOS XE(Version 15)
-                    - Cisco ASA (Version 9)
-                    - Ruijie 10G Routing Switch
-                    - Huawei VRP(Version 8) 
-                    - Huawei VRP(Version 5.20)
-                    - Huawei VRP(Version 5.120)
-                    - Huawei VRP(Version 5.130) 
-                    - Huawei VRP(Version 5.70) 
-                    - Juniper JUNOS(Version 10) 
-                    - H3C(Version 5) 
-                    - H3C(Version 5.20) 
-                    - H3C(Version 7)
+                     - Cisco IOS(Version 12) 
+                     - Cisco NX-OS(Version 6)
+                     - Cisco IOS XR(Version 5) 
+                     - Cisco IOS XE(Version 15)
+                     - Cisco ASA (Version 9)
+                     - Ruijie 10G Routing Switch
+                     - Huawei VRP(Version 8) 
+                     - Huawei VRP(Version 5.20)
+                     - Huawei VRP(Version 5.120)
+                     - Huawei VRP(Version 5.130) 
+                     - Huawei VRP(Version 5.70) 
+                     - Juniper JUNOS(Version 10) 
+                     - H3C(Version 5) 
+                     - H3C(Version 5.20) 
+                     - H3C(Version 7)
     - 监控配置
         - Agent配置
             - conf/agent.properties
@@ -176,8 +177,8 @@
               **解决方案**：用与应用相同的用户身份再启动一个新的Agent实例，然后进行对该应用的单独监控。需要注意重新制定Agent的监听端口和应用监控的work配置
 - 监控自动化
     - 监控方案
-        - **—** **对于****Falcon****自带的****Agent****监控的值，如****cpu.idle****等，没有任何****tag****信息，用****hostGroups + Templates****的方式进行监控管理**  
-          **—** **对于自己开发的****Agent****监控的值，可以定义****tag****规则进行上报，用****Expressions****的方式进行监控管理**
+        - 对于Falcon自带的Agent监控的值，如cpu.idle等，没有任何tag信息，用hostGroups + Templates的方式进行监控管理
+        - 对于自己开发的Agent监控的值，可以定义tag规则进行上报，用Expressions的方式进行监控管理
             - 快速入门 | Open-Falcon  
                 [http://book.open-falcon.org/zh/usage/getting-started.html](http://book.open-falcon.org/zh/usage/getting-started.html)
             - Tag和HostGroup | Open-Falcon  
@@ -194,7 +195,7 @@
             - 自动配置Expression监控表达式，匹配对应的通讯组
     - 应用自动化部署，监控自动进行监控停止和恢复
         - 操作：  
-          — 应用停止时，暂停对应的Expression监控表达式  
-          — 应用启动后，开启对应的Expression监控表达式  
-          — 应用删除后，删除对应的Expression监控表达式，用户，通讯组
-            - 直接操作数据库，hbs每分钟从DB中load各种数据，处理后放到内存里，静待agent、judge的请求
+          - 应用停止时，暂停对应的Expression监控表达式  
+          - 应用启动后，开启对应的Expression监控表达式  
+          - 应用删除后，删除对应的Expression监控表达式，用户，通讯组
+          - 直接操作数据库，hbs每分钟从DB中load各种数据，处理后放到内存里，静待agent、judge的请求
