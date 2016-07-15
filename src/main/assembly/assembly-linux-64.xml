@@ -49,6 +49,11 @@
             <outputDirectory>logs</outputDirectory>
         </fileSet>
 
+        <fileSet>
+            <directory>${project.basedir}/src/main/resources/falcon/linux64/agent</directory>
+            <outputDirectory>falcon/agent/</outputDirectory>
+        </fileSet>
+
     </fileSets>
 
     <dependencySets>

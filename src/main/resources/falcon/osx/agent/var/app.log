@@ -1,0 +1,46 @@
+2016/07/15 15:12:12 cfg.go:121: read config file: cfg.json successfully
+2016/07/15 15:12:12 http.go:74: listening :1988
+2016/07/15 15:13:12 ifstat.go:18: open /proc/net/dev: no such file or directory
+2016/07/15 15:13:12 kernel.go:13: open /proc/sys/fs/file-max: no such file or directory
+2016/07/15 15:13:12 loadavg.go:12: open /proc/loadavg: no such file or directory
+2016/07/15 15:13:12 meminfo.go:12: open /proc/meminfo: no such file or directory
+2016/07/15 15:13:12 diskstats.go:92: /proc/diskstats not exists
+2016/07/15 15:13:12 netstat.go:39: open /proc/net/netstat: no such file or directory
+2016/07/15 15:13:12 snmp.go:12: read snmp fail open /proc/net/snmp: no such file or directory
+2016/07/15 15:13:12 var.go:56: => <Total=1> <Endpoint:QianLong.local, Metric:agent.alive, Type:GAUGE, Tags:, Step:60, Time:1468566792, Value:1>
+2016/07/15 15:13:12 sockstat.go:12: exec: "ss": executable file not found in $PATH
+2016/07/15 15:13:12 var.go:63: <= <Total=1, Invalid:0, Latency=0ms, Message:ok>
+2016/07/15 15:14:12 ifstat.go:18: open /proc/net/dev: no such file or directory
+2016/07/15 15:14:12 kernel.go:13: open /proc/sys/fs/file-max: no such file or directory
+2016/07/15 15:14:12 loadavg.go:12: open /proc/loadavg: no such file or directory
+2016/07/15 15:14:12 meminfo.go:12: open /proc/meminfo: no such file or directory
+2016/07/15 15:14:12 diskstats.go:92: /proc/diskstats not exists
+2016/07/15 15:14:12 netstat.go:39: open /proc/net/netstat: no such file or directory
+2016/07/15 15:14:12 snmp.go:12: read snmp fail open /proc/net/snmp: no such file or directory
+2016/07/15 15:14:12 var.go:56: => <Total=1> <Endpoint:QianLong.local, Metric:agent.alive, Type:GAUGE, Tags:, Step:60, Time:1468566852, Value:1>
+2016/07/15 15:14:12 sockstat.go:12: exec: "ss": executable file not found in $PATH
+2016/07/15 15:14:12 var.go:63: <= <Total=1, Invalid:0, Latency=0ms, Message:ok>
+2016/07/15 15:14:19 var.go:56: => <Total=481> <Endpoint:QianLong.local-192.168.49.119-2016-07-15-001, Metric:GigabitEthernet1/0/19.if.HCOutBroadcastPkts, Type:GAUGE, Tags:service=switch,service.type=snmp,metrics.type=snmpCommonInBuild,agentSignName=192.168.56.254-161-H3C_V5-5.2, Step:30, Time:1468566856, Value:31480514>
+2016/07/15 15:14:19 var.go:63: <= <Total=481, Invalid:0, Latency=11ms, Message:ok>
+2016/07/15 15:14:47 var.go:56: => <Total=481> <Endpoint:QianLong.local-192.168.49.119-2016-07-15-001, Metric:GigabitEthernet1/0/40.if.HCOutMulticastPkts, Type:GAUGE, Tags:service=switch,service.type=snmp,metrics.type=snmpCommonInBuild,agentSignName=192.168.56.254-161-H3C_V5-5.2, Step:30, Time:1468566885, Value:0>
+2016/07/15 15:14:47 var.go:63: <= <Total=481, Invalid:0, Latency=9ms, Message:ok>
+2016/07/15 15:15:12 ifstat.go:18: open /proc/net/dev: no such file or directory
+2016/07/15 15:15:12 kernel.go:13: open /proc/sys/fs/file-max: no such file or directory
+2016/07/15 15:15:12 loadavg.go:12: open /proc/loadavg: no such file or directory
+2016/07/15 15:15:12 meminfo.go:12: open /proc/meminfo: no such file or directory
+2016/07/15 15:15:12 sockstat.go:12: exec: "ss": executable file not found in $PATH
+2016/07/15 15:15:12 diskstats.go:92: /proc/diskstats not exists
+2016/07/15 15:15:12 netstat.go:39: open /proc/net/netstat: no such file or directory
+2016/07/15 15:15:12 snmp.go:12: read snmp fail open /proc/net/snmp: no such file or directory
+2016/07/15 15:15:12 var.go:56: => <Total=1> <Endpoint:QianLong.local, Metric:agent.alive, Type:GAUGE, Tags:, Step:60, Time:1468566912, Value:1>
+2016/07/15 15:15:12 var.go:63: <= <Total=1, Invalid:0, Latency=0ms, Message:ok>
+2016/07/15 15:16:12 ifstat.go:18: open /proc/net/dev: no such file or directory
+2016/07/15 15:16:12 kernel.go:13: open /proc/sys/fs/file-max: no such file or directory
+2016/07/15 15:16:12 loadavg.go:12: open /proc/loadavg: no such file or directory
+2016/07/15 15:16:12 meminfo.go:12: open /proc/meminfo: no such file or directory
+2016/07/15 15:16:12 diskstats.go:92: /proc/diskstats not exists
+2016/07/15 15:16:12 netstat.go:39: open /proc/net/netstat: no such file or directory
+2016/07/15 15:16:12 snmp.go:12: read snmp fail open /proc/net/snmp: no such file or directory
+2016/07/15 15:16:12 var.go:56: => <Total=1> <Endpoint:QianLong.local, Metric:agent.alive, Type:GAUGE, Tags:, Step:60, Time:1468566972, Value:1>
+2016/07/15 15:16:12 sockstat.go:12: exec: "ss": executable file not found in $PATH
+2016/07/15 15:16:12 var.go:63: <= <Total=1, Invalid:0, Latency=0ms, Message:ok>
