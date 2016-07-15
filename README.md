@@ -88,11 +88,17 @@
           例如：  
           **service={value}** - （內建）服务产品名，如tomcat  
           **service.type={value}** - （內建）监控服务类型，如jmx,database  
-          **signName={value}** - （內建）标识：如端口号等能区分服务实例的字符串  
-          **metrics.type={value}** - （內建）监控值类型，如availability，jmxObjectConf，jmxObjectBuildIn，httpUrlConf，sqlConf，sqlBuildIn
+          **agentSignName={value}** - （內建）agent提供的标识字符串，如 allUnVariability（代表该服务agent启动时就不存在）**，**标识服务的占用端口号，服务名等，  
+          **metrics.type={value}** - （內建）监控值类型，如availability，jmxObjectConf，jmxObjectInBuild，httpUrlConf，sqlConf，sqlInBuild，snmpConnomInBuild，snmpPluginInBuild
         - 可用性(availability)会自动打上标签：  
           **metrics.type=availability,service={value}**
-    - 监控
+    - agent-plugin
+        - Agent所有的监控服务都是插件式开发集成
+        - 插件开发
+            - JDBC的监控服务，实现JDBCPlugin接口  
+              JMX的监控服务，实现JMXPlugin接口  
+              SNMP的监控服务，实现SNMPV3Plugin接口
+    - 监控服务
         - JMX监控
             - Agent JMX连接获取方式
                 - 与jconsole本地连接获取的相同方式，无需配置jmx连接，只需要指定对应的jmx的serverName即可，支持单机多实例的监控
@@ -108,9 +114,9 @@
                       — HeapMemoryUsed - 堆内存已使用的空间大小  
                       — NonHeapMemoryUsed - 非堆内存已使用的空间大小
                 - JMX 公共的监控属性自定义配置
-                    - 定义于common.properties文件
+                    - 定义于conf/jmx/common.properties文件
                 - 自定义的监控属性
-                    - 每个组件自定义的属于自身的监控属性
+                    - 每个插件自定义的属于自身的监控属性
             - 目前支持的监控组件
                 - zookeeper
                     - 自定义属性文件：jmx/zookeeper.properties
@@ -119,11 +125,28 @@
                 - elasticSearch
                     - 自定义的属性文件：elasticSearch/metricsConf.yml
                 - logstash
-                    - 暂无自定义
+                - yijiBoot应用
         - JDBC监控
             - 目前支持的监控组件
                 - Oracle
-                    - 配置文件：oracle/metricsSql.properties
+        - SNMP监控
+            - 公共的metrics列表
+                - ***** IfHCInOctets ***** IfHCOutOctets ***** IfHCInUcastPkts ***** IfHCOutUcastPkts ***** IfHCInBroadcastPkts ***** IfHCOutBroadcastPkts ***** IfHCInMulticastPkts ***** IfHCOutMulticastPkts ***** IfOperStatus(接口状态，1 up, 2 down, 3 testing, 4 unknown, 5 dormant, 6 notPresent, 7 lowerLayerDown)  
+                  ***** Ping延时（正常返回延时，超时返回 -1，可以用于存活告警）
+            - 交换机
+                - 采集的私有metric列表
+                    - * 公共的metrics数据  
+                      ****  
+                      ***** CPU利用率 ***** 内存利用率
+                - 内存和CPU的目前测试的支持设备
+                    - ***** Cisco IOS(Version 12) ***** Cisco NX-OS(Version 6) ***** Cisco IOS XR(Version 5) ***** Cisco IOS XE(Version 15) ***** Cisco ASA (Version 9) ***** Ruijie 10G Routing Switch ***** Huawei VRP(Version 8) ***** Huawei VRP(Version 5.20) ***** Huawei VRP(Version 5.120) ***** Huawei VRP(Version 5.130) ***** Huawei VRP(Version 5.70) ***** Juniper JUNOS(Version 10) ***** H3C(Version 5) ***** H3C(Version 5.20) ***** H3C(Version 7)
+    - 监控配置
+        - Agent配置
+            - conf/agent.properties
+        - 授权配置
+            - conf/authorization.properties
+        - 插件配置
+            - conf/plugin目录下
     - Q & A
         - 为什么有时候JMX应用启动了，但是Agent总是报无法获取JMX连接
             - 如果JMX应用启动时用的用户（如root或非root）和Agent启动时用的用户身份不一样，可能会出现无法获取JMX连接。目前发现，在ubuntu和Mac系统上，用root身份启动Agent，也出现无法获取用非root身份启动的elasticSearch应用的JMX连接。  
@@ -152,3 +175,4 @@
           — 应用停止时，暂停对应的Expression监控表达式  
           — 应用启动后，开启对应的Expression监控表达式  
           — 应用删除后，删除对应的Expression监控表达式，用户，通讯组
+            - 直接操作数据库，hbs每分钟从DB中load各种数据，处理后放到内存里，静待agent、judge的请求
