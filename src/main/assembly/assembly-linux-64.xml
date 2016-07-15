@@ -31,7 +31,7 @@
         </fileSet>
 
         <fileSet>
-            <directory>${project.basedir}/src/main/resources/jre-linux-64</directory>
+            <directory>${project.basedir}/src/main/resources/jre/jre-linux-64</directory>
             <excludes>
                 <exclude>tools.jar</exclude>
             </excludes>
