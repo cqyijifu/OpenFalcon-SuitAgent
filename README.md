@@ -131,15 +131,37 @@
                 - Oracle
         - SNMP监控
             - 公共的metrics列表
-                - ***** IfHCInOctets ***** IfHCOutOctets ***** IfHCInUcastPkts ***** IfHCOutUcastPkts ***** IfHCInBroadcastPkts ***** IfHCOutBroadcastPkts ***** IfHCInMulticastPkts ***** IfHCOutMulticastPkts ***** IfOperStatus(接口状态，1 up, 2 down, 3 testing, 4 unknown, 5 dormant, 6 notPresent, 7 lowerLayerDown)  
-                  ***** Ping延时（正常返回延时，超时返回 -1，可以用于存活告警）
+                - IfHCInOctets 
+                - IfHCOutOctets 
+                - IfHCInUcastPkts 
+                - IfHCOutUcastPkts 
+                - IfHCInBroadcastPkts 
+                - IfHCOutBroadcastPkts
+                - IfHCInMulticastPkts 
+                - IfHCOutMulticastPkts 
+                - IfOperStatus(接口状态，1 up, 2 down, 3 testing, 4 unknown, 5 dormant, 6 notPresent, 7 lowerLayerDown)  
+                - Ping延时（正常返回延时，超时返回 -1，可以用于存活告警）
             - 交换机
                 - 采集的私有metric列表
-                    - * 公共的metrics数据  
-                      ****  
-                      ***** CPU利用率 ***** 内存利用率
+                    - 公共的metrics数据  
+                    - CPU利用率 
+                    - 内存利用率
                 - 内存和CPU的目前测试的支持设备
-                    - ***** Cisco IOS(Version 12) ***** Cisco NX-OS(Version 6) ***** Cisco IOS XR(Version 5) ***** Cisco IOS XE(Version 15) ***** Cisco ASA (Version 9) ***** Ruijie 10G Routing Switch ***** Huawei VRP(Version 8) ***** Huawei VRP(Version 5.20) ***** Huawei VRP(Version 5.120) ***** Huawei VRP(Version 5.130) ***** Huawei VRP(Version 5.70) ***** Juniper JUNOS(Version 10) ***** H3C(Version 5) ***** H3C(Version 5.20) ***** H3C(Version 7)
+                    - Cisco IOS(Version 12) 
+                    - Cisco NX-OS(Version 6)
+                    - Cisco IOS XR(Version 5) 
+                    - Cisco IOS XE(Version 15)
+                    - Cisco ASA (Version 9)
+                    - Ruijie 10G Routing Switch
+                    - Huawei VRP(Version 8) 
+                    - Huawei VRP(Version 5.20)
+                    - Huawei VRP(Version 5.120)
+                    - Huawei VRP(Version 5.130) 
+                    - Huawei VRP(Version 5.70) 
+                    - Juniper JUNOS(Version 10) 
+                    - H3C(Version 5) 
+                    - H3C(Version 5.20) 
+                    - H3C(Version 7)
     - 监控配置
         - Agent配置
             - conf/agent.properties
