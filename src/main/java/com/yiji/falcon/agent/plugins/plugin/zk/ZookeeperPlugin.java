@@ -15,7 +15,6 @@ import com.yiji.falcon.agent.jmx.vo.JMXMetricsValueInfo;
 import com.yiji.falcon.agent.jmx.vo.JMXObjectNameInfo;
 import com.yiji.falcon.agent.plugins.JMXPlugin;
 import com.yiji.falcon.agent.plugins.metrics.MetricsCommon;
-import com.yiji.falcon.agent.plugins.Plugin;
 import com.yiji.falcon.agent.plugins.util.PluginActivateType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -109,7 +108,7 @@ public class ZookeeperPlugin implements JMXPlugin {
         falconReportObject.setMetric(MetricsCommon.getMetricsName("isZookeeperLeader"));
         falconReportObject.setValue(isLeader ? "1" : "0");
         falconReportObject.setTimestamp(System.currentTimeMillis() / 1000);
-        falconReportObject.appendTags(MetricsCommon.getTags(name,this,serverName(), MetricsType.JMXOBJECTBUILDIN));
+        falconReportObject.appendTags(MetricsCommon.getTags(name,this,serverName(), MetricsType.JMX_OBJECT_IN_BUILD));
         return falconReportObject;
     }
 

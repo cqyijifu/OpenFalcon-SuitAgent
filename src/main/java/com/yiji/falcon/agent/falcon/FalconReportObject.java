@@ -19,7 +19,7 @@ import javax.management.ObjectName;
  * push到falcon的数据报告对象
  * @author guqiu@yiji.com
  */
-public class FalconReportObject {
+public class FalconReportObject implements Cloneable{
 
     /**
      *  标明Metric的主体(属主)，比如metric是cpu_idle，那么Endpoint就表示这是哪台机器的cpu_idle
@@ -56,6 +56,15 @@ public class FalconReportObject {
      * 仅供系统使用
      */
     private ObjectName objectName;
+
+    @Override
+    public FalconReportObject clone() {
+        try {
+            return (FalconReportObject) super.clone();
+        } catch (CloneNotSupportedException e) {
+            return new FalconReportObject();
+        }
+    }
 
     @Override
     public String toString() {

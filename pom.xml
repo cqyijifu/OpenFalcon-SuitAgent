@@ -292,6 +292,12 @@
             <version>18.0</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.snmp4j</groupId>
+            <artifactId>snmp4j</artifactId>
+            <version>2.5.0</version>
+        </dependency>
+
         <!--<dependency>
             <groupId>org.apache.zookeeper</groupId>
             <artifactId>zookeeper</artifactId>

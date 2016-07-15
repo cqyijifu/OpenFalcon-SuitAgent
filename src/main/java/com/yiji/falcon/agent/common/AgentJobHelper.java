@@ -7,6 +7,8 @@ package com.yiji.falcon.agent.common;
 import com.yiji.falcon.agent.config.AgentConfiguration;
 import com.yiji.falcon.agent.jmx.JMXConnection;
 import com.yiji.falcon.agent.plugins.JDBCPlugin;
+import com.yiji.falcon.agent.plugins.SNMPV3Plugin;
+import com.yiji.falcon.agent.plugins.metrics.SNMPV3MetricsValue;
 import com.yiji.falcon.agent.plugins.util.PluginActivateType;
 import com.yiji.falcon.agent.util.CronUtil;
 import com.yiji.falcon.agent.util.SchedulerUtil;
@@ -75,7 +77,7 @@ public class AgentJobHelper {
     }
 
     /**
-     * JMX服务的监控启动逻辑服务方法
+     * JMX服务的监控启动
      * @param pluginName
      * @param pluginActivateType
      * @param step
@@ -102,7 +104,7 @@ public class AgentJobHelper {
     }
 
     /**
-     * JDBC服务的监控启动逻辑服务方法
+     * JDBC服务的监控启动
      * @param jdbcPlugin
      * @param pluginName
      * @param pluginActivateType
@@ -119,7 +121,36 @@ public class AgentJobHelper {
             if(pluginActivateType == PluginActivateType.AUTO){
                 try {
                     jdbcPlugin.getConnection();
-                    //连接获取成功,开启服务监控
+                    //无异常,代表连接获取成功,开启服务监控
+                    log.info("发现服务 {} , 启动插件 {} ",serverName,pluginName);
+                    doJob(jobClazz,desc,step,jobDataMap,serverName);
+                } catch (Exception ignored) {
+                }
+            }else if(pluginActivateType == PluginActivateType.FORCE){
+                doJob(jobClazz,desc,step,jobDataMap,serverName);
+            }
+        }
+    }
+
+    /**
+     * SNMPV3服务的监控启动
+     * @param snmpv3Plugin
+     * @param pluginName
+     * @param pluginActivateType
+     * @param step
+     * @param jobClazz
+     * @param serverName
+     * @param desc
+     * @param jobDataMap
+     * @throws SchedulerException
+     */
+    public synchronized static void pluginWorkForSNMPV3(SNMPV3Plugin snmpv3Plugin , String pluginName, PluginActivateType pluginActivateType, int step, Class<? extends Job> jobClazz, String serverName, String desc, JobDataMap jobDataMap) throws SchedulerException {
+        //只有指定job未启动过的情况下才进行work开启
+        if(!isHasWorked(serverName)){
+            if(pluginActivateType == PluginActivateType.AUTO){
+                try {
+                    new SNMPV3MetricsValue(snmpv3Plugin).getSessions();
+                    //无异常,代表连接获取成功,开启服务监控
                     log.info("发现服务 {} , 启动插件 {} ",serverName,pluginName);
                     doJob(jobClazz,desc,step,jobDataMap,serverName);
                 } catch (Exception ignored) {

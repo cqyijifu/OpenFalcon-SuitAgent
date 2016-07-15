@@ -7,24 +7,13 @@ import com.alibaba.fastjson.JSONObject;
 import com.yiji.falcon.agent.util.HttpUtil;
 
 import java.io.IOException;
-import java.security.Provider;
-import java.security.Security;
 import java.util.Map;
 
 /**
  * Created by QianLong on 16/5/3.
  */
-public class Test {
+public class EsTest {
 
-    @org.junit.Test
-    public void test(){
-        for (Provider provider : Security.getProviders()) {
-            System.out.println(provider);
-            for (Map.Entry<Object, Object> entry : provider.entrySet()) {
-                System.out.println("\t" + entry.getKey() + " : " + entry.getValue());
-            }
-        }
-    }
     @org.junit.Test
     public void esTest() throws IOException {
         String selfNodeId = "";

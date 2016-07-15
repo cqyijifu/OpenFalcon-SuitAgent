@@ -21,23 +21,31 @@ public enum MetricsType {
     /**
      * 配置文件配置的JMX监控值
      */
-    JMXOBJECTCONF("jmxObjectConf"),
+    JMX_OBJECT_CONF("jmxObjectConf"),
     /**
      * 內建的JMX公共的监控属性
      */
-    JMXOBJECTBUILDIN("jmxObjectBuildIn"),
+    JMX_OBJECT_IN_BUILD("jmxObjectInBuild"),
     /**
      * 配置文件配置的通过http访问获取的监控值
      */
-    HTTPURLCONF("httpUrlConf"),
+    HTTP_URL_CONF("httpUrlConf"),
     /**
      * 配置文件配置的SQL语句查询的监控值
      */
-    SQLCONF("sqlConf"),
+    SQL_CONF("sqlConf"),
     /**
      * 內建的SQL语句查询的监控值
      */
-    SQLBUILDIN("sqlBuildIn");
+    SQL_IN_BUILD("sqlInBuild"),
+    /**
+     * 內建的公共的SNMP获取的监控值
+     */
+    SNMP_COMMON_IN_BUILD("snmpCommonInBuild"),
+    /**
+     * 插件內建的SNMP监控值
+     */
+    SNMP_Plugin_IN_BUILD("snmpPluginInBuild");
 
     private String typeName;
 

@@ -15,7 +15,6 @@ import com.yiji.falcon.agent.falcon.MetricsType;
 import com.yiji.falcon.agent.jmx.vo.JMXMetricsValueInfo;
 import com.yiji.falcon.agent.plugins.JMXPlugin;
 import com.yiji.falcon.agent.plugins.metrics.MetricsCommon;
-import com.yiji.falcon.agent.plugins.Plugin;
 import com.yiji.falcon.agent.plugins.util.PluginActivateType;
 import com.yiji.falcon.agent.util.HttpUtil;
 import com.yiji.falcon.agent.util.StringUtils;
@@ -143,7 +142,7 @@ public class ElasticSearchPlugin implements JMXPlugin {
 
                                             falconReportObject.setCounterType(CounterType.valueOf(counterType));
 
-                                            falconReportObject.appendTags(MetricsCommon.getTags(name,this,serverName(), MetricsType.HTTPURLCONF)).
+                                            falconReportObject.appendTags(MetricsCommon.getTags(name,this,serverName(), MetricsType.HTTP_URL_CONF)).
                                                     appendTags(tag);
 
                                             result.add(falconReportObject);

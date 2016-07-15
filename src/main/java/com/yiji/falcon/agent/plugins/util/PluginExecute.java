@@ -11,8 +11,10 @@ package com.yiji.falcon.agent.plugins.util;
 import com.yiji.falcon.agent.common.AgentJobHelper;
 import com.yiji.falcon.agent.plugins.JDBCPlugin;
 import com.yiji.falcon.agent.plugins.JMXPlugin;
+import com.yiji.falcon.agent.plugins.SNMPV3Plugin;
 import com.yiji.falcon.agent.plugins.job.JDBCPluginJob;
 import com.yiji.falcon.agent.plugins.job.JMXPluginJob;
+import com.yiji.falcon.agent.plugins.job.SNMPPluginJob;
 import com.yiji.falcon.agent.util.StringUtils;
 import org.quartz.JobDataMap;
 import org.quartz.SchedulerException;
@@ -45,6 +47,7 @@ public class PluginExecute {
 
         Set<Object> jmxPlugins = PluginLibraryHelper.getJMXPlugins();
         Set<Object> jdbcPlugins = PluginLibraryHelper.getJDBCPlugins();
+        Set<Object> snmpv3Plugins = PluginLibraryHelper.getSNMPV3Plugins();
 
         jmxPlugins.forEach(plugin -> {
             try {
@@ -65,7 +68,17 @@ public class PluginExecute {
                 logger.error("插件启动异常",e);
             }
         });
-
+        snmpv3Plugins.forEach(plugin -> {
+            try{
+                SNMPV3Plugin snmpv3Plugin = (SNMPV3Plugin) plugin;
+                JobDataMap jobDataMap = new JobDataMap();
+                String pluginName = String.format("%s-%s",snmpv3Plugin.pluginName(),snmpv3Plugin.serverName());
+                jobDataMap.put("pluginObject",snmpv3Plugin);
+                AgentJobHelper.pluginWorkForSNMPV3(snmpv3Plugin,pluginName,snmpv3Plugin.activateType(),snmpv3Plugin.step(),SNMPPluginJob.class,pluginName,snmpv3Plugin.serverName(),jobDataMap);
+            }catch (Exception e){
+                logger.error("插件启动异常",e);
+            }
+        });
         jdbcPlugins.forEach(plugin -> {
             try {
                 JDBCPlugin jdbcPlugin = (JDBCPlugin) plugin;
@@ -77,6 +90,7 @@ public class PluginExecute {
                 logger.error("插件启动异常",e);
             }
         });
+
     }
 
 }

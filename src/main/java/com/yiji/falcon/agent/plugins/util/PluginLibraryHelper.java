@@ -13,6 +13,7 @@ import com.yiji.falcon.agent.config.AgentConfiguration;
 import com.yiji.falcon.agent.plugins.JDBCPlugin;
 import com.yiji.falcon.agent.plugins.JMXPlugin;
 import com.yiji.falcon.agent.plugins.Plugin;
+import com.yiji.falcon.agent.plugins.SNMPV3Plugin;
 import com.yiji.falcon.agent.util.PropertiesUtil;
 import com.yiji.falcon.agent.util.StringUtils;
 import org.slf4j.Logger;
@@ -40,9 +41,7 @@ public class PluginLibraryHelper {
      * @return
      */
     public static Set<Object> getJMXPlugins(){
-        Set<Object> targetPlugins = new HashSet<>();
-        targetPlugins.addAll(plugins.stream().filter(plugin -> JMXPlugin.class.isAssignableFrom(plugin.getClass())).collect(Collectors.toSet()));
-        return targetPlugins;
+        return getPluginsByType(JMXPlugin.class);
     }
 
     /**
@@ -50,8 +49,20 @@ public class PluginLibraryHelper {
      * @return
      */
     public static Set<Object> getJDBCPlugins(){
+        return getPluginsByType(JDBCPlugin.class);
+    }
+
+    /**
+     * 获取SNMPV3监控服务插件
+     * @return
+     */
+    public static Set<Object> getSNMPV3Plugins(){
+        return getPluginsByType(SNMPV3Plugin.class);
+    }
+
+    private static Set<Object> getPluginsByType(Class type){
         Set<Object> targetPlugins = new HashSet<>();
-        targetPlugins.addAll(plugins.stream().filter(plugin -> JDBCPlugin.class.isAssignableFrom(plugin.getClass())).collect(Collectors.toSet()));
+        targetPlugins.addAll(plugins.stream().filter(plugin -> type.isAssignableFrom(plugin.getClass())).collect(Collectors.toSet()));
         return targetPlugins;
     }
 
@@ -68,7 +79,8 @@ public class PluginLibraryHelper {
                 if(Plugin.class.isAssignableFrom(clazz) &&
                         clazz != Plugin.class &&
                         clazz != JMXPlugin.class &&
-                        clazz != JDBCPlugin.class){
+                        clazz != JDBCPlugin.class &&
+                        clazz != SNMPV3Plugin.class){
                     Plugin plugin = (Plugin) clazz.newInstance();
                     //插件初始化操作
                     Map<String,String> config = new HashMap<>();

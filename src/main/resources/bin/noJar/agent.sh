@@ -44,6 +44,7 @@ agent_classpath="${agent_classpath}:${agentHome}/lib/ojdbc5-11.2.0.2.0.jar"
 agent_classpath="${agent_classpath}:${agentHome}/lib/jyaml-1.3.jar"
 agent_classpath="${agent_classpath}:${agentHome}/lib/fastjson-1.2.11.jar"
 agent_classpath="${agent_classpath}:${agentHome}/lib/guava-18.0.jar"
+agent_classpath="${agent_classpath}:${agentHome}/lib/snmp4j-2.5.0.jar"
 agent_class=com.yiji.falcon.agent.Agent
 
 client_cmd="${JAVA} \

@@ -71,7 +71,7 @@ public class JDBCMetricsValue {
                         reportObject.setCounterType(CounterType.GAUGE);
                         reportObject.setValue(metricsValue);
                         reportObject.setTimestamp(System.currentTimeMillis() / 1000);
-                        reportObject.appendTags(MetricsCommon.getTags(jdbcPlugin.agentSignName(),jdbcPlugin,jdbcPlugin.serverName(), MetricsType.SQLCONF));
+                        reportObject.appendTags(MetricsCommon.getTags(jdbcPlugin.agentSignName(),jdbcPlugin,jdbcPlugin.serverName(), MetricsType.SQL_CONF));
                         MetricsCommon.setReportCommonValue(reportObject,jdbcPlugin.step());
 
                         result.add(reportObject);

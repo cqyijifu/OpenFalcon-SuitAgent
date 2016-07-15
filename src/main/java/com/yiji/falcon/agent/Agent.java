@@ -7,6 +7,7 @@ package com.yiji.falcon.agent;
 import com.yiji.falcon.agent.config.AgentConfiguration;
 import com.yiji.falcon.agent.jmx.JMXConnection;
 import com.yiji.falcon.agent.plugins.JDBCPlugin;
+import com.yiji.falcon.agent.plugins.metrics.SNMPV3MetricsValue;
 import com.yiji.falcon.agent.plugins.util.PluginExecute;
 import com.yiji.falcon.agent.plugins.util.PluginLibraryHelper;
 import org.apache.log4j.PropertyConfigurator;
@@ -93,9 +94,13 @@ public class Agent extends Thread{
     /**
      * 关闭服务器
      */
-    void shutdown() throws IOException {
+    void shutdown() {
         log.info("正在关闭服务器");
-        serverSocketChannel.close();
+        try {
+            serverSocketChannel.close();
+        } catch (IOException e) {
+            log.error("serverSocketChannel.close()异常",e);
+        }
         log.info("------------进行调度器关闭处理-------------------");
         SchedulerFactory sf = DirectSchedulerFactory.getInstance();
         //获取所有的Scheduler
@@ -132,6 +137,8 @@ public class Agent extends Thread{
                 log.error("数据库关闭异常",e);
             }
         });
+        log.info("关闭SNMP连接");
+        SNMPV3MetricsValue.closeAllSession();
 
         log.info("服务器关闭成功");
         System.exit(0);

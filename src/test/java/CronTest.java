@@ -9,7 +9,7 @@ import org.junit.Test;
 /**
  * Created by QianLong on 16/4/28.
  */
-public class UtilTest {
+public class CronTest {
 
     @Test
     public void test(){

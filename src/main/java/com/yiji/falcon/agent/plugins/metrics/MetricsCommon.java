@@ -11,6 +11,7 @@ import com.yiji.falcon.agent.falcon.MetricsType;
 import com.yiji.falcon.agent.plugins.JDBCPlugin;
 import com.yiji.falcon.agent.plugins.JMXPlugin;
 import com.yiji.falcon.agent.plugins.Plugin;
+import com.yiji.falcon.agent.plugins.SNMPV3Plugin;
 import com.yiji.falcon.agent.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -116,7 +117,9 @@ public class MetricsCommon {
             signName += ",service.type=jmx";
         }else if(JDBCPlugin.class.isAssignableFrom(plugin.getClass())){
             signName += ",service.type=database";
-        }else{
+        }else if(SNMPV3Plugin.class.isAssignableFrom(plugin.getClass())){
+            signName += ",service.type=snmp";
+        }else {
             signName += ",service.type=unKnow";
         }
         if(metricsType != null){

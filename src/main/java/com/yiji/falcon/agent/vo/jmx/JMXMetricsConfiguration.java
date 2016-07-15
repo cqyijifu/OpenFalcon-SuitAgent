@@ -2,7 +2,7 @@
  * www.yiji.com Inc.
  * Copyright (c) 2016 All Rights Reserved
  */
-package com.yiji.falcon.agent.vo;
+package com.yiji.falcon.agent.vo.jmx;
 
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
