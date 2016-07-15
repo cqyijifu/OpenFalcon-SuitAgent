@@ -10,6 +10,9 @@ import com.yiji.falcon.agent.plugins.JDBCPlugin;
 import com.yiji.falcon.agent.plugins.metrics.SNMPV3MetricsValue;
 import com.yiji.falcon.agent.plugins.util.PluginExecute;
 import com.yiji.falcon.agent.plugins.util.PluginLibraryHelper;
+import com.yiji.falcon.agent.util.CommendUtil;
+import com.yiji.falcon.agent.util.FileUtil;
+import com.yiji.falcon.agent.util.StringUtils;
 import org.apache.log4j.PropertyConfigurator;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
@@ -18,6 +21,7 @@ import org.quartz.impl.DirectSchedulerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.InetSocketAddress;
@@ -62,14 +66,47 @@ public class Agent extends Thread{
      * @throws IOException
      */
     private void serverStart(int port) throws IOException {
+        log.info("开始启动 Falcon Agent服务");
+        String falconAgentConfFileName = "agent.cfg.json";
+        String falconAgentConfFile = AgentConfiguration.INSTANCE.getFalconConfDir() + File.separator + falconAgentConfFileName;
+        if(!FileUtil.isExist(falconAgentConfFile)){
+            log.error("Agent 启动失败 - Falcon Agent配置文件:{} 在目录:{} 下未找到,请确定配置文件是否正确配置",falconAgentConfFileName,AgentConfiguration.INSTANCE.getFalconConfDir());
+            System.exit(0);
+        }
+        String falconAgentConfContent = FileUtil.getTextFileContent(falconAgentConfFile);
+        if(StringUtils.isEmpty(falconAgentConfContent)){
+            log.error("Agent 启动失败 - Falcon Agent配置文件:{} 无配置内容",falconAgentConfFile);
+            System.exit(0);
+        }
+        String falconAgentDir = AgentConfiguration.INSTANCE.getFalconDir() + File.separator + "agent";
+        if(FileUtil.writeTextToTextFile(falconAgentConfContent,falconAgentDir,"cfg.json",false)){
+            String common = falconAgentDir + File.separator + "control start";
+            CommendUtil.ExecuteResult executeResult = CommendUtil.exec(common);
+            if(executeResult.isSuccess){
+                log.info("正在启动 Falcon Agent : {}",executeResult.msg);
+                if(executeResult.msg.contains("falcon-agent started")){
+                    log.info("Falcon Agent 启动成功");
+                }else{
+                    log.error("Agent启动失败 - Falcon Agent 启动失败");
+                    System.exit(0);
+                }
+            }else{
+                log.error("Agent启动失败 - Falcon Agent启动失败");
+                System.exit(0);
+            }
+        }else{
+            log.error("Agent启动失败 - Falcon Agent配置文件写入失败,请检查文件权限");
+            System.exit(0);
+        }
+
         if(serverSocketChannel == null){
             // 创建对象
-            log.info("开启服务");
+            log.info("正在启动Agent服务");
             serverSocketChannel = ServerSocketChannel.open();
             // 使在相同主机上，关机此服务器后，再次启动依然绑定相同的端口
             serverSocketChannel.socket().setReuseAddress(true);
         }
-        log.info("绑定端口" + port);
+        log.info("Agent绑定端口:" + port);
         serverSocketChannel.socket().bind(new InetSocketAddress(port));
 
         work();
@@ -139,6 +176,22 @@ public class Agent extends Thread{
         });
         log.info("关闭SNMP连接");
         SNMPV3MetricsValue.closeAllSession();
+
+        try {
+            String falconAgentDir = AgentConfiguration.INSTANCE.getFalconDir() + File.separator + "agent";
+            String common = falconAgentDir + File.separator + "control stop";
+            CommendUtil.ExecuteResult executeResult = CommendUtil.exec(common);
+            if(executeResult.isSuccess){
+                log.info("正在关闭 Falcon Agent : {}",executeResult.msg);
+                if(executeResult.msg.contains("falcon-agent stoped")){
+                    log.info("Falcon Agent 关闭成功");
+                }
+            }else{
+                log.error("Falcon Agent 服务自动关闭失败,请手动关闭");
+            }
+        } catch (IOException e) {
+            log.error("Falcon Agent 自动关闭失败,请手动关闭",e);
+        }
 
         log.info("服务器关闭成功");
         System.exit(0);

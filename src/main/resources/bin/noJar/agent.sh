@@ -54,6 +54,8 @@ client_cmd="${JAVA} \
 	-Dagent.log4j.conf.path=${agentHome}/conf/log4j.properties \
 	-Dagent.jmx.metrics.common.path=${agentHome}/conf/jmx/common.properties \
 	-Dagent.plugin.conf.dir=${agentHome}/conf/plugin \
+	-Dagent.falcon.dir=${agentHome}/falcon \
+	-Dagent.falcon.conf.dir=${agentHome}/conf/falcon \
 	-cp ${agent_classpath} ${agent_class} $1
 "
 

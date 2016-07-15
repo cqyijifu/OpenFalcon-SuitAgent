@@ -45,7 +45,20 @@ public enum  AgentConfiguration {
      */
     private String pluginConfPath;
 
+    /**
+     * 授权配置文件路径
+     */
     private String authorizationConfPath;
+
+    /**
+     * 集成的Falcon文件夹路径
+     */
+    private String falconDir;
+
+    /**
+     * Falcon的配置文件目录路径
+     */
+    private String falconConfDir;
 
     /**
      * 服务配置文件路径
@@ -75,6 +88,8 @@ public enum  AgentConfiguration {
     private static final String CONF_AGENT_FALCON_PUSH_URL = "agent.falcon.push.url";
     private static final String CONF_AGENT_PORT = "agent.port";
     private static final String AUTHORIZATION_CONF_PATH = "authorization.conf.path";
+    private static final String FALCON_DIR_PATH = "agent.falcon.dir";
+    private static final String FALCON_CONF_DIR_PATH = "agent.falcon.conf.dir";
 
     private Properties agentConf = null;
 
@@ -94,6 +109,20 @@ public enum  AgentConfiguration {
             System.exit(0);
         }else{
             this.authorizationConfPath = System.getProperty(AUTHORIZATION_CONF_PATH);
+        }
+
+        if(StringUtils.isEmpty(System.getProperty(FALCON_DIR_PATH))){
+            log.error("falcon 目录位置读取失败,请确定系统配置项:" + FALCON_DIR_PATH);
+            System.exit(0);
+        }else{
+            this.falconDir = System.getProperty(FALCON_DIR_PATH);
+        }
+
+        if(StringUtils.isEmpty(System.getProperty(FALCON_CONF_DIR_PATH))){
+            log.error("falcon conf 目录位置读取失败,请确定系统配置项:" + FALCON_CONF_DIR_PATH);
+            System.exit(0);
+        }else{
+            this.falconConfDir = System.getProperty(FALCON_CONF_DIR_PATH);
         }
 
         if(StringUtils.isEmpty(System.getProperty("agent.plugin.conf.dir"))){
@@ -209,5 +238,13 @@ public enum  AgentConfiguration {
 
     public String getAuthorizationConfPath() {
         return authorizationConfPath;
+    }
+
+    public String getFalconDir() {
+        return falconDir;
+    }
+
+    public String getFalconConfDir() {
+        return falconConfDir;
     }
 }

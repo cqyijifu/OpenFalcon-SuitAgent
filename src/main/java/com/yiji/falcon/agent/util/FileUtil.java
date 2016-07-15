@@ -23,6 +23,17 @@ public class FileUtil {
 
     private static final Logger log = LoggerFactory.getLogger(FileUtil.class);
 
+    /**
+     * 判断传入的文件是否存在
+     * @param filePath
+     * @return
+     * 文件不存在或是一个目录都会返回false
+     */
+    public static boolean isExist(String filePath){
+        File file = new File(filePath);
+        return file.exists() && file.isFile();
+    }
+
 	/**
 	 * 获取文本文件的文本内容 若没有此文件，则创建一个新文件，返回空串
 	 * 
@@ -48,7 +59,7 @@ public class FileUtil {
             BufferedReader reader = new BufferedReader(read);
             String line = "";
             while((line = reader.readLine()) != null){
-                text.append(line);
+                text.append(line).append("\r\n");
             }
             reader.close();
 		} catch (Exception e) {
@@ -84,7 +95,7 @@ public class FileUtil {
                 BufferedReader reader = new BufferedReader(read);
                 String line = "";
                 while((line = reader.readLine()) != null){
-                    text.append(line);
+                    text.append(line).append("\r\n");
                 }
 				filesText.add(text.toString());
 				reader.close();
@@ -127,7 +138,7 @@ public class FileUtil {
             BufferedReader reader = new BufferedReader(read);
             String line = "";
             while((line = reader.readLine()) != null){
-                text.append(line);
+                text.append(line).append("\r\n");
             }
 			reader.close();
 		} catch (Exception e) {
@@ -137,7 +148,7 @@ public class FileUtil {
 	}
 
 	/**
-	 * 将制定的字符串写入指定路径下的指定文件中
+	 * 将指定的字符串写入指定路径下的指定文件中
 	 * 如果路径及文件不存在，将自动创建
 	 * @param text
 	 * @param path
@@ -178,7 +189,7 @@ public class FileUtil {
     }
 
     /**
-     * 将制定的字符串写入指定路径下的指定文件中
+     * 将指定的字符串写入指定路径下的指定文件中
      * 如果文件不存在，返回false
      * @param text
      * @param file
