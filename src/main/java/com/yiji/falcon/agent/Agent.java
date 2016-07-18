@@ -45,6 +45,7 @@ public class Agent extends Thread{
 
     public static final PrintStream OUT = System.out;
     public static final PrintStream ERR = System.err;
+    public static int falconAgentPid = 0;
 
     private static final Logger log = LoggerFactory.getLogger(Agent.class);
 
@@ -84,8 +85,12 @@ public class Agent extends Thread{
             CommendUtil.ExecuteResult executeResult = CommendUtil.exec(common);
             if(executeResult.isSuccess){
                 log.info("正在启动 Falcon Agent : {}",executeResult.msg);
-                if(executeResult.msg.contains("falcon-agent started")){
-                    log.info("Falcon Agent 启动成功");
+                String msg = executeResult.msg.trim();
+                if(msg.contains("falcon-agent started")){
+                    falconAgentPid = Integer.parseInt(msg.substring(
+                            msg.indexOf("pid=") + 4
+                    ));
+                    log.info("Falcon Agent 启动成功,进程ID为 : {}",falconAgentPid);
                 }else{
                     log.error("Agent启动失败 - Falcon Agent 启动失败");
                     System.exit(0);
@@ -187,10 +192,10 @@ public class Agent extends Thread{
                     log.info("Falcon Agent 关闭成功");
                 }
             }else{
-                log.error("Falcon Agent 服务自动关闭失败,请手动关闭");
+                log.error("Falcon Agent 服务自动关闭失败,请手动关闭,Falcon Agent 进程ID为 : {}",falconAgentPid);
             }
         } catch (IOException e) {
-            log.error("Falcon Agent 自动关闭失败,请手动关闭",e);
+            log.error("Falcon Agent 自动关闭失败,请手动关闭,Falcon Agent 进程ID为 : {}",falconAgentPid,e);
         }
 
         log.info("服务器关闭成功");
