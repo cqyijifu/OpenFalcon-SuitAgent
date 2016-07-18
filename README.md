@@ -64,21 +64,25 @@
 
 ## Falcon-yiji
 
-- 自定义Agent监控
+- 自定义Agent监控  
+  Yiji-Falcon-Agent
+    - Falcon Agent的集成
+        - 因所有的监控数据都必须要上报到Falcon Agent，所以为了部署方便和管理，此Agent集成了Falcon Agent，启动时会同时启动自带的Falcon Agent，关闭时也会同时关闭Falcon Agent。
     - Agent命令
-        - — 启动：./bin/agent.sh start  
-          — 关闭：./bin/agent.sh stop  
-          — 状态：./bin/agent.sh status
-            - 服务启动详情查看日志：logs/console.log 或 logs/info.log
+        - 启动：./bin/agent.sh start
+            - 启动日志查看
+                - 可通过  
+                  tail -f conf/console.log  
+                  观察agent的运行情况
+        - 关闭：./bin/agent.sh stop
+        - 状态：./bin/agent.sh status
     - Agent日志
         - Agent运行中的日志分为四种：  
           1、console（debug）  
           2、info  
           3、warn  
           4、error  
-          每种日志均自动控制日志大小，每到5MB就自动进行日志分割，最多有10个同类文件。既所有的日志文件，最多只会达到200MB，无需担心日志文件过于庞大。  
-          故日志默认debug模式即可，如此可通过  
-          tail -f conf/console.log观察agent的运行情况
+          每种日志均自动控制日志大小，每到5MB就自动进行日志分割，最多有10个同类文件。既所有的日志文件，最多只会达到200MB，无需担心日志文件过于庞大。
     - endpoint命名
         - 见agent.properties的endpoint配置
     - metrics命名
@@ -106,24 +110,21 @@
                 - 若agent在启动时，需要进行监控的服务（对应的work配置为true的）未启动，则将会上报一个名为**allUnVariability**的metrics监控指标，值为0。tag中有metrics的详情（参考tag命名），代表为该服务全部不可用
             - JMX监控属性组成
                 - Agent内置的JMX监控属性
-                    - — HeapMemoryUsedRatio - 堆内存使用比例  
-                      — HeapMemoryCommitted - 堆内存已提交的大小  
-                      — NonHeapMemoryCommitted - 非堆内存已提交的大小  
-                      — HeapMemoryFree - 退内存空闲空间大小  
-                      — HeapMemoryMax - 堆内存最大的空间大小  
-                      — HeapMemoryUsed - 堆内存已使用的空间大小  
-                      — NonHeapMemoryUsed - 非堆内存已使用的空间大小
+                    - HeapMemoryUsedRatio - 堆内存使用比例
+                    - HeapMemoryCommitted - 堆内存已提交的大小
+                    - NonHeapMemoryCommitted - 非堆内存已提交的大小
+                    - HeapMemoryFree - 堆内存空闲空间大小
+                    - HeapMemoryMax - 堆内存最大的空间大小
+                    - HeapMemoryUsed - 堆内存已使用的空间大小
+                    - NonHeapMemoryUsed - 非堆内存已使用的空间大小
                 - JMX 公共的监控属性自定义配置
                     - 定义于conf/jmx/common.properties文件
                 - 自定义的监控属性
                     - 每个插件自定义的属于自身的监控属性
             - 目前支持的监控组件
                 - zookeeper
-                    - 自定义属性文件：jmx/zookeeper.properties
                 - tomcat
-                    - 自定义的属性文件：jmx/tomcat.properties
                 - elasticSearch
-                    - 自定义的属性文件：elasticSearch/metricsConf.yml
                 - logstash
                 - yijiBoot应用
         - JDBC监控
@@ -131,39 +132,59 @@
                 - Oracle
         - SNMP监控
             - 公共的metrics列表
-                - IfHCInOctets 
-                - IfHCOutOctets 
-                - IfHCInUcastPkts 
-                - IfHCOutUcastPkts 
-                - IfHCInBroadcastPkts 
+                - IfHCInOctets
+                - IfHCOutOctets
+                - IfHCInUcastPkts
+                - IfHCOutUcastPkts
+                - IfHCInBroadcastPkts
                 - IfHCOutBroadcastPkts
-                - IfHCInMulticastPkts 
-                - IfHCOutMulticastPkts 
-                - IfOperStatus(接口状态，1 up, 2 down, 3 testing, 4 unknown, 5 dormant, 6 notPresent, 7 lowerLayerDown)  
+                - IfHCInMulticastPkts
+                - IfHCOutMulticastPkts
+                - IfOperStatus(接口状态，1 up, 2 down, 3 testing, 4 unknown, 5 dormant, 6 notPresent, 7 lowerLayerDown)
                 - Ping延时（正常返回延时，超时返回 -1，可以用于存活告警）
-            - 交换机
+            - 交换机（SNMP V3）
+                - 说明
+                    - 监控的设备采集信息和采集逻辑主要参考了Falcon社区的swcollector项目，因swcollector不支持SNMP V3协议。  
+                        [https://github.com/gaochao1/swcollector](https://github.com/gaochao1/swcollector)
                 - 采集的私有metric列表
                     - 公共的metrics数据  
-                    - CPU利用率 
+                      ****
+                    - CPU利用率
                     - 内存利用率
-                    
                 - 内存和CPU的目前测试的支持设备
-                     - Cisco IOS(Version 12) 
-                     - Cisco NX-OS(Version 6)
-                     - Cisco IOS XR(Version 5) 
-                     - Cisco IOS XE(Version 15)
-                     - Cisco ASA (Version 9)
-                     - Ruijie 10G Routing Switch
-                     - Huawei VRP(Version 8) 
-                     - Huawei VRP(Version 5.20)
-                     - Huawei VRP(Version 5.120)
-                     - Huawei VRP(Version 5.130) 
-                     - Huawei VRP(Version 5.70) 
-                     - Juniper JUNOS(Version 10) 
-                     - H3C(Version 5) 
-                     - H3C(Version 5.20) 
-                     - H3C(Version 7)
+                    - Cisco IOS(Version 12)
+                    - Cisco NX-OS(Version 6)
+                    - Cisco IOS XR(Version 5)
+                    - Cisco IOS XE(Version 15)
+                    - Cisco ASA (Version 9)
+                    - Ruijie 10G Routing Switch
+                    - Huawei VRP(Version 8)
+                    - Huawei VRP(Version 5.20)
+                    - Huawei VRP(Version 5.120)
+                    - Huawei VRP(Version 5.130)
+                    - Huawei VRP(Version 5.70)
+                    - Juniper JUNOS(Version 10)
+                    - H3C(Version 5)
+                    - H3C(Version 5.20)
+                    - H3C(Version 7)
+        - 自动发现服务监控说明
+            - zookeeper
+                - 无需配置，可自动发现
+            - tomcat
+                - 无需配置，可自动发现
+            - elasticSearch
+                - 无需配置，可自动发现
+            - logstash
+                - 无需配置，可自动发现
+            - yijiBoot应用
+                - 需要配置conf/plugin/yijiBootPlugin.properties配置文件的jmxServerName，然后Agent会自动发现已配置的yijiBoot应用
+            - Oracle
+                - 需要配置conf/authorization.properties配置中的Oracle连接信息，然后会根据配置的连接信息，进行自动发现Oracle应用，并监控
+            - SNMP V3 交换机
+                - 需要配置conf/authorization.properties配置中的交换机的SNMP V3的连接信息，然后会根据配置的连接信息，进行自动发现交换机并监控。
     - 监控配置
+        - Falcon Agent配置
+            - conf/falcon/agent.cfg.json
         - Agent配置
             - conf/agent.properties
         - 授权配置
@@ -177,12 +198,13 @@
               **解决方案**：用与应用相同的用户身份再启动一个新的Agent实例，然后进行对该应用的单独监控。需要注意重新制定Agent的监听端口和应用监控的work配置
 - 监控自动化
     - 监控方案
-        - 对于Falcon自带的Agent监控的值，如cpu.idle等，没有任何tag信息，用hostGroups + Templates的方式进行监控管理
-        - 对于自己开发的Agent监控的值，可以定义tag规则进行上报，用Expressions的方式进行监控管理
+        - **对于****Falcon****自带的****Agent****监控的值，如****cpu.idle****等，没有任何****tag****信息，用****hostGroups + Templates****的方式进行监控管理**  
+          ****
             - 快速入门 | Open-Falcon  
                 [http://book.open-falcon.org/zh/usage/getting-started.html](http://book.open-falcon.org/zh/usage/getting-started.html)
             - Tag和HostGroup | Open-Falcon  
                 [http://book.open-falcon.org/zh/philosophy/tags-and-hostgroup.html](http://book.open-falcon.org/zh/philosophy/tags-and-hostgroup.html)
+        - **对于自己开发的****Agent****监控的值，可以定义****tag****规则进行上报，用****Expressions****的方式进行监控管理**
     - 自动化发布系统部署应用时自动监控
         - 1、自动部署Agent
             - 部署Agent
@@ -195,7 +217,7 @@
             - 自动配置Expression监控表达式，匹配对应的通讯组
     - 应用自动化部署，监控自动进行监控停止和恢复
         - 操作：  
-          - 应用停止时，暂停对应的Expression监控表达式  
-          - 应用启动后，开启对应的Expression监控表达式  
-          - 应用删除后，删除对应的Expression监控表达式，用户，通讯组
-          - 直接操作数据库，hbs每分钟从DB中load各种数据，处理后放到内存里，静待agent、judge的请求
+          应用停止时，暂停对应的Expression监控表达式  
+          应用启动后，开启对应的Expression监控表达式  
+          应用删除后，删除对应的Expression监控表达式，用户，通讯组
+            - 直接操作数据库，hbs每分钟从DB中load各种数据，处理后放到内存里，静待agent、judge的请求
