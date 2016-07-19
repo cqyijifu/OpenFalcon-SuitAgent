@@ -91,6 +91,11 @@ public class Agent extends Thread{
                             msg.indexOf("pid=") + 4
                     ));
                     log.info("Falcon Agent 启动成功,进程ID为 : {}",falconAgentPid);
+                }else if(msg.contains("falcon-agent now is running already")){
+                    falconAgentPid = Integer.parseInt(msg.substring(
+                            msg.indexOf("pid=") + 4
+                    ));
+                    log.info("Falcon Agent 已启动,无需重复启动,进程ID为 : {}",falconAgentPid);
                 }else{
                     log.error("Agent启动失败 - Falcon Agent 启动失败");
                     System.exit(0);

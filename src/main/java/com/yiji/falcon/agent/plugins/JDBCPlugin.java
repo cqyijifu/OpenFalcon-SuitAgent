@@ -22,17 +22,18 @@ public interface JDBCPlugin extends Plugin{
 
 
     /**
-     * 获取JDBC连接
+     * 获取JDBC连接集合
      * @return
      * @throws SQLException
      * @throws ClassNotFoundException
      */
-    Connection getConnection() throws SQLException, ClassNotFoundException;
+    Collection<Connection> getConnections() throws SQLException, ClassNotFoundException;
 
     /**
      * 数据库监控语句的配置文件
      * 默认值 插件的简单类名第一个字母小写 加 MetricsConf.properties
      * @return
+     * 若不需要语句配置文件,则设置其返回null
      */
     default String metricsConfName(){
         String className = this.getClass().getSimpleName();

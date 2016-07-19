@@ -21,6 +21,7 @@ import org.quartz.SchedulerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.sql.DriverManager;
 import java.util.Set;
 
 /**
@@ -79,6 +80,9 @@ public class PluginExecute {
                 logger.error("插件启动异常",e);
             }
         });
+
+        //设置JDBC超时为5秒
+        DriverManager.setLoginTimeout(5);
         jdbcPlugins.forEach(plugin -> {
             try {
                 JDBCPlugin jdbcPlugin = (JDBCPlugin) plugin;

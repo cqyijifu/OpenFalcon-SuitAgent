@@ -99,27 +99,29 @@ public class SwitchPlugin implements SNMPV3Plugin{
     @Override
     public Collection<SNMPV3UserInfo> userInfo() {
         List<SNMPV3UserInfo> userInfoList = new ArrayList<>();
-        String[] urls = this.switchUrl.split(",");
-        for (String url : urls) {
-            if(!StringUtils.isEmpty(url) && url.contains("snmpv3://")){
-                //snmpv3://protocol:address:port:username:authType:authPswd:privType:privPswd
-                url = url.replace("snmpv3://","");
-                String[] props = url.split(":");
-                if(props.length != 8){
-                    logger.error("snmp v3 的连接URL格式错误,请检查URL:{} 是否符合格式:snmpv3://protocol:address:port:username:authType:authPswd:privType:privPswd",url);
-                    continue;
-                }
-                SNMPV3UserInfo userInfo = new SNMPV3UserInfo();
-                userInfo.setProtocol(props[0]);
-                userInfo.setAddress(props[1]);
-                userInfo.setPort(props[2]);
-                userInfo.setUsername(props[3]);
-                userInfo.setAythType(props[4]);
-                userInfo.setAuthPswd(props[5]);
-                userInfo.setPrivType(props[6]);
-                userInfo.setPrivPswd(props[7]);
+        if(!StringUtils.isEmpty(switchUrl)){
+            String[] urls = this.switchUrl.split(",");
+            for (String url : urls) {
+                if(!StringUtils.isEmpty(url) && url.contains("snmpv3://")){
+                    //snmpv3://protocol:address:port:username:authType:authPswd:privType:privPswd
+                    url = url.replace("snmpv3://","");
+                    String[] props = url.split(":");
+                    if(props.length != 8){
+                        logger.error("snmp v3 的连接URL格式错误,请检查URL:{} 是否符合格式:snmpv3://protocol:address:port:username:authType:authPswd:privType:privPswd",url);
+                        continue;
+                    }
+                    SNMPV3UserInfo userInfo = new SNMPV3UserInfo();
+                    userInfo.setProtocol(props[0]);
+                    userInfo.setAddress(props[1]);
+                    userInfo.setPort(props[2]);
+                    userInfo.setUsername(props[3]);
+                    userInfo.setAythType(props[4]);
+                    userInfo.setAuthPswd(props[5]);
+                    userInfo.setPrivType(props[6]);
+                    userInfo.setPrivPswd(props[7]);
 
-                userInfoList.add(userInfo);
+                    userInfoList.add(userInfo);
+                }
             }
         }
         return userInfoList;

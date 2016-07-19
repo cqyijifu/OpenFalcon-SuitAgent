@@ -17,13 +17,11 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /*
  * 修订记录:
@@ -52,7 +50,7 @@ public class JDBCMetricsValue {
         Set<FalconReportObject> result = new HashSet<>();
         Map<String,String> allMetrics = getAllMetricsQuery();
         try {
-            jdbcPlugin.getConnection();
+            jdbcPlugin.getConnections();
         } catch (Exception e) {
             log.warn("连接JDBC异常,创建不可用报告",e);
             result.add(MetricsCommon.generatorVariabilityReport(false,jdbcPlugin.agentSignName(),jdbcPlugin.step(),jdbcPlugin,jdbcPlugin.serverName()));
@@ -103,7 +101,11 @@ public class JDBCMetricsValue {
      * @return
      */
     private Map<String, String> getAllMetricsQuery() {
-        return PropertiesUtil.getAllPropertiesByFileName(AgentConfiguration.INSTANCE.getPluginConfPath() + File.separator + jdbcPlugin.metricsConfName());
+        if(!StringUtils.isEmpty(jdbcPlugin.metricsConfName())){
+            return PropertiesUtil.getAllPropertiesByFileName(AgentConfiguration.INSTANCE.getPluginConfPath() + File.separator + jdbcPlugin.metricsConfName());
+        }else{
+            return new HashMap<>();
+        }
     }
 
     /**
@@ -114,18 +116,18 @@ public class JDBCMetricsValue {
     private String getMetricsValue(String sql) throws SQLException, ClassNotFoundException {
         String result = "";
         if(!StringUtils.isEmpty(sql)){
-            //创建该连接下的PreparedStatement对象
-            PreparedStatement pstmt = jdbcPlugin.getConnection().prepareStatement(sql);
-
-            //执行查询语句，将数据保存到ResultSet对象中
-            ResultSet rs = pstmt.executeQuery();
-
-            //将指针移到下一行，判断rs中是否有数据
-            if(rs.next()){
-                result = rs.getString(1);
+            for (Connection connection : jdbcPlugin.getConnections()) {
+                //创建该连接下的PreparedStatement对象
+                PreparedStatement pstmt = connection.prepareStatement(sql);
+                //执行查询语句，将数据保存到ResultSet对象中
+                ResultSet rs = pstmt.executeQuery();
+                //将指针移到下一行，判断rs中是否有数据
+                if(rs.next()){
+                    result = rs.getString(1);
+                }
+                rs.close();
+                pstmt.close();
             }
-            rs.close();
-            pstmt.close();
         }
         return result;
     }

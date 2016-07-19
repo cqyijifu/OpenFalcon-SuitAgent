@@ -2,56 +2,50 @@
  * www.yiji.com Inc.
  * Copyright (c) 2016 All Rights Reserved
  */
-package com.yiji.falcon.agent.plugins.plugin.oracle;
+package com.yiji.falcon.agent.plugins.plugin.mysql;
 /*
  * 修订记录:
- * guqiu@yiji.com 2016-06-28 11:07 创建
+ * guqiu@yiji.com 2016-07-19 14:34 创建
  */
 
-import com.yiji.falcon.agent.falcon.CounterType;
 import com.yiji.falcon.agent.falcon.FalconReportObject;
-import com.yiji.falcon.agent.falcon.MetricsType;
 import com.yiji.falcon.agent.plugins.JDBCPlugin;
-import com.yiji.falcon.agent.plugins.metrics.MetricsCommon;
+import com.yiji.falcon.agent.plugins.Plugin;
 import com.yiji.falcon.agent.plugins.util.PluginActivateType;
 import com.yiji.falcon.agent.util.StringUtils;
 import com.yiji.falcon.agent.vo.jdbc.JDBCUserInfo;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static com.yiji.falcon.agent.plugins.metrics.MetricsCommon.getMetricsName;
-
 /**
  * @author guqiu@yiji.com
  */
-public class OraclePlugin implements JDBCPlugin {
-    private final Logger log = LoggerFactory.getLogger(this.getClass());
+public class MysqlPlugin implements JDBCPlugin {
+
     private final ConcurrentHashMap<JDBCUserInfo,Connection> connectionCache = new ConcurrentHashMap<>();
     private final List<JDBCUserInfo> userInfoList = new ArrayList<>();
     private int step;
     private PluginActivateType pluginActivateType;
 
-    @Override
-    public String authorizationKeyPrefix() {
-        return "Oracle";
-    }
 
     /**
-     * 获取JDBC连接
+     * 获取JDBC连接集合
      *
      * @return
+     * @throws SQLException
+     * @throws ClassNotFoundException
      */
     @Override
     public Collection<Connection> getConnections() throws SQLException, ClassNotFoundException {
         if(connectionCache.isEmpty()){
-            String driver_jdbc = "oracle.jdbc.driver.OracleDriver";
+            String driver_jdbc = "com.mysql.jdbc.Driver";
             Class.forName(driver_jdbc);
             for (JDBCUserInfo userInfo : userInfoList) {
                 connectionCache.put(userInfo,
@@ -67,6 +61,17 @@ public class OraclePlugin implements JDBCPlugin {
             }
         }
         return connectionCache.values();
+    }
+
+    /**
+     * 数据库监控语句的配置文件
+     * 默认值 插件的简单类名第一个字母小写 加 MetricsConf.properties
+     *
+     * @return 若不需要语句配置文件, 则设置其返回null
+     */
+    @Override
+    public String metricsConfName() {
+        return null;
     }
 
     /**
@@ -87,53 +92,19 @@ public class OraclePlugin implements JDBCPlugin {
      * 注:此方法只有在监控对象可用时,才会调用,并加入到监控值报告中,一并上传
      *
      * @return
+     * @throws SQLException
+     * @throws ClassNotFoundException
      */
     @Override
     public Collection<FalconReportObject> inbuiltReportObjectsForValid() throws SQLException, ClassNotFoundException {
-        List<FalconReportObject> result = new ArrayList<>();
-        String sql = "SELECT\n" +
-                "  Upper(F.TABLESPACE_NAME) \"TSNAME\",\n" +
-                "  To_char(Round((D.TOT_GROOTTE_MB - F.TOTAL_BYTES) / D.TOT_GROOTTE_MB * 100, 2), '990.99') \"PERCENT\"\n" +
-                "FROM (SELECT\n" +
-                "        TABLESPACE_NAME,\n" +
-                "        Round(Sum(BYTES) / (1024 * 1024), 2) TOTAL_BYTES,\n" +
-                "        Round(Max(BYTES) / (1024 * 1024), 2) MAX_BYTES\n" +
-                "      FROM SYS.DBA_FREE_SPACE\n" +
-                "      GROUP BY TABLESPACE_NAME) F,\n" +
-                "  (SELECT\n" +
-                "     DD.TABLESPACE_NAME,\n" +
-                "     Round(Sum(DD.BYTES) / (1024 * 1024), 2) TOT_GROOTTE_MB\n" +
-                "   FROM SYS.DBA_DATA_FILES DD\n" +
-                "   GROUP BY DD.TABLESPACE_NAME) D\n" +
-                "WHERE D.TABLESPACE_NAME = F.TABLESPACE_NAME";
-        for (Connection connection : getConnections()) {
-            //创建该连接下的PreparedStatement对象
-            PreparedStatement pstmt = connection.prepareStatement(sql);
-            //执行查询语句，将数据保存到ResultSet对象中
-            ResultSet rs = pstmt.executeQuery();
-            //将指针移到下一行，判断rs中是否有数据
-            while (rs.next()){
-                String tsName = rs.getString(1);
-                String percent = rs.getString(2);
-
-                FalconReportObject falconReportObject = new FalconReportObject();
-                MetricsCommon.setReportCommonValue(falconReportObject,step());
-                falconReportObject.setCounterType(CounterType.GAUGE);
-                falconReportObject.setTimestamp(System.currentTimeMillis() / 1000);
-                falconReportObject.setMetric(getMetricsName("TSUsedPercent-" + tsName.trim()));
-                falconReportObject.setValue(percent.trim());
-                falconReportObject.appendTags(MetricsCommon.getTags(agentSignName(),this,serverName(), MetricsType.SQL_IN_BUILD));
-                result.add(falconReportObject);
-            }
-            rs.close();
-            pstmt.close();
-        }
-
-        return result;
+        Metrics metrics = new Metrics(this);
+        return metrics.getReports();
     }
 
     /**
      * JDBC连接的关闭
+     *
+     * @throws SQLException
      */
     @Override
     public void close() throws SQLException {
@@ -147,15 +118,15 @@ public class OraclePlugin implements JDBCPlugin {
     /**
      * 插件初始化操作
      * 该方法将会在插件运行前进行调用
-     * @param properties
-     * 包含的配置:
-     * 1、插件目录绝对路径的(key 为 pluginDir),可利用此属性进行插件自定制资源文件读取
-     * 2、插件指定的配置文件的全部配置信息(参见 {@link com.yiji.falcon.agent.plugins.Plugin#configFileName()} 接口项)
-     * 3、授权配置项(参见 {@link com.yiji.falcon.agent.plugins.Plugin#authorizationKeyPrefix()} 接口项
+     *
+     * @param properties 包含的配置:
+     *                   1、插件目录绝对路径的(key 为 pluginDir),可利用此属性进行插件自定制资源文件读取
+     *                   2、插件指定的配置文件的全部配置信息(参见 {@link Plugin#configFileName()} 接口项)
+     *                   3、授权配置项(参见 {@link Plugin#authorizationKeyPrefix()} 接口项
      */
     @Override
     public void init(Map<String, String> properties) {
-        String authProp = properties.get("Oracle.jdbc.auth");
+        String authProp = properties.get("Mysql.jdbc.auth");
         if(!StringUtils.isEmpty(authProp)){
             String[] auths = authProp.split("\\^");
             for (String auth : auths) {
@@ -168,9 +139,26 @@ public class OraclePlugin implements JDBCPlugin {
                 }
             }
         }
-
         step = Integer.parseInt(properties.get("step"));
         pluginActivateType = PluginActivateType.valueOf(properties.get("pluginActivateType"));
+    }
+
+    /**
+     * 授权登陆配置的key前缀(配置在authorization.properties文件中)
+     * 将会通过init方法的map属性中,将符合该插件的授权配置传入,以供插件进行初始化操作
+     * <p>
+     * 如 authorizationKeyPrefix = authorization.prefix , 并且在配置文件中配置了如下信息:
+     * authorization.prefix.xxx1 = xxx1
+     * authorization.prefix.xxx2 = xxx2
+     * 则init中的map中将会传入该KV:
+     * authorization.prefix.xxx1 : xxx1
+     * authorization.prefix.xxx2 : xxx2
+     *
+     * @return 若不覆盖此方法, 默认返回空, 既该插件无需授权配置
+     */
+    @Override
+    public String authorizationKeyPrefix() {
+        return "Mysql";
     }
 
     /**
@@ -181,7 +169,7 @@ public class OraclePlugin implements JDBCPlugin {
      */
     @Override
     public String serverName() {
-        return "oracle";
+        return "mysql";
     }
 
     /**
@@ -191,7 +179,7 @@ public class OraclePlugin implements JDBCPlugin {
      */
     @Override
     public int step() {
-        return step;
+        return this.step;
     }
 
     /**
@@ -201,6 +189,6 @@ public class OraclePlugin implements JDBCPlugin {
      */
     @Override
     public PluginActivateType activateType() {
-        return pluginActivateType;
+        return this.pluginActivateType;
     }
 }
