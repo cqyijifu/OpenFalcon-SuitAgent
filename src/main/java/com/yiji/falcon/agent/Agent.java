@@ -13,6 +13,8 @@ import com.yiji.falcon.agent.plugins.util.PluginLibraryHelper;
 import com.yiji.falcon.agent.util.CommendUtil;
 import com.yiji.falcon.agent.util.FileUtil;
 import com.yiji.falcon.agent.util.StringUtils;
+import com.yiji.falcon.agent.watcher.ConfDirWatcher;
+import com.yiji.falcon.agent.watcher.PluginPropertiesWatcher;
 import org.apache.log4j.PropertyConfigurator;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
@@ -216,6 +218,15 @@ public class Agent extends Thread{
             new PluginLibraryHelper().register();
             //运行插件
             PluginExecute.start();
+            //启动配置文件监听
+            Thread pluginWatcher = new PluginPropertiesWatcher(AgentConfiguration.INSTANCE.getPluginConfPath());
+            pluginWatcher.setName("pluginDirWatcher");
+            pluginWatcher.setDaemon(true);
+            Thread confWatcher = new ConfDirWatcher(AgentConfiguration.INSTANCE.getAgentConfPath().substring(0,AgentConfiguration.INSTANCE.getAgentConfPath().lastIndexOf("/")));
+            confWatcher.setName("confDirWatcher");
+            confWatcher.setDaemon(true);
+            pluginWatcher.start();
+            confWatcher.start();
         } catch (Exception e) {
             log.error("Agent启动失败",e);
             System.exit(0);

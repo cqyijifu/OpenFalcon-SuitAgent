@@ -11,6 +11,7 @@ package com.yiji.falcon.agent.plugins.util;
 import com.yiji.falcon.agent.common.AgentJobHelper;
 import com.yiji.falcon.agent.plugins.JDBCPlugin;
 import com.yiji.falcon.agent.plugins.JMXPlugin;
+import com.yiji.falcon.agent.plugins.Plugin;
 import com.yiji.falcon.agent.plugins.SNMPV3Plugin;
 import com.yiji.falcon.agent.plugins.job.JDBCPluginJob;
 import com.yiji.falcon.agent.plugins.job.JMXPluginJob;
@@ -46,9 +47,9 @@ public class PluginExecute {
      */
     public static void run(){
 
-        Set<Object> jmxPlugins = PluginLibraryHelper.getJMXPlugins();
-        Set<Object> jdbcPlugins = PluginLibraryHelper.getJDBCPlugins();
-        Set<Object> snmpv3Plugins = PluginLibraryHelper.getSNMPV3Plugins();
+        Set<Plugin> jmxPlugins = PluginLibraryHelper.getJMXPlugins();
+        Set<Plugin> jdbcPlugins = PluginLibraryHelper.getJDBCPlugins();
+        Set<Plugin> snmpv3Plugins = PluginLibraryHelper.getSNMPV3Plugins();
 
         jmxPlugins.forEach(plugin -> {
             try {

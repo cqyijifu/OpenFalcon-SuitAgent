@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
  */
 public class PluginLibraryHelper {
 
-    private final static Set<Object> plugins = new HashSet<>();
+    private final static Set<Plugin> plugins = new HashSet<>();
     private final static List<String> pluginNames = new ArrayList<>();
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -37,10 +37,63 @@ public class PluginLibraryHelper {
     private ClassLoader classLoader = this.getClass().getClassLoader();
 
     /**
+     * 获取拥有授权配置的插件
+     * @return
+     */
+    public static Set<Plugin> getPluginsAboutAuthorization(){
+        Set<Plugin> targetPlugins = new HashSet<>();
+        Map<String,String> authorizationConf = PropertiesUtil.getAllPropertiesByFileName(AgentConfiguration.INSTANCE.getAuthorizationConfPath());
+        Collection<String> keys = authorizationConf.keySet();
+        for (Plugin plugin : plugins) {
+            if(hasAuthorizationConf(plugin.authorizationKeyPrefix())){
+                targetPlugins.add(plugin);
+            }
+        }
+
+        return targetPlugins;
+    }
+
+    /**
+     * 是否有授权配置
+     * @param authorizationKeyPrefix
+     * 授权配置的字符串前缀
+     * @return
+     */
+    private static boolean hasAuthorizationConf(String authorizationKeyPrefix){
+        Map<String,String> authorizationConf = PropertiesUtil.getAllPropertiesByFileName(AgentConfiguration.INSTANCE.getAuthorizationConfPath());
+        for (String key : authorizationConf.keySet()) {
+            if(key != null && key.contains(authorizationKeyPrefix)){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 根据配置文件名称查找匹配的插件
+     * @param fileName
+     * @return
+     * 匹配不到返回null
+     */
+    public static Plugin getPluginByConfigFileName(String fileName){
+        Plugin plugin = null;
+        if(!StringUtils.isEmpty(fileName)){
+
+            for (Plugin plugin1 : plugins) {
+                if(fileName.equals(plugin1.configFileName())){
+                    plugin = plugin1;
+                    break;
+                }
+            }
+        }
+        return plugin;
+    }
+
+    /**
      * 获取JMX监控服务插件
      * @return
      */
-    public static Set<Object> getJMXPlugins(){
+    public static Set<Plugin> getJMXPlugins(){
         return getPluginsByType(JMXPlugin.class);
     }
 
@@ -48,7 +101,7 @@ public class PluginLibraryHelper {
      * 获取JDBC监控服务插件
      * @return
      */
-    public static Set<Object> getJDBCPlugins(){
+    public static Set<Plugin> getJDBCPlugins(){
         return getPluginsByType(JDBCPlugin.class);
     }
 
@@ -56,14 +109,38 @@ public class PluginLibraryHelper {
      * 获取SNMPV3监控服务插件
      * @return
      */
-    public static Set<Object> getSNMPV3Plugins(){
+    public static Set<Plugin> getSNMPV3Plugins(){
         return getPluginsByType(SNMPV3Plugin.class);
     }
 
-    private static Set<Object> getPluginsByType(Class type){
-        Set<Object> targetPlugins = new HashSet<>();
+    private static Set<Plugin> getPluginsByType(Class type){
+        Set<Plugin> targetPlugins = new HashSet<>();
         targetPlugins.addAll(plugins.stream().filter(plugin -> type.isAssignableFrom(plugin.getClass())).collect(Collectors.toSet()));
         return targetPlugins;
+    }
+
+    /**
+     * 获取插件的配置
+     * @param plugin
+     * @return
+     */
+    public static  Map<String,String> getPluginConfig(Plugin plugin){
+        Map<String,String> config = new HashMap<>();
+        config.put("pluginDir",AgentConfiguration.INSTANCE.getPluginConfPath());
+        if(!StringUtils.isEmpty(plugin.configFileName())){
+            //指定了插件名,传入插件配置
+            config.putAll(PropertiesUtil.getAllPropertiesByFileName(AgentConfiguration.INSTANCE.getPluginConfPath() + File.separator + plugin.configFileName()));
+        }
+        String authorizationKeyPrefix = plugin.authorizationKeyPrefix();
+        if(!StringUtils.isEmpty(authorizationKeyPrefix)){
+            //传入授权配置
+            Map<String,String> authorizationConf = PropertiesUtil.getAllPropertiesByFileName(AgentConfiguration.INSTANCE.getAuthorizationConfPath());
+            authorizationConf.entrySet().stream().filter(entry -> entry.getKey() != null &&
+                    entry.getKey().contains(authorizationKeyPrefix)).forEach(entry -> {
+                config.put(entry.getKey(), entry.getValue());
+            });
+        }
+        return config;
     }
 
     /**
@@ -83,21 +160,7 @@ public class PluginLibraryHelper {
                         clazz != SNMPV3Plugin.class){
                     Plugin plugin = (Plugin) clazz.newInstance();
                     //插件初始化操作
-                    Map<String,String> config = new HashMap<>();
-                    config.put("pluginDir",AgentConfiguration.INSTANCE.getPluginConfPath());
-                    if(!StringUtils.isEmpty(plugin.configFileName())){
-                        //指定了插件名,传入插件配置
-                        config.putAll(PropertiesUtil.getAllPropertiesByFileName(AgentConfiguration.INSTANCE.getPluginConfPath() + File.separator + plugin.configFileName()));
-                    }
-                    String authorizationKeyPrefix = plugin.authorizationKeyPrefix();
-                    if(!StringUtils.isEmpty(authorizationKeyPrefix)){
-                        //传入授权配置
-                        Map<String,String> authorizationConf = PropertiesUtil.getAllPropertiesByFileName(AgentConfiguration.INSTANCE.getAuthorizationConfPath());
-                        authorizationConf.entrySet().stream().filter(entry -> entry.getKey() != null &&
-                                entry.getKey().contains(authorizationKeyPrefix)).forEach(entry -> {
-                            config.put(entry.getKey(), entry.getValue());
-                        });
-                    }
+                    Map<String,String> config = getPluginConfig(plugin);
                     //初始化插件配置
                     plugin.init(config);
 
