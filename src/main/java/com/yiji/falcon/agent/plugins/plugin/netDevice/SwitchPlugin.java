@@ -106,8 +106,8 @@ public class SwitchPlugin implements SNMPV3Plugin{
                     //snmpv3://protocol:address:port:username:authType:authPswd:privType:privPswd
                     url = url.replace("snmpv3://","");
                     String[] props = url.split(":");
-                    if(props.length != 8){
-                        logger.error("snmp v3 的连接URL格式错误,请检查URL:{} 是否符合格式:snmpv3://protocol:address:port:username:authType:authPswd:privType:privPswd",url);
+                    if(props.length < 8){
+                        logger.error("snmp v3 的连接URL格式错误,请检查URL:{} 是否符合格式:snmpv3://protocol:address:port:username:authType:authPswd:privType:privPswd:endPoint(option)",url);
                         continue;
                     }
                     SNMPV3UserInfo userInfo = new SNMPV3UserInfo();
@@ -119,6 +119,9 @@ public class SwitchPlugin implements SNMPV3Plugin{
                     userInfo.setAuthPswd(props[5]);
                     userInfo.setPrivType(props[6]);
                     userInfo.setPrivPswd(props[7]);
+                    if(props.length >= 9){
+                        userInfo.setEndPoint(props[8]);
+                    }
 
                     userInfoList.add(userInfo);
                 }
@@ -152,6 +155,12 @@ public class SwitchPlugin implements SNMPV3Plugin{
             if(collectObject != null){
                 FalconReportObject reportObject = new FalconReportObject();
                 MetricsCommon.setReportCommonValue(reportObject, this.step());
+                String endPoint = collectObject.getSession().getUserInfo().getEndPoint();
+                if(!StringUtils.isEmpty(endPoint)){
+                    //设置单独设置的endPoint
+                    reportObject.setEndpoint(endPoint);
+                    reportObject.appendTags("customerEndPoint=true");
+                }
                 reportObject.appendTags(MetricsCommon.getTags(collectObject.getSession().getEquipmentName(), this, this.serverName(), MetricsType.SNMP_Plugin_IN_BUILD));
                 reportObject.setCounterType(CounterType.GAUGE);
                 reportObject.setMetric(collectObject.getMetrics());

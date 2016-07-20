@@ -46,6 +46,10 @@ public class SNMPV3UserInfo {
      * 加密密码
      */
     private String privPswd = "";
+    /**
+     * endPoint
+     */
+    private String endPoint = "";
 
     @Override
     public String toString() {
@@ -58,6 +62,7 @@ public class SNMPV3UserInfo {
                 ", authPswd='" + authPswd + '\'' +
                 ", privType='" + privType + '\'' +
                 ", privPswd='" + privPswd + '\'' +
+                ", endPoint='" + endPoint + '\'' +
                 '}';
     }
 
@@ -123,5 +128,13 @@ public class SNMPV3UserInfo {
 
     public void setPrivPswd(String privPswd) {
         this.privPswd = privPswd;
+    }
+
+    public String getEndPoint() {
+        return endPoint;
+    }
+
+    public void setEndPoint(String endPoint) {
+        this.endPoint = endPoint;
     }
 }

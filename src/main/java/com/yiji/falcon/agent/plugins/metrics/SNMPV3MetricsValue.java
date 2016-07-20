@@ -16,6 +16,7 @@ import com.yiji.falcon.agent.plugins.SNMPV3Plugin;
 import com.yiji.falcon.agent.plugins.util.SNMPHelper;
 import com.yiji.falcon.agent.plugins.util.SNMPV3Session;
 import com.yiji.falcon.agent.util.CommendUtil;
+import com.yiji.falcon.agent.util.StringUtils;
 import com.yiji.falcon.agent.vo.snmp.IfStatVO;
 import com.yiji.falcon.agent.vo.snmp.SNMPV3UserInfo;
 import org.slf4j.Logger;
@@ -139,6 +140,12 @@ public class SNMPV3MetricsValue extends MetricsCommon {
             MetricsCommon.setReportCommonValue(reportObject, plugin.step());
             reportObject.appendTags(MetricsCommon.getTags(session.getEquipmentName(), plugin, plugin.serverName(), MetricsType.SNMP_COMMON_IN_BUILD));
             reportObject.setCounterType(CounterType.GAUGE);
+            String endPoint = session.getUserInfo().getEndPoint();
+            if(!StringUtils.isEmpty(endPoint)){
+                //设置单独设置的endPoint
+                reportObject.setEndpoint(endPoint);
+                reportObject.appendTags("customerEndPoint=true");
+            }
 
             String ifName = statVO.getIfName();
             long time = statVO.getTime().getTime() / 1000;
