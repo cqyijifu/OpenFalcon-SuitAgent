@@ -62,7 +62,14 @@ public class PluginExecute {
                         jobDataMap.put("jmxServerName",jmxServerName);
                         jobDataMap.put("pluginObject",jmxPlugin);
 
-                        AgentJobHelper.pluginWorkForJMX(pluginName,jmxPlugin.activateType(),jmxPlugin.step(),JMXPluginJob.class,pluginName,jmxPlugin.jmxServerName(),jmxPlugin.jmxServerName(),jobDataMap);
+                        AgentJobHelper.pluginWorkForJMX(pluginName,
+                                jmxPlugin.activateType(),
+                                jmxPlugin.step(),
+                                JMXPluginJob.class,
+                                pluginName,
+                                jmxServerName,
+                                jmxServerName,
+                                jobDataMap);
                     }
                 }
             } catch (Exception e) {
