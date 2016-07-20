@@ -143,7 +143,7 @@
                 - IfHCInMulticastPkts
                 - IfHCOutMulticastPkts
                 - IfOperStatus(接口状态，1 up, 2 down, 3 testing, 4 unknown, 5 dormant, 6 notPresent, 7 lowerLayerDown)
-                - Ping延时（正常返回延时，超时返回 -1，可以用于存活告警）
+                - Ping延时（正常返回延时，超时返回 -1）
             - 交换机（SNMP V3）
                 - 说明
                     - 监控的设备采集信息和采集逻辑主要参考了Falcon社区的swcollector项目，因swcollector不支持SNMP V3协议。  
