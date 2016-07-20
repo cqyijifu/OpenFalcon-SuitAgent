@@ -18,8 +18,8 @@ public class ExecuteThreadUtil {
     private static ExecutorService executorService;
     static {
         final int cpuCore = Runtime.getRuntime().availableProcessors();
-        //线程数（当前CPU数+1）
-        final int poolSize = cpuCore+1;
+        //线程数
+        final int poolSize = cpuCore * 3;
         //定义并发执行服务
         executorService = Executors.newFixedThreadPool(poolSize);
     }
