@@ -11,8 +11,8 @@ package com.yiji.falcon.agent.plugins.plugin.tomcat;
 import com.yiji.falcon.agent.falcon.FalconReportObject;
 import com.yiji.falcon.agent.jmx.vo.JMXMetricsValueInfo;
 import com.yiji.falcon.agent.plugins.JMXPlugin;
-import com.yiji.falcon.agent.plugins.Plugin;
 import com.yiji.falcon.agent.plugins.util.PluginActivateType;
+import com.yiji.falcon.agent.util.CommendUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,7 +20,13 @@ import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanServerConnection;
 import javax.management.ObjectInstance;
 import javax.management.ObjectName;
-import java.util.*;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
+
+import static com.yiji.falcon.agent.util.CommendUtil.exec;
 
 /**
  * @author guqiu@yiji.com
@@ -152,5 +158,28 @@ public class TomcatPlugin implements JMXPlugin {
     @Override
     public Collection<FalconReportObject> inbuiltReportObjectsForValid(JMXMetricsValueInfo metricsValueInfo) {
         return new ArrayList<>();
+    }
+
+    @Override
+    public String serverDirName(int pid) {
+        String dirName = "";
+        try {
+            String cmd = "lsof -p " + pid + " | grep catalina.jar";
+            CommendUtil.ExecuteResult executeResult = exec(cmd);
+            String msg = executeResult.msg;
+            String[] ss = msg.split("\\s");
+            for (String s : ss) {
+                if(s.contains("catalina.jar")){
+                    s = s.substring(0,s.lastIndexOf("/"));
+                    s = s.substring(0,s.lastIndexOf("/"));
+                    s = s.substring(s.lastIndexOf("/") + 1,s.length());
+                    dirName = s;
+                    break;
+                }
+            }
+        } catch (IOException e) {
+            log.error("tomcat serverDirName获取异常",e);
+        }
+        return dirName;
     }
 }

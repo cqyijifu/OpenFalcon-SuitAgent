@@ -58,4 +58,15 @@ public interface JMXPlugin extends Plugin{
      */
     Collection<FalconReportObject> inbuiltReportObjectsForValid(JMXMetricsValueInfo metricsValueInfo);
 
+    /**
+     * JMX服务器的目录名称
+     * @param pid
+     * 服务的进程id
+     * @return
+     * 默认返回null,既不打目录名称的tag
+     */
+    default String serverDirName(int pid){
+        return null;
+    }
+
 }

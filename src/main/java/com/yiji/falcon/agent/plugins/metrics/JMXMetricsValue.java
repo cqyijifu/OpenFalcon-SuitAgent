@@ -170,6 +170,10 @@ public class JMXMetricsValue{
                 }
 
                 requestObject.appendTags(MetricsCommon.getTags(name,jmxPlugin,jmxPlugin.serverName(), MetricsType.JMX_OBJECT_CONF)).appendTags(jmxMetricsConfiguration.getTag());
+                String dirName = jmxPlugin.serverDirName(metricsValueInfo.getJmxConnectionInfo().getPid());
+                if(!StringUtils.isEmpty(dirName)){
+                    requestObject.appendTags("dir=" + dirName);
+                }
 
                 //监控值重复性判断
                 FalconReportObject reportInRepeat = repeat.get(jmxMetricsConfiguration.getMetrics());
@@ -211,10 +215,15 @@ public class JMXMetricsValue{
             return result;
         }
         for (JMXMetricsValueInfo metricsValueInfo : jmxMetricsValueInfos) {
-
+            String dirName = jmxPlugin.serverDirName(metricsValueInfo.getJmxConnectionInfo().getPid());
             if(!metricsValueInfo.getJmxConnectionInfo().isValid()){
                 //该连接不可用,添加该 jmx不可用的监控报告
-                result.add(MetricsCommon.generatorVariabilityReport(false,metricsValueInfo.getJmxConnectionInfo().getName(),jmxPlugin.step(),jmxPlugin,jmxPlugin.serverName()));
+                FalconReportObject reportObject = MetricsCommon.generatorVariabilityReport(false,metricsValueInfo.getJmxConnectionInfo().getName(),jmxPlugin.step(),jmxPlugin,jmxPlugin.serverName());
+
+                if(!StringUtils.isEmpty(dirName)){
+                    reportObject.appendTags("dir=" + dirName);
+                }
+                result.add(reportObject);
             }else{
 
                 Set<KitObjectNameMetrics> kitObjectNameMetricsSet = new HashSet<>();
@@ -232,7 +241,12 @@ public class JMXMetricsValue{
                 result.addAll(getInbuiltReportObjects(metricsValueInfo));
                 Collection<FalconReportObject> inbuilt = jmxPlugin.inbuiltReportObjectsForValid(metricsValueInfo);
                 if(inbuilt != null && !inbuilt.isEmpty()){
-                    result.addAll(inbuilt);
+                    for (FalconReportObject reportObject : inbuilt) {
+                        if(!StringUtils.isEmpty(dirName)){
+                            reportObject.appendTags("dir=" + dirName);
+                        }
+                        result.add(reportObject);
+                    }
                 }
             }
 
@@ -276,6 +290,10 @@ public class JMXMetricsValue{
                     falconReportObject.setObjectName(objectNameInfo.getObjectName());
 
                     falconReportObject.appendTags(MetricsCommon.getTags(name,jmxPlugin,jmxPlugin.serverName(),MetricsType.JMX_OBJECT_IN_BUILD));
+                    String dirName = jmxPlugin.serverDirName(metricsValueInfo.getJmxConnectionInfo().getPid());
+                    if(!StringUtils.isEmpty(dirName)){
+                        falconReportObject.appendTags("dir=" + dirName);
+                    }
 
                     falconReportObject.setMetric(MetricsCommon.getMetricsName("HeapMemoryCommitted"));
                     falconReportObject.setValue(String.valueOf(heapMemoryUsage.getCommitted()));
