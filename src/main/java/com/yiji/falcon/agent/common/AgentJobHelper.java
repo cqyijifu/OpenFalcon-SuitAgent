@@ -8,6 +8,7 @@ import com.yiji.falcon.agent.config.AgentConfiguration;
 import com.yiji.falcon.agent.jmx.JMXConnection;
 import com.yiji.falcon.agent.plugins.JDBCPlugin;
 import com.yiji.falcon.agent.plugins.SNMPV3Plugin;
+import com.yiji.falcon.agent.plugins.DetectPlugin;
 import com.yiji.falcon.agent.plugins.metrics.SNMPV3MetricsValue;
 import com.yiji.falcon.agent.plugins.util.PluginActivateType;
 import com.yiji.falcon.agent.plugins.util.SNMPV3Session;
@@ -110,15 +111,15 @@ public class AgentJobHelper {
      * JDBC服务的监控启动
      * @param jdbcPlugin
      * @param pluginName
-     * @param pluginActivateType
-     * @param step
      * @param jobClazz
      * @param serverName
      * @param desc
      * @param jobDataMap
      * @throws SchedulerException
      */
-    public synchronized static void pluginWorkForJDBC(JDBCPlugin jdbcPlugin ,String pluginName, PluginActivateType pluginActivateType, int step, Class<? extends Job> jobClazz, String serverName,String desc, JobDataMap jobDataMap) throws SchedulerException {
+    public synchronized static void pluginWorkForJDBC(JDBCPlugin jdbcPlugin ,String pluginName, Class<? extends Job> jobClazz, String serverName,String desc, JobDataMap jobDataMap) throws SchedulerException {
+        PluginActivateType pluginActivateType = jdbcPlugin.activateType();
+        int step = jdbcPlugin.step();
         //只有指定job未启动过的情况下才进行work开启
         if(!isHasWorked(serverName)){
             if(pluginActivateType == PluginActivateType.AUTO){
@@ -138,18 +139,39 @@ public class AgentJobHelper {
     }
 
     /**
+     * 探测服务的监控启动
+     * @param plugin
+     * @param pluginName
+     * @param jobClazz
+     * @param jobDataMap
+     * @throws SchedulerException
+     */
+    public synchronized static void pluginWorkForDetect(DetectPlugin plugin , String pluginName, Class<? extends Job> jobClazz, JobDataMap jobDataMap) throws SchedulerException {
+        String serverName = plugin.serverName();
+        //只有指定job未启动过的情况下才进行work开启
+        if(!isHasWorked(serverName)){
+            if(plugin.detectAddressCollection() != null &&
+                    !plugin.detectAddressCollection().isEmpty()){
+                //只要配置了监控地址,就开启监控服务
+                log.info("发现服务 {} , 启动插件 {} ",serverName,pluginName);
+                doJob(jobClazz,pluginName,plugin.step(),jobDataMap,serverName);
+            }
+        }
+    }
+
+    /**
      * SNMPV3服务的监控启动
      * @param snmpv3Plugin
      * @param pluginName
-     * @param pluginActivateType
-     * @param step
      * @param jobClazz
      * @param serverName
      * @param desc
      * @param jobDataMap
      * @throws SchedulerException
      */
-    public synchronized static void pluginWorkForSNMPV3(SNMPV3Plugin snmpv3Plugin , String pluginName, PluginActivateType pluginActivateType, int step, Class<? extends Job> jobClazz, String serverName, String desc, JobDataMap jobDataMap) throws SchedulerException {
+    public synchronized static void pluginWorkForSNMPV3(SNMPV3Plugin snmpv3Plugin , String pluginName, Class<? extends Job> jobClazz, String serverName, String desc, JobDataMap jobDataMap) throws SchedulerException {
+        PluginActivateType pluginActivateType = snmpv3Plugin.activateType();
+        int step = snmpv3Plugin.step();
         //只有指定job未启动过的情况下才进行work开启
         if(!isHasWorked(serverName)){
             if(pluginActivateType == PluginActivateType.AUTO){
@@ -181,11 +203,11 @@ public class AgentJobHelper {
      */
     public static void workResult(ScheduleJobResult scheduleJobResult,String serverName){
         if(scheduleJobResult.getScheduleJobStatus() == ScheduleJobStatus.SUCCESS){
-            log.info("{} 启动成功",scheduleJobResult.getTriggerKey().getName());
+            log.info("{} 启动成功",scheduleJobResult.getTrigger().getDescription());
             //记录work
             addWorkJob(serverName);
         }else if(scheduleJobResult.getScheduleJobStatus() == ScheduleJobStatus.FAILED){
-            log.error("{} 启动失败",scheduleJobResult.getTriggerKey().getName());
+            log.error("{} 启动失败",scheduleJobResult.getTrigger().getDescription());
         }
     }
 

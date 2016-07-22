@@ -9,21 +9,21 @@ package com.yiji.falcon.agent.plugins.job;
  */
 
 import com.yiji.falcon.agent.falcon.ReportMetrics;
-import com.yiji.falcon.agent.plugins.metrics.SNMPV3MetricsValue;
+import com.yiji.falcon.agent.plugins.metrics.MetricsCommon;
 
 /**
  * @author guqiu@yiji.com
  */
-public class SNMPJobThread extends Thread {
+public class JobThread extends Thread {
 
-    private SNMPV3MetricsValue metricsValue;
+    private MetricsCommon metricsValue;
 
-    public SNMPJobThread(SNMPV3MetricsValue metricsValue,String threadName) {
+    public JobThread(MetricsCommon metricsValue, String threadName) {
         this.metricsValue = metricsValue;
         this.setName(threadName);
     }
 
-    public SNMPJobThread(SNMPV3MetricsValue metricsValue) {
+    public JobThread(MetricsCommon metricsValue) {
         this.metricsValue = metricsValue;
     }
 

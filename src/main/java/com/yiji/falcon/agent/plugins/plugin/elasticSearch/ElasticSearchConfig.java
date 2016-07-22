@@ -184,7 +184,7 @@ public class ElasticSearchConfig {
         String url = getConnectionUrl(pid) + "/_nodes";
         String responseText;
         try {
-            responseText = HttpUtil.get(url);
+            responseText = HttpUtil.get(url).getResult();
         } catch (IOException e) {
             log.error("访问{}异常",url,e);
             return "";

@@ -8,10 +8,7 @@ import com.yiji.falcon.agent.config.AgentConfiguration;
 import com.yiji.falcon.agent.falcon.CounterType;
 import com.yiji.falcon.agent.falcon.FalconReportObject;
 import com.yiji.falcon.agent.falcon.MetricsType;
-import com.yiji.falcon.agent.plugins.JDBCPlugin;
-import com.yiji.falcon.agent.plugins.JMXPlugin;
-import com.yiji.falcon.agent.plugins.Plugin;
-import com.yiji.falcon.agent.plugins.SNMPV3Plugin;
+import com.yiji.falcon.agent.plugins.*;
 import com.yiji.falcon.agent.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +19,7 @@ import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Collection;
 
 /*
  * 修订记录:
@@ -32,9 +30,15 @@ import java.net.UnknownHostException;
  * metrics监控公共类
  * @author guqiu@yiji.com
  */
-public class MetricsCommon {
+public abstract class MetricsCommon {
 
     private static final Logger logger = LoggerFactory.getLogger(MetricsCommon.class);
+
+    /**
+     * 获取所有的监控值报告
+     * @return
+     */
+    abstract public Collection<FalconReportObject> getReportObjects();
 
     /**
      * 创建指定可用性的报告对象
@@ -119,7 +123,9 @@ public class MetricsCommon {
             signName += ",service.type=database";
         }else if(SNMPV3Plugin.class.isAssignableFrom(plugin.getClass())){
             signName += ",service.type=snmp";
-        }else {
+        }else if(DetectPlugin.class.isAssignableFrom(plugin.getClass())){
+            signName += ",service.type=detect";
+        }else{
             signName += ",service.type=unKnow";
         }
         if(metricsType != null){

@@ -9,10 +9,8 @@ package com.yiji.falcon.agent.plugins.util;
  */
 
 import com.yiji.falcon.agent.common.AgentJobHelper;
-import com.yiji.falcon.agent.plugins.JDBCPlugin;
-import com.yiji.falcon.agent.plugins.JMXPlugin;
-import com.yiji.falcon.agent.plugins.Plugin;
-import com.yiji.falcon.agent.plugins.SNMPV3Plugin;
+import com.yiji.falcon.agent.plugins.*;
+import com.yiji.falcon.agent.plugins.job.DetectPluginJob;
 import com.yiji.falcon.agent.plugins.job.JDBCPluginJob;
 import com.yiji.falcon.agent.plugins.job.JMXPluginJob;
 import com.yiji.falcon.agent.plugins.job.SNMPPluginJob;
@@ -50,6 +48,7 @@ public class PluginExecute {
         Set<Plugin> jmxPlugins = PluginLibraryHelper.getJMXPlugins();
         Set<Plugin> jdbcPlugins = PluginLibraryHelper.getJDBCPlugins();
         Set<Plugin> snmpv3Plugins = PluginLibraryHelper.getSNMPV3Plugins();
+        Set<Plugin> tcpIPPLugins = PluginLibraryHelper.getDetectPlugins();
 
         jmxPlugins.forEach(plugin -> {
             try {
@@ -82,8 +81,22 @@ public class PluginExecute {
                 SNMPV3Plugin snmpv3Plugin = (SNMPV3Plugin) plugin;
                 JobDataMap jobDataMap = new JobDataMap();
                 String pluginName = String.format("%s-%s",snmpv3Plugin.pluginName(),snmpv3Plugin.serverName());
+                jobDataMap.put("pluginName",pluginName);
                 jobDataMap.put("pluginObject",snmpv3Plugin);
-                AgentJobHelper.pluginWorkForSNMPV3(snmpv3Plugin,pluginName,snmpv3Plugin.activateType(),snmpv3Plugin.step(),SNMPPluginJob.class,pluginName,snmpv3Plugin.serverName(),jobDataMap);
+                AgentJobHelper.pluginWorkForSNMPV3(snmpv3Plugin,pluginName,SNMPPluginJob.class,pluginName,snmpv3Plugin.serverName(),jobDataMap);
+            }catch (Exception e){
+                logger.error("插件启动异常",e);
+            }
+        });
+
+        tcpIPPLugins.forEach(plugin -> {
+            try {
+                DetectPlugin detectPlugin = (DetectPlugin) plugin;
+                JobDataMap jobDataMap = new JobDataMap();
+                String pluginName = plugin.pluginName();
+                jobDataMap.put("pluginName",pluginName);
+                jobDataMap.put("pluginObject",detectPlugin);
+                AgentJobHelper.pluginWorkForDetect(detectPlugin,pluginName, DetectPluginJob.class,jobDataMap);
             }catch (Exception e){
                 logger.error("插件启动异常",e);
             }
@@ -96,8 +109,9 @@ public class PluginExecute {
                 JDBCPlugin jdbcPlugin = (JDBCPlugin) plugin;
                 JobDataMap jobDataMap = new JobDataMap();
                 String pluginName = String.format("%s-%s",jdbcPlugin.pluginName(),jdbcPlugin.serverName());
+                jobDataMap.put("pluginName",pluginName);
                 jobDataMap.put("pluginObject",jdbcPlugin);
-                AgentJobHelper.pluginWorkForJDBC(jdbcPlugin,pluginName,jdbcPlugin.activateType(),jdbcPlugin.step(),JDBCPluginJob.class,pluginName,jdbcPlugin.serverName(),jobDataMap);
+                AgentJobHelper.pluginWorkForJDBC(jdbcPlugin,pluginName,JDBCPluginJob.class,pluginName,jdbcPlugin.serverName(),jobDataMap);
             } catch (Exception e) {
                 logger.error("插件启动异常",e);
             }

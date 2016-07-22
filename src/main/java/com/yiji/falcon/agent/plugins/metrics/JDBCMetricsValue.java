@@ -32,7 +32,7 @@ import java.util.*;
  * 利用JDBC获取metrics监控值抽象类
  * @author guqiu@yiji.com
  */
-public class JDBCMetricsValue {
+public class JDBCMetricsValue extends MetricsCommon{
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
     private JDBCPlugin jdbcPlugin;
@@ -46,7 +46,8 @@ public class JDBCMetricsValue {
      * @return
      * @throws IOException
      */
-    public Collection<FalconReportObject> getReportObjects() throws IOException {
+    @Override
+    public Collection<FalconReportObject> getReportObjects() {
         Set<FalconReportObject> result = new HashSet<>();
         Map<String,String> allMetrics = getAllMetricsQuery();
         try {
@@ -108,7 +109,7 @@ public class JDBCMetricsValue {
         }
     }
 
-    /**
+    /**z
      * 获取指定metrics的值
      * @param sql 获取值的sql查询语句
      * @return

@@ -34,7 +34,7 @@ import java.util.*;
  * JMX监控值
  * @author guqiu@yiji.com
  */
-public class JMXMetricsValue{
+public class JMXMetricsValue extends MetricsCommon{
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
 
@@ -55,7 +55,7 @@ public class JMXMetricsValue{
      * 获取配置文件配置的监控值
      * @return
      */
-    private Set<JMXMetricsConfiguration> getMetricsConfig() throws IOException {
+    private Set<JMXMetricsConfiguration> getMetricsConfig() {
         Set<JMXMetricsConfiguration> jmxMetricsConfigurations = new HashSet<>();
 
         setMetricsConfig("agent.common.metrics.type.",AgentConfiguration.INSTANCE.getJmxCommonMetricsConfPath(),jmxMetricsConfigurations);
@@ -75,7 +75,7 @@ public class JMXMetricsValue{
      * 需要保存的集合对象
      * @throws IOException
      */
-    private void setMetricsConfig(String basePropertiesKey,String propertiesPath,Set<JMXMetricsConfiguration> jmxMetricsConfigurations) throws IOException {
+    private void setMetricsConfig(String basePropertiesKey,String propertiesPath,Set<JMXMetricsConfiguration> jmxMetricsConfigurations) {
 
         if(!StringUtils.isEmpty(basePropertiesKey) &&
                 !StringUtils.isEmpty(propertiesPath)){
@@ -98,6 +98,8 @@ public class JMXMetricsValue{
                         jmxMetricsConfigurations.add(metricsConfiguration);
                     }
                 }
+            }catch (IOException e){
+                log.error("配置文件读取失败",e);
             }
         }
     }
@@ -150,8 +152,8 @@ public class JMXMetricsValue{
                 String name = metricsValueInfo.getJmxConnectionInfo().getName();
 
                 FalconReportObject requestObject = new FalconReportObject();
-                MetricsCommon.setReportCommonValue(requestObject,jmxPlugin.step());
-                requestObject.setMetric(MetricsCommon.getMetricsName(jmxMetricsConfiguration.getAlias()));//设置push obj 的 metrics
+                setReportCommonValue(requestObject,jmxPlugin.step());
+                requestObject.setMetric(getMetricsName(jmxMetricsConfiguration.getAlias()));//设置push obj 的 metrics
                 try {
                     //设置push obj 的 Counter
                     requestObject.setCounterType(CounterType.valueOf(jmxMetricsConfiguration.getCounterType()));
@@ -161,7 +163,7 @@ public class JMXMetricsValue{
                 }
                 requestObject.setTimestamp(System.currentTimeMillis() / 1000);
                 requestObject.setObjectName(jmxObjectNameInfo.getObjectName());
-                Object newValue = MetricsCommon.executeJsExpress(kitObjectNameMetrics.jmxMetricsConfiguration.getValueExpress(),metricsValue);
+                Object newValue = executeJsExpress(kitObjectNameMetrics.jmxMetricsConfiguration.getValueExpress(),metricsValue);
                 if(NumberUtils.isNumber(String.valueOf(newValue))){
                     requestObject.setValue(String.valueOf(newValue));
                 }else{
@@ -169,7 +171,7 @@ public class JMXMetricsValue{
                     continue;
                 }
 
-                requestObject.appendTags(MetricsCommon.getTags(name,jmxPlugin,jmxPlugin.serverName(), MetricsType.JMX_OBJECT_CONF)).appendTags(jmxMetricsConfiguration.getTag());
+                requestObject.appendTags(getTags(name,jmxPlugin,jmxPlugin.serverName(), MetricsType.JMX_OBJECT_CONF)).appendTags(jmxMetricsConfiguration.getTag());
                 String dirName = jmxPlugin.serverDirName(metricsValueInfo.getJmxConnectionInfo().getPid());
                 if(!StringUtils.isEmpty(dirName)){
                     requestObject.appendTags("dir=" + dirName);
@@ -204,21 +206,22 @@ public class JMXMetricsValue{
      * @return
      * @throws IOException
      */
-    public Collection<FalconReportObject> getReportObjects() throws IOException {
+    @Override
+    public Collection<FalconReportObject> getReportObjects(){
         Set<FalconReportObject> result = new HashSet<>();
 
         if(jmxMetricsValueInfos == null || jmxMetricsValueInfos.isEmpty()){
             //当第一次启动agent时,当前服务未启动
             //获取不到监控值,返回所有zk不可用的监控报告
             log.error(jmxPlugin.serverName() + " JMX 连接获取失败");
-            result.add(MetricsCommon.generatorVariabilityReport(false,"allUnVariability",jmxPlugin.step(),jmxPlugin,jmxPlugin.serverName()));
+            result.add(generatorVariabilityReport(false,"allUnVariability",jmxPlugin.step(),jmxPlugin,jmxPlugin.serverName()));
             return result;
         }
         for (JMXMetricsValueInfo metricsValueInfo : jmxMetricsValueInfos) {
             String dirName = jmxPlugin.serverDirName(metricsValueInfo.getJmxConnectionInfo().getPid());
             if(!metricsValueInfo.getJmxConnectionInfo().isValid()){
                 //该连接不可用,添加该 jmx不可用的监控报告
-                FalconReportObject reportObject = MetricsCommon.generatorVariabilityReport(false,metricsValueInfo.getJmxConnectionInfo().getName(),jmxPlugin.step(),jmxPlugin,jmxPlugin.serverName());
+                FalconReportObject reportObject = generatorVariabilityReport(false,metricsValueInfo.getJmxConnectionInfo().getName(),jmxPlugin.step(),jmxPlugin,jmxPlugin.serverName());
 
                 if(!StringUtils.isEmpty(dirName)){
                     reportObject.appendTags("dir=" + dirName);
@@ -235,7 +238,7 @@ public class JMXMetricsValue{
                 result.addAll(generatorReportObject(kitObjectNameMetricsSet,metricsValueInfo));
 
                 //添加可用性报告
-                result.add(MetricsCommon.generatorVariabilityReport(true,metricsValueInfo.getJmxConnectionInfo().getName(),jmxPlugin.step(),jmxPlugin,jmxPlugin.serverName()));
+                result.add(generatorVariabilityReport(true,metricsValueInfo.getJmxConnectionInfo().getName(),jmxPlugin.step(),jmxPlugin,jmxPlugin.serverName()));
 
                 //添加內建报告
                 result.addAll(getInbuiltReportObjects(metricsValueInfo));
@@ -284,43 +287,43 @@ public class JMXMetricsValue{
                     MemoryUsage nonHeapMemoryUsage =  MemoryUsage.from((CompositeDataSupport)objectNameInfo.
                             getJmxConnectionInfo().getmBeanServerConnection().getAttribute(objectNameInfo.getObjectName(), "NonHeapMemoryUsage"));
                     FalconReportObject falconReportObject = new FalconReportObject();
-                    MetricsCommon.setReportCommonValue(falconReportObject,jmxPlugin.step());
+                    setReportCommonValue(falconReportObject,jmxPlugin.step());
                     falconReportObject.setCounterType(CounterType.GAUGE);
                     falconReportObject.setTimestamp(System.currentTimeMillis() / 1000);
                     falconReportObject.setObjectName(objectNameInfo.getObjectName());
 
-                    falconReportObject.appendTags(MetricsCommon.getTags(name,jmxPlugin,jmxPlugin.serverName(),MetricsType.JMX_OBJECT_IN_BUILD));
+                    falconReportObject.appendTags(getTags(name,jmxPlugin,jmxPlugin.serverName(),MetricsType.JMX_OBJECT_IN_BUILD));
                     String dirName = jmxPlugin.serverDirName(metricsValueInfo.getJmxConnectionInfo().getPid());
                     if(!StringUtils.isEmpty(dirName)){
                         falconReportObject.appendTags("dir=" + dirName);
                     }
 
-                    falconReportObject.setMetric(MetricsCommon.getMetricsName("HeapMemoryCommitted"));
+                    falconReportObject.setMetric(getMetricsName("HeapMemoryCommitted"));
                     falconReportObject.setValue(String.valueOf(heapMemoryUsage.getCommitted()));
                     result.add(falconReportObject.clone());
 
-                    falconReportObject.setMetric(MetricsCommon.getMetricsName("NonHeapMemoryCommitted"));
+                    falconReportObject.setMetric(getMetricsName("NonHeapMemoryCommitted"));
                     falconReportObject.setValue(String.valueOf(nonHeapMemoryUsage.getCommitted()));
                     result.add(falconReportObject.clone());
 
-                    falconReportObject.setMetric(MetricsCommon.getMetricsName("HeapMemoryFree"));
+                    falconReportObject.setMetric(getMetricsName("HeapMemoryFree"));
                     falconReportObject.setValue(String.valueOf(heapMemoryUsage.getMax() - heapMemoryUsage.getUsed()));
                     result.add(falconReportObject.clone());
 
-                    falconReportObject.setMetric(MetricsCommon.getMetricsName("HeapMemoryMax"));
+                    falconReportObject.setMetric(getMetricsName("HeapMemoryMax"));
                     falconReportObject.setValue(String.valueOf(heapMemoryUsage.getMax()));
                     result.add(falconReportObject.clone());
 
-                    falconReportObject.setMetric(MetricsCommon.getMetricsName("HeapMemoryUsed"));
+                    falconReportObject.setMetric(getMetricsName("HeapMemoryUsed"));
                     falconReportObject.setValue(String.valueOf(heapMemoryUsage.getUsed()));
                     result.add(falconReportObject.clone());
 
-                    falconReportObject.setMetric(MetricsCommon.getMetricsName("NonHeapMemoryUsed"));
+                    falconReportObject.setMetric(getMetricsName("NonHeapMemoryUsed"));
                     falconReportObject.setValue(String.valueOf(nonHeapMemoryUsage.getUsed()));
                     result.add(falconReportObject.clone());
 
                     //堆内存使用比例
-                    falconReportObject.setMetric(MetricsCommon.getMetricsName("HeapMemoryUsedRatio"));
+                    falconReportObject.setMetric(getMetricsName("HeapMemoryUsedRatio"));
                     falconReportObject.setValue(String.valueOf(CustomerMath.div(heapMemoryUsage.getUsed(),heapMemoryUsage.getMax(),2) * 100));
                     result.add(falconReportObject.clone());
 

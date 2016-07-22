@@ -4,6 +4,7 @@
  */
 package com.yiji.falcon.agent.util;
 
+import com.yiji.falcon.agent.vo.HttpResult;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -16,9 +17,16 @@ import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -53,33 +61,95 @@ public class HttpUtil {
     }
 
     /**
+     * 发起https请求并获取结果
+     *
+     * @param requestUrl    请求地址
+     * @param requestMethod 请求方式（GET、POST）
+     * @param outputStr     提交的数据
+     * @return
+     */
+    public static HttpResult httpsRequest(String requestUrl, String requestMethod, String outputStr) throws IOException {
+        HttpResult result = new HttpResult();
+
+        StringBuilder buffer = new StringBuilder();
+        // 创建SSLContext对象，并使用我们指定的信任管理器初始化
+        TrustManager[] tm = {new MyX509TrustManager()};
+        SSLContext sslContext = null;
+        try {
+            sslContext = SSLContext.getInstance("SSL", "SunJSSE");
+            sslContext.init(null, tm, new java.security.SecureRandom());
+        } catch (NoSuchAlgorithmException | NoSuchProviderException | KeyManagementException e) {
+            log.error("HTTPS请求创建失败",e);
+            return null;
+        }
+
+        // 从上述SSLContext对象中得到SSLSocketFactory对象
+        SSLSocketFactory ssf = sslContext.getSocketFactory();
+        //设置访问请求
+        URL url = new URL(requestUrl);
+        HttpsURLConnection httpUrlConn = (HttpsURLConnection) url.openConnection();
+        httpUrlConn.setSSLSocketFactory(ssf);
+        httpUrlConn.setDoOutput(true);
+        httpUrlConn.setDoInput(true);
+        httpUrlConn.setUseCaches(false);
+        httpUrlConn.setConnectTimeout(6000);
+
+        // 设置请求方式（GET/POST）
+        httpUrlConn.setRequestMethod(requestMethod);
+        if ("GET".equalsIgnoreCase(requestMethod))
+            httpUrlConn.connect();
+
+        // 当有数据需要提交时
+        if (null != outputStr) {
+            OutputStream outputStream = httpUrlConn.getOutputStream();
+
+            // 注意编码格式，防止中文乱码
+            outputStream.write(outputStr.getBytes("UTF-8"));
+            outputStream.close();
+        }
+
+        // 将返回的输入流转换成字符串
+        InputStream inputStream = httpUrlConn.getInputStream();
+        try(InputStreamReader inputStreamReader = new InputStreamReader(inputStream, "utf-8");
+            BufferedReader bufferedReader = new BufferedReader(inputStreamReader);){
+            String str;
+            while ((str = bufferedReader.readLine()) != null) {
+                buffer.append(str);
+            }
+        }
+
+        result.setStatus(httpUrlConn.getResponseCode());
+
+        // 释放资源
+        inputStream.close();
+        httpUrlConn.disconnect();
+
+        result.setResult(buffer.toString());
+        return result;
+    }
+
+
+    /**
      * 发送json post请求
      * @param url
      * @return
      * @throws IOException
      */
-    public static String get(String url) throws IOException {
-        String html = "";
+    public static HttpResult get(String url) throws IOException {
+        HttpResult result = new HttpResult();
         if (url != null && !"".equals(url)) {
             // 创建一个默认的HttpClient
             HttpClient httpclient = new DefaultHttpClient();
-            try {
-                // 以get方式请求网页
-                HttpGet httpget = new HttpGet(url);
-                // 执行请求并获取结果
-                HttpResponse httpResponse = httpclient.execute(httpget);
-                HttpEntity httpEntity = httpResponse.getEntity();
-
-                html = EntityUtils.toString(httpEntity);
-            } catch (Exception e) {
-                log.error("GET请求{}错误",url,e);
-                return "";
-            } finally {
-                // 关闭连接管理器
-                httpclient.getConnectionManager().shutdown();
-            }
+            // 以get方式请求网页
+            HttpGet httpget = new HttpGet(url);
+            // 执行请求并获取结果
+            HttpResponse httpResponse = httpclient.execute(httpget);
+            HttpEntity httpEntity = httpResponse.getEntity();
+            result.setStatus(httpResponse.getStatusLine().getStatusCode());
+            result.setResult(EntityUtils.toString(httpEntity));
+            httpclient.getConnectionManager().shutdown();
         }
-        return html;
+        return result;
     }
 
     /**
@@ -90,8 +160,8 @@ public class HttpUtil {
      * 提交的地址
      * @return
      */
-    public static String post(Map<String,String> params,String address){
-
+    public static HttpResult post(Map<String,String> params,String address) throws IOException {
+        HttpResult result = new HttpResult();
         if(params == null){
             params = new HashMap<>();
         }
@@ -109,34 +179,23 @@ public class HttpUtil {
         }
 
         URL url;
-        HttpURLConnection conn = null;
-        try {
-            url = new URL(address);
-            conn = (HttpURLConnection) url.openConnection();
-            conn.setConnectTimeout(30000);
-            conn.setRequestMethod("POST");
-            conn.addRequestProperty("User-Agent", "Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 5.1; Trident/4.0; .NET CLR 2.0.50727)");
-            conn.setUseCaches(false);
-            conn.setDoOutput(true);
-            conn.connect();
-        } catch (Exception e) {
-            log.error("打开链接发生异常",e);
-        }
+        HttpURLConnection conn;
+        url = new URL(address);
+        conn = (HttpURLConnection) url.openConnection();
+        conn.setConnectTimeout(30000);
+        conn.setRequestMethod("POST");
+        conn.addRequestProperty("User-Agent", "Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 5.1; Trident/4.0; .NET CLR 2.0.50727)");
+        conn.setUseCaches(false);
+        conn.setDoOutput(true);
+        conn.connect();
 
-        // 写出
-        if(conn != null){
-            String result = "";
-            try(OutputStream write = conn.getOutputStream()){
-                write.write(param.getBytes("utf-8"));
-                result = convertToString(conn.getInputStream());
-            } catch (IOException e) {
-                log.error("写出请求发生异常",e);
-            }
-            conn.disconnect();
-            return result;
+        try(OutputStream write = conn.getOutputStream()){
+            write.write(param.getBytes("utf-8"));
+            result.setResult(convertToString(conn.getInputStream()));
         }
-
-        return null;
+        result.setStatus(conn.getResponseCode());
+        conn.disconnect();
+        return result;
     }
 
     /**

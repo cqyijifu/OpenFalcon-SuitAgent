@@ -11,8 +11,9 @@ package com.yiji.falcon.agent.plugins.job;
 import com.yiji.falcon.agent.falcon.ReportMetrics;
 import com.yiji.falcon.agent.jmx.JMXManager;
 import com.yiji.falcon.agent.jmx.vo.JMXMetricsValueInfo;
-import com.yiji.falcon.agent.plugins.metrics.JMXMetricsValue;
 import com.yiji.falcon.agent.plugins.JMXPlugin;
+import com.yiji.falcon.agent.plugins.metrics.JMXMetricsValue;
+import com.yiji.falcon.agent.plugins.metrics.MetricsCommon;
 import org.quartz.Job;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
@@ -51,7 +52,7 @@ public class JMXPluginJob implements Job {
                 }
             }
 
-            JMXMetricsValue jmxMetricsValue = new JMXMetricsValue(jmxPlugin,jmxMetricsValueInfos);
+            MetricsCommon jmxMetricsValue = new JMXMetricsValue(jmxPlugin,jmxMetricsValueInfos);
             ReportMetrics.push(jmxMetricsValue.getReportObjects());
         } catch (Exception e) {
             logger.error("插件 {} 运行异常",pluginName,e);

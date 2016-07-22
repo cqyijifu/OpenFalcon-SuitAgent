@@ -21,7 +21,7 @@ public class EsTest {
         String netWorkHost = "localhost";
         int port = 9200;
         String url = "http://localhost:9200/_nodes";
-        String responseText = HttpUtil.get(url);
+        String responseText = HttpUtil.get(url).getResult();
         JSONObject responseJSON = JSONObject.parseObject(responseText);
         JSONObject nodes = responseJSON.getJSONObject("nodes");
         for (Map.Entry<String, Object> entry : nodes.entrySet()) {

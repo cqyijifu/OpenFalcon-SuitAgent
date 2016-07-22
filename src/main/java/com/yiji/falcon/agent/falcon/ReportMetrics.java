@@ -33,30 +33,34 @@ public class ReportMetrics {
      * @param falconReportObjectList
      */
     public static void push(Collection<FalconReportObject> falconReportObjectList){
-        JSONArray jsonArray = new JSONArray();
-        for (FalconReportObject falconReportObject : falconReportObjectList) {
-            if(!isValidTag(falconReportObject)){
-                log.error("报告对象的tag为空,此metrics将不允上报:{}",falconReportObject.toString());
-                continue;
+        if(falconReportObjectList != null){
+            JSONArray jsonArray = new JSONArray();
+            for (FalconReportObject falconReportObject : falconReportObjectList) {
+                if(!isValidTag(falconReportObject)){
+                    log.error("报告对象的tag为空,此metrics将不允上报:{}",falconReportObject.toString());
+                    continue;
+                }
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("endpoint",falconReportObject.getEndpoint());
+                jsonObject.put("metric",falconReportObject.getMetric());
+                jsonObject.put("timestamp",falconReportObject.getTimestamp());
+                jsonObject.put("step",falconReportObject.getStep());
+                jsonObject.put("value",falconReportObject.getValue());
+                jsonObject.put("counterType",falconReportObject.getCounterType());
+                jsonObject.put("tags",falconReportObject.getTags() == null ? "" : falconReportObject.getTags());
+                jsonArray.put(jsonObject);
             }
-            JSONObject jsonObject = new JSONObject();
-            jsonObject.put("endpoint",falconReportObject.getEndpoint());
-            jsonObject.put("metric",falconReportObject.getMetric());
-            jsonObject.put("timestamp",falconReportObject.getTimestamp());
-            jsonObject.put("step",falconReportObject.getStep());
-            jsonObject.put("value",falconReportObject.getValue());
-            jsonObject.put("counterType",falconReportObject.getCounterType());
-            jsonObject.put("tags",falconReportObject.getTags() == null ? "" : falconReportObject.getTags());
-            jsonArray.put(jsonObject);
+            log.debug("报告Falcon : [{}]",jsonArray.toString());
+            HttpResponse result = null;
+            try {
+                result = HttpUtil.postJSON(AgentConfiguration.INSTANCE.getAgentPushUrl(),jsonArray.toString());
+            } catch (IOException e) {
+                log.error("post请求异常",e);
+            }
+            log.info("push回执:" + result);
+        }else {
+            log.info("push对象为null");
         }
-        log.debug("报告Falcon : [{}]",jsonArray.toString());
-        HttpResponse result = null;
-        try {
-            result = HttpUtil.postJSON(AgentConfiguration.INSTANCE.getAgentPushUrl(),jsonArray.toString());
-        } catch (IOException e) {
-            log.error("post请求异常",e);
-        }
-        log.info("push回执:" + result);
     }
 
     /**
@@ -95,7 +99,7 @@ public class ReportMetrics {
      * @return
      */
     private static boolean isValidTag(FalconReportObject falconReportObject){
-        return !StringUtils.isEmpty(falconReportObject.getTags());
+        return falconReportObject != null && !StringUtils.isEmpty(falconReportObject.getTags());
     }
 
 }

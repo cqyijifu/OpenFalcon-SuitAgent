@@ -9,6 +9,7 @@ package com.yiji.falcon.agent.plugins.job;
  */
 
 import com.yiji.falcon.agent.plugins.SNMPV3Plugin;
+import com.yiji.falcon.agent.plugins.metrics.MetricsCommon;
 import com.yiji.falcon.agent.plugins.metrics.SNMPV3MetricsValue;
 import com.yiji.falcon.agent.util.ExecuteThreadUtil;
 import org.quartz.Job;
@@ -31,9 +32,9 @@ public class SNMPPluginJob implements Job {
         String pluginName = jobDataMap.getString("pluginName");
         try {
             SNMPV3Plugin plugin = (SNMPV3Plugin) jobDataMap.get("pluginObject");
-            SNMPV3MetricsValue metricsValue = new SNMPV3MetricsValue(plugin);
+            MetricsCommon metricsValue = new SNMPV3MetricsValue(plugin);
             //SNMP监控数据获取时间较长,采用异步方式
-            ExecuteThreadUtil.execute(new SNMPJobThread(metricsValue,"snmp v3 job thread"));
+            ExecuteThreadUtil.execute(new JobThread(metricsValue,"snmp v3 job thread"));
         } catch (Exception e) {
             logger.error("插件 {} 运行异常",pluginName,e);
         }

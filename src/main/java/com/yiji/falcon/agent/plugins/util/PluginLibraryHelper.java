@@ -10,10 +10,7 @@ package com.yiji.falcon.agent.plugins.util;
 
 import com.google.common.reflect.ClassPath;
 import com.yiji.falcon.agent.config.AgentConfiguration;
-import com.yiji.falcon.agent.plugins.JDBCPlugin;
-import com.yiji.falcon.agent.plugins.JMXPlugin;
-import com.yiji.falcon.agent.plugins.Plugin;
-import com.yiji.falcon.agent.plugins.SNMPV3Plugin;
+import com.yiji.falcon.agent.plugins.*;
 import com.yiji.falcon.agent.util.PropertiesUtil;
 import com.yiji.falcon.agent.util.StringUtils;
 import org.slf4j.Logger;
@@ -113,6 +110,14 @@ public class PluginLibraryHelper {
         return getPluginsByType(SNMPV3Plugin.class);
     }
 
+    /**
+     * 获取探测监控服务插件
+     * @return
+     */
+    public static Set<Plugin> getDetectPlugins(){
+        return getPluginsByType(DetectPlugin.class);
+    }
+
     private static Set<Plugin> getPluginsByType(Class type){
         Set<Plugin> targetPlugins = new HashSet<>();
         targetPlugins.addAll(plugins.stream().filter(plugin -> type.isAssignableFrom(plugin.getClass())).collect(Collectors.toSet()));
@@ -157,7 +162,8 @@ public class PluginLibraryHelper {
                         clazz != Plugin.class &&
                         clazz != JMXPlugin.class &&
                         clazz != JDBCPlugin.class &&
-                        clazz != SNMPV3Plugin.class){
+                        clazz != SNMPV3Plugin.class &&
+                        clazz != DetectPlugin.class){
                     Plugin plugin = (Plugin) clazz.newInstance();
                     //插件初始化操作
                     Map<String,String> config = getPluginConfig(plugin);

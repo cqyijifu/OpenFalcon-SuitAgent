@@ -261,6 +261,7 @@ public class SNMPV3MetricsValue extends MetricsCommon {
      * @return
      * @throws IOException
      */
+    @Override
     public Collection<FalconReportObject> getReportObjects() {
         Set<FalconReportObject> result = new HashSet<>();
         List<SNMPV3Session> sessionList = null;

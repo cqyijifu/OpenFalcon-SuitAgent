@@ -120,7 +120,7 @@ public class ElasticSearchPlugin implements JMXPlugin {
 
                         String tag = config.get("tag");
                         if("get".equalsIgnoreCase(method)){
-                            String responseText = HttpUtil.get(url);
+                            String responseText = HttpUtil.get(url).getResult();
                             JSONObject jsonObject = JSONObject.parseObject(responseText);
                             if(jsonObject != null){
                                 String[] paths = valuePath.split("\\.");
