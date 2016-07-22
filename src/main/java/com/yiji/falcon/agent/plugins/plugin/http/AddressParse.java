@@ -12,7 +12,7 @@ package com.yiji.falcon.agent.plugins.plugin.http;
  * 配置文件的地址解析
  * @author guqiu@yiji.com
  */
-public class AddressParse {
+class AddressParse {
 
     /**
      * 地址对象
@@ -53,7 +53,7 @@ public class AddressParse {
      * @return
      * 解析失败返回null
      */
-    public static Address parseAddress(String address){
+    static Address parseAddress(String address){
         String[] ss = address.split(":");
         if(ss.length != 3){
             return null;
