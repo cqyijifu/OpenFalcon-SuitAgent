@@ -5,6 +5,7 @@
 package com.yiji.falcon.agent;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
@@ -41,13 +42,17 @@ public class Client {
     public void start(int port) throws IOException {
         //连接端口
         socketChannel = SocketChannel.open(new InetSocketAddress(port));
+
         //设置非阻塞模式
         socketChannel.configureBlocking(false);
 
+        //写出客户端标识
+        sendMessage("I am is Falcon Agent Client");
         if(selector == null){
             //与服务器的连接建立成功
             selector = Selector.open();
         }
+
     }
 
     /**

@@ -127,12 +127,21 @@ public class Agent extends Thread{
         for(;;){
             try {
                 SocketChannel socketChannel = serverSocketChannel.accept();
-                log.info("客户端连接成功：" + socketChannel.toString());
 
-                //启动线程,进行客户端的对话操作
-                Thread talk = new Talk(socketChannel,this);
-                talk.setName(socketChannel.toString());
-                talk.start();
+                ByteBuffer buffer = ByteBuffer.allocate(27);
+                socketChannel.read(buffer);
+                String receive = new String(buffer.array());
+                if("I am is Falcon Agent Client".equals(receive)){
+                    //启动线程,进行客户端的对话操作
+                    log.info("客户端连接成功：" + socketChannel.toString());
+                    Thread talk = new Talk(socketChannel,this);
+                    talk.setName(socketChannel.toString());
+                    talk.start();
+                }else{
+                    //不是Agent Client 关闭连接
+                    socketChannel.close();
+                }
+
             } catch (IOException e) {
                 break;
             }

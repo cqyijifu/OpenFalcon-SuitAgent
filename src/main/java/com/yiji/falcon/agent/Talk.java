@@ -29,6 +29,7 @@ public class Talk extends Thread {
     private final Logger log = LoggerFactory.getLogger(this.getClass());
     private Selector selector;
     private Agent agent;
+    private SocketChannel socketChannel;
 
     /**
      * 传递客户端连接的SocketChannel,然后用非阻塞模式进行读事件和写事件的相应
@@ -37,6 +38,7 @@ public class Talk extends Thread {
      * @throws IOException
      */
     public Talk(SocketChannel socketChannel,Agent agent) throws IOException {
+        this.socketChannel = socketChannel;
         selector = Selector.open();
         ByteBuffer buffer = ByteBuffer.allocate(2048);
         //创建用于存放用户发来的数据的缓冲区，并将其作为通道附件的形式进行保存
@@ -107,8 +109,16 @@ public class Talk extends Thread {
                     }
                 }
             }
-        } catch (IOException e) {
-            log.error("agent运行异常",e);
+        } catch (Exception e) {
+            log.error("Socket Talk Exception",e);
+        }finally {
+            if(socketChannel != null){
+                try {
+                    log.info("关闭客户端Socket:{}",this.getName());
+                    socketChannel.close();
+                } catch (IOException ignored) {
+                }
+            }
         }
     }
 }
