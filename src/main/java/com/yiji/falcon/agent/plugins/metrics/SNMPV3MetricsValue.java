@@ -216,42 +216,17 @@ public class SNMPV3MetricsValue extends MetricsCommon {
 
         String address = session.getUserInfo().getAddress();
 
-        String commend = String.format("ping -c %d %s",count,address);
-        CommendUtil.ExecuteResult executeResult = null;
         try {
-            executeResult = CommendUtil.exec(commend);
+            Double time = CommendUtil.ping(address,count);
+            if(time == -2){
+                //命令执行失败
+                return null;
+            }
+            reportObject.setValue(time + "");
         } catch (IOException e) {
-            logger.error("命令{}执行异常",commend,e);
+            logger.error("Ping {} 命令执行异常",address,e);
             return null;
         }
-        if(executeResult.isSuccess){
-            List<Float> times = new ArrayList<>();
-            String msg = executeResult.msg;
-            for (String line : msg.split("\n")) {
-                for (String ele : line.split(" ")) {
-                    if(ele.toLowerCase().contains("time=")){
-                        float time = Float.parseFloat(ele.replace("time=",""));
-                        times.add(time);
-                    }
-                }
-            }
-
-            if(times.isEmpty()){
-                reportObject.setValue(String.valueOf(-1));
-                logger.warn(String.format("ping 地址 %s 无法连通",address));
-            }else{
-                float sum = 0;
-                for (Float time : times) {
-                    sum += time;
-                }
-                reportObject.setValue(String.valueOf(sum / times.size()));
-            }
-
-        }else{
-            logger.error("命令{}执行失败",commend);
-            return null;
-        }
-
         return reportObject;
     }
 
