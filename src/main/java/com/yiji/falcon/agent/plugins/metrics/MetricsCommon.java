@@ -76,7 +76,7 @@ public abstract class MetricsCommon {
             logger.error("获取系统Host信息失败",e);
         }
         return endPoint.replace("{host.ip}",hostIP).
-                replace("{host.name}",hostName);
+                replace("{host.name}",hostName).trim();
     }
 
     /**
