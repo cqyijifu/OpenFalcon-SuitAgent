@@ -12,9 +12,12 @@ import com.yiji.falcon.agent.plugins.util.PluginExecute;
 import com.yiji.falcon.agent.plugins.util.PluginLibraryHelper;
 import com.yiji.falcon.agent.util.CommendUtil;
 import com.yiji.falcon.agent.util.FileUtil;
+import com.yiji.falcon.agent.util.HttpUtil;
 import com.yiji.falcon.agent.util.StringUtils;
+import com.yiji.falcon.agent.vo.HttpResult;
 import com.yiji.falcon.agent.watcher.ConfDirWatcher;
 import com.yiji.falcon.agent.watcher.PluginPropertiesWatcher;
+import com.yiji.falcon.agent.web.HttpServer;
 import org.apache.log4j.PropertyConfigurator;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
@@ -52,14 +55,28 @@ public class Agent extends Thread{
     private static final Logger log = LoggerFactory.getLogger(Agent.class);
 
     private ServerSocketChannel serverSocketChannel;
+    private HttpServer httpServer = null;
     private static final Charset charset = Charset.forName("UTF-8");
 
     @Override
     public void run() {
         try {
-            this.serverStart(AgentConfiguration.INSTANCE.getAgentPort());
+            this.agentWebServerStart(AgentConfiguration.INSTANCE.getAgentWebPort());
+            this.agentServerStart(AgentConfiguration.INSTANCE.getAgentPort());
         } catch (IOException e) {
             log.error("Agent启动失败",e);
+        }
+    }
+
+    /**
+     * 启动web服务
+     * @param port
+     */
+    private void agentWebServerStart(int port){
+        if(AgentConfiguration.INSTANCE.isWebEnable() && HttpServer.status == 0){
+            httpServer = new HttpServer(port);
+            httpServer.setName("agent web server thread");
+            httpServer.start();
         }
     }
 
@@ -68,7 +85,7 @@ public class Agent extends Thread{
      * @param port
      * @throws IOException
      */
-    private void serverStart(int port) throws IOException {
+    private void agentServerStart(int port) throws IOException {
         log.info("开始启动 Falcon Agent服务");
         String falconAgentConfFileName = "agent.cfg.json";
         String falconAgentConfFile = AgentConfiguration.INSTANCE.getFalconConfDir() + File.separator + falconAgentConfFileName;
@@ -154,6 +171,15 @@ public class Agent extends Thread{
      */
     void shutdown() {
         log.info("正在关闭服务器");
+        if(httpServer != null){
+            try {
+                log.info("发送web关闭命令");
+                HttpResult response = HttpUtil.get(String.format("http://127.0.0.1:%d/__SHUTDOWN__",AgentConfiguration.INSTANCE.getAgentWebPort()));
+                log.info("web关闭结果:{}",response);
+            } catch (IOException e) {
+                log.error("web关闭异常",e);
+            }
+        }
         try {
             serverSocketChannel.close();
         } catch (IOException e) {

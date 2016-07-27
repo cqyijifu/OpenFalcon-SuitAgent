@@ -77,6 +77,16 @@ public enum  AgentConfiguration {
     private int agentPort = 4518;
 
     /**
+     * agent web 监听端口
+     */
+    private int agentWebPort = 4519;
+
+    /**
+     * 是否启用web服务
+     */
+    private boolean webEnable = true;
+
+    /**
      * agent自动发现服务刷新周期
      */
     private int agentFlushTime = 300;
@@ -87,6 +97,8 @@ public enum  AgentConfiguration {
 
     private static final String CONF_AGENT_FALCON_PUSH_URL = "agent.falcon.push.url";
     private static final String CONF_AGENT_PORT = "agent.port";
+    private static final String CONF_AGENT_WEB_PORT = "agent.web.port";
+    private static final String CONF_AGENT_WEB_ENABLE = "agent.web.enable";
     private static final String AUTHORIZATION_CONF_PATH = "authorization.conf.path";
     private static final String FALCON_DIR_PATH = "agent.falcon.dir";
     private static final String FALCON_CONF_DIR_PATH = "agent.falcon.conf.dir";
@@ -161,6 +173,24 @@ public enum  AgentConfiguration {
 
         if(!StringUtils.isEmpty(agentConf.getProperty(CONF_AGENT_ENDPOINT))){
             this.agentEndpoint = agentConf.getProperty(CONF_AGENT_ENDPOINT);
+        }
+
+        if(!StringUtils.isEmpty(agentConf.getProperty(CONF_AGENT_WEB_PORT))){
+            try {
+                this.agentWebPort = Integer.parseInt(agentConf.getProperty(CONF_AGENT_WEB_PORT));
+            } catch (NumberFormatException e) {
+                log.error("Agent启动失败,端口配置{}无效:{}", CONF_AGENT_WEB_PORT, agentConf.getProperty(CONF_AGENT_WEB_PORT));
+                System.exit(0);
+            }
+        }
+
+        if(!StringUtils.isEmpty(agentConf.getProperty(CONF_AGENT_WEB_ENABLE))){
+            try {
+                this.webEnable = "true".equals(agentConf.getProperty(CONF_AGENT_WEB_ENABLE));
+            } catch (NumberFormatException e) {
+                log.error("Agent启动失败,端口配置{}无效:{}", CONF_AGENT_WEB_ENABLE, agentConf.getProperty(CONF_AGENT_WEB_ENABLE));
+                System.exit(0);
+            }
         }
 
         if(!StringUtils.isEmpty(agentConf.getProperty(CONF_AGENT_PORT))){
@@ -246,5 +276,13 @@ public enum  AgentConfiguration {
 
     public String getFalconConfDir() {
         return falconConfDir;
+    }
+
+    public int getAgentWebPort() {
+        return agentWebPort;
+    }
+
+    public boolean isWebEnable() {
+        return webEnable;
     }
 }

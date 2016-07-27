@@ -4,6 +4,8 @@
  */
 package com.yiji.falcon.agent.plugins.metrics;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.yiji.falcon.agent.config.AgentConfiguration;
 import com.yiji.falcon.agent.falcon.CounterType;
 import com.yiji.falcon.agent.falcon.FalconReportObject;
@@ -20,6 +22,9 @@ import javax.script.ScriptException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /*
  * 修订记录:
@@ -33,6 +38,59 @@ import java.util.Collection;
 public abstract class MetricsCommon {
 
     private static final Logger logger = LoggerFactory.getLogger(MetricsCommon.class);
+
+    private static final ConcurrentHashMap<String,Set<String>> mockService = new ConcurrentHashMap<>();
+
+    /**
+     * 获取当前mock的服务列表
+     * @return
+     * JSON数据
+     */
+    public static String getMockServicesList(){
+        JSONObject result = new JSONObject();
+
+        for (String key : mockService.keySet()) {
+            JSONArray typeJson = new JSONArray();
+            Set<String> services = mockService.get(key);
+            for (String service : services) {
+                typeJson.add(service);
+            }
+            result.put(key,typeJson);
+        }
+
+        return result.toJSONString();
+    }
+
+    /**
+     * 添加mock服务
+     * @param serviceType
+     * @param service
+     */
+    public static void addMockService(String serviceType,String service){
+
+        if(mockService.get(serviceType) == null){
+            Set<String> mockServices = new HashSet<>();
+            mockServices.add(service);
+            mockService.put(serviceType,mockServices);
+        }else{
+            Set<String> mockServices = mockService.get(serviceType);
+            mockServices.add(service);
+            mockService.put(serviceType,mockServices);
+        }
+    }
+
+    /**
+     * 删除mock服务
+     * @param serviceType
+     * @param service
+     */
+    public static void removeMockService(String serviceType,String service){
+        if(mockService.get(serviceType) != null){
+            Set<String> mockServices = mockService.get(serviceType);
+            mockServices.remove(service);
+            mockService.put(serviceType,mockServices);
+        }
+    }
 
     /**
      * 获取所有的监控值报告
@@ -57,6 +115,34 @@ public abstract class MetricsCommon {
         falconReportObject.setValue(isAva ? "1" : "0");
         falconReportObject.appendTags(getTags(agentSignName,plugin,serverName,MetricsType.AVAILABILITY));
         falconReportObject.setTimestamp(System.currentTimeMillis() / 1000);
+
+        //mock判断
+        if(!isAva){
+            boolean isOK = false;
+            for (String key : mockService.keySet()) {
+                String targetType = "service.type=" + key;
+                String tag = falconReportObject.getTags();
+                if(!StringUtils.isEmpty(tag)){
+                    if(tag.contains(targetType)){
+                        Set<String> mockServices = mockService.get(key);
+                        for (String targetService : mockServices) {
+                            String agentSign = ",agentSignName=" + targetService;
+                            String service = "service=" + targetService;
+                            if(tag.contains(agentSign) || tag.contains(service)){
+                                logger.info("mock服务 {}:{} 的 availability",targetType,targetService);
+                                falconReportObject.setValue("1");
+                                isOK = true;
+                                break;
+                            }
+                        }
+                        if(isOK){
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
         return falconReportObject;
     }
 
