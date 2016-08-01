@@ -131,6 +131,7 @@ public abstract class MetricsCommon {
                             if(tag.contains(agentSign) || tag.contains(service)){
                                 logger.info("mock服务 {}:{} 的 availability",targetType,targetService);
                                 falconReportObject.setValue("1");
+                                falconReportObject.appendTags("mock=true");
                                 isOK = true;
                                 break;
                             }
