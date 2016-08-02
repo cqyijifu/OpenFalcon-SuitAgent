@@ -41,7 +41,9 @@ public class Client {
      */
     public void start(int port) throws IOException {
         //连接端口
-        socketChannel = SocketChannel.open(new InetSocketAddress(port));
+        InetSocketAddress inetSocketAddress = new InetSocketAddress(port);
+        System.out.println("Socket Connect To " + inetSocketAddress.getAddress().toString() + ":" + inetSocketAddress.getPort());
+        socketChannel = SocketChannel.open(inetSocketAddress);
 
         //设置非阻塞模式
         socketChannel.configureBlocking(false);

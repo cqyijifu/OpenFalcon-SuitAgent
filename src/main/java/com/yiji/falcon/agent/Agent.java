@@ -304,7 +304,8 @@ public class Agent extends Thread{
                     client.sendCloseCommend();
                     client.talk();
                 } catch (IOException e) {
-                    OUT.println("Agent Not Start");
+                    exception(e);
+                    OUT.println("Connection refused ! Agent Not Start");
                 }
                 break;
             case "status":
@@ -314,13 +315,22 @@ public class Agent extends Thread{
                     OUT.println("Agent Started On Port " + AgentConfiguration.INSTANCE.getAgentPort());
                     client.close();
                 } catch (IOException e) {
-                    OUT.println("Agent Not Start");
+                    exception(e);
+                    OUT.println("Connection refused ! Agent Not Start");
                 }
                 break;
             default:
                 OUT.println(errorMsg);
         }
 
+    }
+
+    private static void exception(Exception e){
+        if(e instanceof java.net.ConnectException &&
+                "Connection refused".equals(e.getMessage())){
+            return;
+        }
+        e.printStackTrace();
     }
 
 }
