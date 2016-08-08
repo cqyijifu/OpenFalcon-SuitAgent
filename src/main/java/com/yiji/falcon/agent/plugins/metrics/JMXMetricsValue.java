@@ -11,7 +11,7 @@ import com.yiji.falcon.agent.falcon.MetricsType;
 import com.yiji.falcon.agent.jmx.vo.JMXMetricsValueInfo;
 import com.yiji.falcon.agent.jmx.vo.JMXObjectNameInfo;
 import com.yiji.falcon.agent.plugins.JMXPlugin;
-import com.yiji.falcon.agent.util.CustomerMath;
+import com.yiji.falcon.agent.util.Maths;
 import com.yiji.falcon.agent.util.StringUtils;
 import com.yiji.falcon.agent.vo.jmx.JMXMetricsConfiguration;
 import org.apache.commons.lang.math.NumberUtils;
@@ -324,7 +324,7 @@ public class JMXMetricsValue extends MetricsCommon{
 
                     //堆内存使用比例
                     falconReportObject.setMetric(getMetricsName("HeapMemoryUsedRatio"));
-                    falconReportObject.setValue(String.valueOf(CustomerMath.div(heapMemoryUsage.getUsed(),heapMemoryUsage.getMax(),2) * 100));
+                    falconReportObject.setValue(String.valueOf(Maths.div(heapMemoryUsage.getUsed(),heapMemoryUsage.getMax(),2) * 100));
                     result.add(falconReportObject.clone());
 
                 }

@@ -12,7 +12,7 @@ import com.yiji.falcon.agent.falcon.FalconReportObject;
 import com.yiji.falcon.agent.jmx.vo.JMXMetricsValueInfo;
 import com.yiji.falcon.agent.plugins.JMXPlugin;
 import com.yiji.falcon.agent.plugins.util.PluginActivateType;
-import com.yiji.falcon.agent.util.CommendUtil;
+import com.yiji.falcon.agent.util.CommandUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,7 +26,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
-import static com.yiji.falcon.agent.util.CommendUtil.exec;
+import static com.yiji.falcon.agent.util.CommandUtil.exec;
 
 /**
  * @author guqiu@yiji.com
@@ -165,7 +165,7 @@ public class TomcatPlugin implements JMXPlugin {
         String dirName = "";
         try {
             String cmd = "lsof -p " + pid + " | grep catalina.jar";
-            CommendUtil.ExecuteResult executeResult = exec(cmd);
+            CommandUtil.ExecuteResult executeResult = exec(cmd);
             String msg = executeResult.msg;
             String[] ss = msg.split("\\s");
             for (String s : ss) {

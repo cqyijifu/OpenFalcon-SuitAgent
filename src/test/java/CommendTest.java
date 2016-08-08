@@ -7,14 +7,12 @@
  * guqiu@yiji.com 2016-07-15 10:59 创建
  */
 
-import com.yiji.falcon.agent.util.CommendUtil;
+import com.yiji.falcon.agent.util.CommandUtil;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * @author guqiu@yiji.com
@@ -26,7 +24,7 @@ public class CommendTest {
         int count = 5;
         String address = "192.168.56.254";
 
-        CommendUtil.ExecuteResult executeResult = CommendUtil.exec(String.format("ping -c %d %s",count,address));
+        CommandUtil.ExecuteResult executeResult = CommandUtil.exec(String.format("ping -c %d %s",count,address));
         if(executeResult.isSuccess){
             List<Float> times = new ArrayList<>();
             String msg = executeResult.msg;

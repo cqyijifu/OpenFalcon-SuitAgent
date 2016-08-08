@@ -10,7 +10,7 @@ import com.yiji.falcon.agent.plugins.JDBCPlugin;
 import com.yiji.falcon.agent.plugins.metrics.SNMPV3MetricsValue;
 import com.yiji.falcon.agent.plugins.util.PluginExecute;
 import com.yiji.falcon.agent.plugins.util.PluginLibraryHelper;
-import com.yiji.falcon.agent.util.CommendUtil;
+import com.yiji.falcon.agent.util.CommandUtil;
 import com.yiji.falcon.agent.util.FileUtil;
 import com.yiji.falcon.agent.util.HttpUtil;
 import com.yiji.falcon.agent.util.StringUtils;
@@ -101,7 +101,7 @@ public class Agent extends Thread{
         String falconAgentDir = AgentConfiguration.INSTANCE.getFalconDir() + File.separator + "agent";
         if(FileUtil.writeTextToTextFile(falconAgentConfContent,falconAgentDir,"cfg.json",false)){
             String common = falconAgentDir + File.separator + "control start";
-            CommendUtil.ExecuteResult executeResult = CommendUtil.exec(common);
+            CommandUtil.ExecuteResult executeResult = CommandUtil.exec(common);
             if(executeResult.isSuccess){
                 log.info("正在启动 Falcon Agent : {}",executeResult.msg);
                 String msg = executeResult.msg.trim();
@@ -227,7 +227,7 @@ public class Agent extends Thread{
         try {
             String falconAgentDir = AgentConfiguration.INSTANCE.getFalconDir() + File.separator + "agent";
             String common = falconAgentDir + File.separator + "control stop";
-            CommendUtil.ExecuteResult executeResult = CommendUtil.exec(common);
+            CommandUtil.ExecuteResult executeResult = CommandUtil.exec(common);
             if(executeResult.isSuccess){
                 log.info("正在关闭 Falcon Agent : {}",executeResult.msg);
                 if(executeResult.msg.contains("falcon-agent stoped")){

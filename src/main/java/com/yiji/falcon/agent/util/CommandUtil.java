@@ -23,9 +23,9 @@ import java.util.List;
  * 命令执行
  * @author guqiu@yiji.com
  */
-public class CommendUtil {
+public class CommandUtil {
 
-    private static final Logger logger = LoggerFactory.getLogger(CommendUtil.class);
+    private static final Logger logger = LoggerFactory.getLogger(CommandUtil.class);
 
     /**
      * 命令执行的返回结果值类
@@ -98,7 +98,7 @@ public class CommendUtil {
      */
     public static double ping(String address,int count) throws IOException {
         String commend = String.format("ping -c %d %s",count,address);
-        CommendUtil.ExecuteResult executeResult = CommendUtil.exec(commend);
+        CommandUtil.ExecuteResult executeResult = CommandUtil.exec(commend);
 
         if(executeResult.isSuccess){
             List<Float> times = new ArrayList<>();
@@ -120,7 +120,7 @@ public class CommendUtil {
                 for (Float time : times) {
                     sum += time;
                 }
-                return CustomerMath.div(sum,times.size(),3);
+                return Maths.div(sum,times.size(),3);
             }
 
         }else{

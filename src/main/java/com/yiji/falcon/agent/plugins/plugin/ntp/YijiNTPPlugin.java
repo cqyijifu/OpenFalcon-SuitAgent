@@ -10,7 +10,7 @@ package com.yiji.falcon.agent.plugins.plugin.ntp;
 
 import com.yiji.falcon.agent.plugins.DetectPlugin;
 import com.yiji.falcon.agent.plugins.Plugin;
-import com.yiji.falcon.agent.util.CommendUtil;
+import com.yiji.falcon.agent.util.CommandUtil;
 import com.yiji.falcon.agent.util.StringUtils;
 import com.yiji.falcon.agent.vo.detect.DetectResult;
 import org.slf4j.Logger;
@@ -50,10 +50,10 @@ public class YijiNTPPlugin implements DetectPlugin {
     @Override
     public DetectResult detectResult(String address) {
         String cmd = "ntpdate " + address;
-        CommendUtil.ExecuteResult executeResult = null;
+        CommandUtil.ExecuteResult executeResult = null;
         DetectResult detectResult = new DetectResult();
         try {
-            executeResult = CommendUtil.exec(cmd);
+            executeResult = CommandUtil.exec(cmd);
         } catch (IOException e) {
             logger.error("命令{}执行异常",cmd,e);
         }

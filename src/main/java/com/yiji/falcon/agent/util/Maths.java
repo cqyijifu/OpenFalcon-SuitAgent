@@ -14,7 +14,7 @@ import java.math.BigDecimal;
 /**
  * @author guqiu@yiji.com
  */
-public class CustomerMath {
+public class Maths {
 
 	/**
 	 * 转换数字为可显示格式，避免出现科学计数法形式
@@ -30,7 +30,7 @@ public class CustomerMath {
 	private static final int DEF_DIV_SCALE = 10;
 
 	// 这个类不能实例化
-	private CustomerMath() {}
+	private Maths() {}
 
 	/**
 	 * 提供精确的加法运算。

@@ -5,7 +5,7 @@
 package com.yiji.falcon.agent.plugins.plugin.elasticSearch;
 
 import com.alibaba.fastjson.JSONObject;
-import com.yiji.falcon.agent.util.CommendUtil;
+import com.yiji.falcon.agent.util.CommandUtil;
 import com.yiji.falcon.agent.util.HttpUtil;
 import com.yiji.falcon.agent.util.StringUtils;
 import org.ho.yaml.Yaml;
@@ -21,7 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static com.yiji.falcon.agent.util.CommendUtil.exec;
+import static com.yiji.falcon.agent.util.CommandUtil.exec;
 
 /*
  * 修订记录:
@@ -58,7 +58,7 @@ public class ElasticSearchConfig {
         }
 
         String cmd = "lsof -p " + pid + " | grep elasticsearch";
-        CommendUtil.ExecuteResult executeResult = exec(cmd);
+        CommandUtil.ExecuteResult executeResult = exec(cmd);
 
         if(executeResult.isSuccess){
             String path = "";

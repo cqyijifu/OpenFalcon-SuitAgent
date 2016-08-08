@@ -10,7 +10,7 @@ package com.yiji.falcon.agent.plugins.plugin.ping;
 
 import com.yiji.falcon.agent.plugins.DetectPlugin;
 import com.yiji.falcon.agent.plugins.Plugin;
-import com.yiji.falcon.agent.util.CommendUtil;
+import com.yiji.falcon.agent.util.CommandUtil;
 import com.yiji.falcon.agent.util.StringUtils;
 import com.yiji.falcon.agent.vo.detect.DetectResult;
 import org.slf4j.Logger;
@@ -50,7 +50,7 @@ public class PingPlugin implements DetectPlugin {
     public DetectResult detectResult(String address) {
         try {
             DetectResult result = new DetectResult();
-            double time = CommendUtil.ping(address,5);
+            double time = CommandUtil.ping(address,5);
             if(time == -2){
                 //命令执行失败
                 return null;
