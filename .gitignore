@@ -1,4 +1,5 @@
-/falcon-agent.iml
+/*.iml
 # Created by .ignore support plugin (hsz.mobi)
 /logs
 /target
+/.idea
