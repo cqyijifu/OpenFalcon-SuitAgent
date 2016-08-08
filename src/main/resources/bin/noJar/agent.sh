@@ -28,7 +28,6 @@ fi
 agentHome=`pwd`
 
 agent_classpath="${agentHome}/lib/falcon-agent-1.0.jar"
-agent_classpath="${agent_classpath}:${agentHome}/lib/c3p0-0.9.1.1.jar"
 agent_classpath="${agent_classpath}:${agentHome}/lib/commons-codec-1.9.jar"
 agent_classpath="${agent_classpath}:${agentHome}/lib/commons-lang-2.6.jar"
 agent_classpath="${agent_classpath}:${agentHome}/lib/commons-logging-1.2.jar"
