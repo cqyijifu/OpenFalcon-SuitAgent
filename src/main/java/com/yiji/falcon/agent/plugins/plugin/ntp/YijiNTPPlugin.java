@@ -52,14 +52,11 @@ public class YijiNTPPlugin implements DetectPlugin {
         String cmd = "ntpdate " + address;
         CommendUtil.ExecuteResult executeResult = null;
         DetectResult detectResult = new DetectResult();
-//        try {
-//            executeResult = CommendUtil.exec(cmd);
-//        } catch (IOException e) {
-//            logger.error("命令{}执行异常",cmd,e);
-//        }
-        executeResult = new CommendUtil.ExecuteResult();
-        executeResult.isSuccess = true;
-        executeResult.msg = "8 Aug 10:54:10 ntpdate[43956]: adjust time server 10.18.10.103 offset 0.153890 sec";
+        try {
+            executeResult = CommendUtil.exec(cmd);
+        } catch (IOException e) {
+            logger.error("命令{}执行异常",cmd,e);
+        }
 
         if(executeResult == null || !executeResult.isSuccess){
             logger.error("命令{}执行失败",cmd);
