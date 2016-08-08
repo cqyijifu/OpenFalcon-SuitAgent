@@ -23,11 +23,7 @@ then
 fi
 
 agent_classpath="${agentHome}/lib/falcon-agent-1.0.jar"
-agent_classpath="${agent_classpath}:${agentHome}/lib/commons-codec-1.9.jar"
-agent_classpath="${agent_classpath}:${agentHome}/lib/commons-lang-2.6.jar"
 agent_classpath="${agent_classpath}:${agentHome}/lib/commons-logging-1.2.jar"
-agent_classpath="${agent_classpath}:${agentHome}/lib/httpclient-4.5.1.jar"
-agent_classpath="${agent_classpath}:${agentHome}/lib/httpcore-4.4.4.jar"
 agent_classpath="${agent_classpath}:${agentHome}/lib/json-20140107.jar"
 agent_classpath="${agent_classpath}:${agentHome}/lib/log4j-1.2.12.jar"
 agent_classpath="${agent_classpath}:${agentHome}/lib/quartz-2.2.1.jar"
@@ -40,6 +36,7 @@ agent_classpath="${agent_classpath}:${agentHome}/lib/fastjson-1.2.11.jar"
 agent_classpath="${agent_classpath}:${agentHome}/lib/guava-18.0.jar"
 agent_classpath="${agent_classpath}:${agentHome}/lib/snmp4j-2.5.0.jar"
 agent_classpath="${agent_classpath}:${agentHome}/lib/mysql-connector-java-5.1.38.jar"
+agent_classpath="${agent_classpath}:${agentHome}/lib/http-request-6.0.jar"
 agent_class=com.yiji.falcon.agent.Agent
 
 client_cmd="${JAVA} \

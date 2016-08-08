@@ -7,13 +7,12 @@ package com.yiji.falcon.agent.falcon;
 import com.yiji.falcon.agent.config.AgentConfiguration;
 import com.yiji.falcon.agent.util.HttpUtil;
 import com.yiji.falcon.agent.util.StringUtils;
-import org.apache.http.HttpResponse;
+import com.yiji.falcon.agent.vo.HttpResult;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.Collection;
 
 /*
@@ -51,13 +50,14 @@ public class ReportMetrics {
                 jsonArray.put(jsonObject);
             }
             log.debug("报告Falcon : [{}]",jsonArray.toString());
-            HttpResponse result = null;
+            HttpResult result;
             try {
                 result = HttpUtil.postJSON(AgentConfiguration.INSTANCE.getAgentPushUrl(),jsonArray.toString());
-            } catch (IOException e) {
+            } catch (Exception e) {
                 log.error("post请求异常",e);
+                return;
             }
-            log.info("push回执:" + result);
+            log.info("push回执: {}" , result);
         }else {
             log.info("push对象为null");
         }
@@ -84,13 +84,14 @@ public class ReportMetrics {
         jsonObject.put("tags",falconReportObject.getTags() == null ? "" : falconReportObject.getTags());
         jsonArray.put(jsonObject);
         log.debug("报告Falcon : [{}]",jsonArray.toString());
-        HttpResponse result = null;
+        HttpResult result;
         try {
             result = HttpUtil.postJSON(AgentConfiguration.INSTANCE.getAgentPushUrl(),jsonArray.toString());
-        } catch (IOException e) {
+        } catch (Exception e) {
             log.error("post请求异常",e);
+            return;
         }
-        log.info("push回执:" + result);
+        log.info("push回执: {}" , result);
     }
 
     /**

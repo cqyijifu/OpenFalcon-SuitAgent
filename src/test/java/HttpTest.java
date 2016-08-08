@@ -18,13 +18,8 @@ import java.io.IOException;
 public class HttpTest {
 
     @Test
-    public void httpsTest() throws IOException {
-        System.out.println(HttpUtil.httpsRequest("https://www.baidu.com","GET",null));
-    }
-
-    @Test
     public void httpTest() throws IOException {
-        System.out.println(HttpUtil.get("http://hahahahahaha123.com"));
+        System.out.println(HttpUtil.get("http://www.baidu.com"));
     }
 
 }

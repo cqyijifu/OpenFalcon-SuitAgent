@@ -21,7 +21,11 @@ public class ExecuteThreadUtil {
         //线程数
         final int poolSize = cpuCore * 3;
         //定义并发执行服务
-        executorService = Executors.newFixedThreadPool(poolSize);
+        executorService = Executors.newFixedThreadPool(poolSize, r -> {
+            Thread t=new Thread(r);
+            t.setName("agentThreadPool");
+            return t;
+        });
     }
 
     /**

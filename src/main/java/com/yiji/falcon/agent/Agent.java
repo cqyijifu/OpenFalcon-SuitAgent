@@ -138,6 +138,10 @@ public class Agent extends Thread{
         log.info("Agent绑定端口:" + port);
         serverSocketChannel.socket().bind(new InetSocketAddress(port));
 
+        Thread.setDefaultUncaughtExceptionHandler((t, e) -> {
+            log.error("线程 {} 未处理的异常",t.getName(),e);
+        });
+
         work();
 
         //阻塞式方式进行客户端连接操作,连接成功后,单独启动线程进行客户端的读写操作
