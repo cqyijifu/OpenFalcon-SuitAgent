@@ -29,6 +29,7 @@ agentHome=`pwd`
 
 agent_classpath="${agentHome}/lib/falcon-agent-1.0.jar"
 agent_classpath="${agent_classpath}:${agentHome}/lib/commons-logging-1.2.jar"
+agent_classpath="${agent_classpath}:${agentHome}/lib/commons-lang-2.6.jar"
 agent_classpath="${agent_classpath}:${agentHome}/lib/json-20140107.jar"
 agent_classpath="${agent_classpath}:${agentHome}/lib/log4j-1.2.12.jar"
 agent_classpath="${agent_classpath}:${agentHome}/lib/quartz-2.2.1.jar"
