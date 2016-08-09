@@ -12,7 +12,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.management.remote.JMXConnector;
-import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
 import java.io.IOException;
 import java.util.*;
@@ -167,7 +166,7 @@ public class JMXConnection {
                 }
                 try {
                     JMXServiceURL url = new JMXServiceURL(connectorAddress);
-                    JMXConnector connector = JMXConnectorFactory.connect(url);
+                    JMXConnector connector = JMXConnectWithTimeout.connectWithTimeout(url,10, TimeUnit.SECONDS);
                     initJMXConnectionInfo(connector,desc,UUID.randomUUID().toString());
                     count++;
                 } catch (IOException e) {
