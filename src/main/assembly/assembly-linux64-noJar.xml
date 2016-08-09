@@ -17,7 +17,7 @@
 
     <fileSets>
         <fileSet>
-            <directory>${project.basedir}/src/main/resources/bin/noJar</directory>
+            <directory>${project.basedir}/src/main/resources_ext/bin/noJar</directory>
             <filtered>true</filtered>
             <fileMode>0755</fileMode>
             <directoryMode>0755</directoryMode>
@@ -25,22 +25,22 @@
         </fileSet>
 
         <fileSet>
-            <directory>${project.basedir}/src/main/resources/conf</directory>
+            <directory>${project.basedir}/src/main/resources_ext/conf</directory>
             <outputDirectory>conf</outputDirectory>
         </fileSet>
 
         <fileSet>
-            <directory>${project.basedir}/src/main/resources/lib/tools-linux64</directory>
+            <directory>${project.basedir}/src/main/resources_ext/lib/tools-linux64</directory>
             <outputDirectory>lib</outputDirectory>
         </fileSet>
 
         <fileSet>
-            <directory>${project.basedir}/src/main/resources/logs</directory>
+            <directory>${project.basedir}/src/main/resources_ext/logs</directory>
             <outputDirectory>logs</outputDirectory>
         </fileSet>
 
         <fileSet>
-            <directory>${project.basedir}/src/main/resources/falcon/linux64/agent</directory>
+            <directory>${project.basedir}/src/main/resources_ext/falcon/linux64/agent</directory>
             <outputDirectory>falcon/agent/</outputDirectory>
         </fileSet>
 
