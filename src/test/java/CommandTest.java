@@ -17,7 +17,7 @@ import java.util.List;
 /**
  * @author guqiu@yiji.com
  */
-public class CommendTest {
+public class CommandTest {
 
     @Test
     public void test() throws IOException {
