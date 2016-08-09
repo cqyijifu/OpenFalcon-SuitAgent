@@ -32,6 +32,7 @@ import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.Charset;
 import java.util.Collection;
+import java.util.concurrent.TimeUnit;
 
 /*
  * 修订记录:
@@ -97,7 +98,7 @@ public class Agent extends Thread{
         String falconAgentDir = AgentConfiguration.INSTANCE.getFalconDir() + File.separator + "agent";
         if(FileUtil.writeTextToTextFile(falconAgentConfContent,falconAgentDir,"cfg.json",false)){
             String common = falconAgentDir + File.separator + "control start";
-            CommandUtil.ExecuteResult executeResult = CommandUtil.exec(common);
+            CommandUtil.ExecuteResult executeResult = CommandUtil.execWithTimeOut(common,10, TimeUnit.SECONDS);
             if(executeResult.isSuccess){
                 log.info("正在启动 Falcon Agent : {}",executeResult.msg);
                 String msg = executeResult.msg.trim();
@@ -218,7 +219,7 @@ public class Agent extends Thread{
         try {
             String falconAgentDir = AgentConfiguration.INSTANCE.getFalconDir() + File.separator + "agent";
             String common = falconAgentDir + File.separator + "control stop";
-            CommandUtil.ExecuteResult executeResult = CommandUtil.exec(common);
+            CommandUtil.ExecuteResult executeResult = CommandUtil.execWithTimeOut(common,10,TimeUnit.SECONDS);
             if(executeResult.isSuccess){
                 log.info("正在关闭 Falcon Agent : {}",executeResult.msg);
                 if(executeResult.msg.contains("falcon-agent stoped")){

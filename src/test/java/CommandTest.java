@@ -13,6 +13,7 @@ import org.junit.Test;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author guqiu@yiji.com
@@ -22,9 +23,10 @@ public class CommandTest {
     @Test
     public void test() throws IOException {
         int count = 5;
-        String address = "192.168.56.254";
+        String address = "www.deh4.com";
 
-        CommandUtil.ExecuteResult executeResult = CommandUtil.exec(String.format("ping -c %d %s",count,address));
+        CommandUtil.ExecuteResult executeResult = CommandUtil.execWithTimeOut(String.format("ping -c %d %s",count,address),
+                5, TimeUnit.SECONDS);
         if(executeResult.isSuccess){
             List<Float> times = new ArrayList<>();
             String msg = executeResult.msg;

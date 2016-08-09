@@ -25,8 +25,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
-
-import static com.yiji.falcon.agent.util.CommandUtil.exec;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author guqiu@yiji.com
@@ -165,7 +164,7 @@ public class TomcatPlugin implements JMXPlugin {
         String dirName = "";
         try {
             String cmd = "lsof -p " + pid + " | grep catalina.jar";
-            CommandUtil.ExecuteResult executeResult = exec(cmd);
+            CommandUtil.ExecuteResult executeResult = CommandUtil.execWithTimeOut(cmd,10, TimeUnit.SECONDS);
             String msg = executeResult.msg;
             String[] ss = msg.split("\\s");
             for (String s : ss) {

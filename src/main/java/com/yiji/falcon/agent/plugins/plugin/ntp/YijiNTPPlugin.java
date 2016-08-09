@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 易极付服务器的NTP监控
@@ -53,7 +54,7 @@ public class YijiNTPPlugin implements DetectPlugin {
         CommandUtil.ExecuteResult executeResult = null;
         DetectResult detectResult = new DetectResult();
         try {
-            executeResult = CommandUtil.exec(cmd);
+            executeResult = CommandUtil.execWithTimeOut(cmd,10, TimeUnit.SECONDS);
         } catch (IOException e) {
             logger.error("命令{}执行异常",cmd,e);
         }

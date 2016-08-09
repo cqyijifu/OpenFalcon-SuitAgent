@@ -13,6 +13,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 /*
  * 修订记录:
@@ -52,11 +55,47 @@ public class CommandUtil {
     /**
      * 执行命令
      * @param cmd
+     * @param timeout
+     * @param unit
+     * @return
+     * @throws IOException
+     */
+    public static ExecuteResult execWithTimeOut(String cmd, long timeout, TimeUnit unit) throws IOException {
+        final ExecuteResult[] executeResult = {new ExecuteResult()};
+        final BlockingQueue<Object> blockingQueue = new ArrayBlockingQueue<>(1);
+        ExecuteThreadUtil.execute(() -> {
+            try {
+                executeResult[0] = exec(cmd);
+                if (!blockingQueue.offer(executeResult[0]))
+                    logger.error("阻塞队列插入失败");
+            } catch (Throwable t) {
+                blockingQueue.offer(t);
+            }
+        });
+
+        Object result = BlockingQueueUtil.getResult(blockingQueue,timeout,unit);
+
+        if (result == null)
+            throw new IOException("Command \"" + cmd + "\" execute timeout with " + timeout + " " + unit.name());
+        if (result instanceof ExecuteResult)
+            return (ExecuteResult) result;
+        try {
+            throw (Throwable) result;
+        } catch (IOException | RuntimeException | Error e) {
+            throw e;
+        } catch (Throwable e) {
+            throw new IOException(e.toString(), e);
+        }
+    }
+
+    /**
+     * 执行命令
+     * @param cmd
      * 待执行的命令
      * @return
      * @throws IOException
      */
-    public static ExecuteResult exec(String cmd) throws IOException {
+    private static ExecuteResult exec(String cmd) throws IOException {
         ExecuteResult result = new ExecuteResult();
 
         String[] sh = new String[]{"/bin/sh", "-c", cmd};
@@ -99,7 +138,7 @@ public class CommandUtil {
     public static PingResult ping(String address,int count) throws IOException {
         PingResult pingResult = new PingResult();
         String commend = String.format("ping -c %d %s",count,address);
-        CommandUtil.ExecuteResult executeResult = CommandUtil.exec(commend);
+        CommandUtil.ExecuteResult executeResult = CommandUtil.execWithTimeOut(commend,10,TimeUnit.SECONDS);
 
         if(executeResult.isSuccess){
             List<Float> times = new ArrayList<>();

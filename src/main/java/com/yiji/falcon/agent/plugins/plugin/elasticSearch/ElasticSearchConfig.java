@@ -20,8 +20,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
-import static com.yiji.falcon.agent.util.CommandUtil.exec;
+import java.util.concurrent.TimeUnit;
 
 /*
  * 修订记录:
@@ -58,7 +57,7 @@ public class ElasticSearchConfig {
         }
 
         String cmd = "lsof -p " + pid + " | grep elasticsearch";
-        CommandUtil.ExecuteResult executeResult = exec(cmd);
+        CommandUtil.ExecuteResult executeResult = CommandUtil.execWithTimeOut(cmd,10, TimeUnit.SECONDS);
 
         if(executeResult.isSuccess){
             String path = "";
