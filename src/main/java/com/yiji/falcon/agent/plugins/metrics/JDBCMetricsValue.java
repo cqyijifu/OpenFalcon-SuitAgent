@@ -117,7 +117,8 @@ public class JDBCMetricsValue extends MetricsCommon{
     private String getMetricsValue(String sql) throws SQLException, ClassNotFoundException {
         String result = "";
         if(!StringUtils.isEmpty(sql)){
-            for (Connection connection : jdbcPlugin.getConnections()) {
+            Collection<Connection> connections = jdbcPlugin.getConnections();
+            for (Connection connection : connections) {
                 //创建该连接下的PreparedStatement对象
                 PreparedStatement pstmt = connection.prepareStatement(sql);
                 //执行查询语句，将数据保存到ResultSet对象中
@@ -128,8 +129,8 @@ public class JDBCMetricsValue extends MetricsCommon{
                 }
                 rs.close();
                 pstmt.close();
-                connection.close();
             }
+            jdbcPlugin.closeConnections(connections);
         }
         return result;
     }

@@ -83,18 +83,10 @@ public class HttpUtil {
             log.error("请求地址不能为空");
             return null;
         }
-        String param = "";
-
-        for (String key : params.keySet()) {
-            if(!StringUtils.isEmpty(key)){
-                param += "&" + key + "=" + params.get(key);
-            }
-        }
-
         URL requestUrl = new URL(address);
         HttpRequest httpRequest = new HttpRequest(requestUrl,"POST")
                 .connectTimeout(100000).readTimeout(10000).trustAllCerts().trustAllHosts();
-        httpRequest.send(param.getBytes());
+        httpRequest.form(params,"UTF-8");
         result.setStatus(httpRequest.code());
         result.setResult(httpRequest.body());
         return result;

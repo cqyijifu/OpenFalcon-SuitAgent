@@ -91,7 +91,8 @@ public class OraclePlugin implements JDBCPlugin {
                 "   FROM SYS.DBA_DATA_FILES DD\n" +
                 "   GROUP BY DD.TABLESPACE_NAME) D\n" +
                 "WHERE D.TABLESPACE_NAME = F.TABLESPACE_NAME";
-        for (Connection connection : getConnections()) {
+        Collection<Connection> connections = getConnections();
+        for (Connection connection : connections) {
             //创建该连接下的PreparedStatement对象
             PreparedStatement pstmt = connection.prepareStatement(sql);
             //执行查询语句，将数据保存到ResultSet对象中
@@ -112,8 +113,8 @@ public class OraclePlugin implements JDBCPlugin {
             }
             rs.close();
             pstmt.close();
-            connection.close();
         }
+        closeConnections(connections);
 
         return result;
     }

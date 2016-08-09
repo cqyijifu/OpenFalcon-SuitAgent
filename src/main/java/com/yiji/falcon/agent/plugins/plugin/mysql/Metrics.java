@@ -55,7 +55,8 @@ public class Metrics {
     private Collection<? extends FalconReportObject> getGlobalVariables() throws SQLException, ClassNotFoundException {
         Set<FalconReportObject> reportObjectSet = new HashSet<>();
         String sql = "SHOW /*!50001 GLOBAL */ VARIABLES";
-        for (Connection connection : plugin.getConnections()) {
+        Collection<Connection> connections = plugin.getConnections();
+        for (Connection connection : connections) {
             PreparedStatement pstmt = connection.prepareStatement(sql);
             ResultSet rs = pstmt.executeQuery();
             while (rs.next()){
@@ -79,6 +80,7 @@ public class Metrics {
             rs.close();
             pstmt.close();
         }
+        plugin.closeConnections(connections);
         return reportObjectSet;
     }
 
@@ -90,7 +92,8 @@ public class Metrics {
     private Collection<? extends FalconReportObject> getGlobalStatus() throws SQLException, ClassNotFoundException {
         Set<FalconReportObject> reportObjectSet = new HashSet<>();
         String sql = "SHOW /*!50001 GLOBAL */ STATUS";
-        for (Connection connection : plugin.getConnections()) {
+        Collection<Connection> connections = plugin.getConnections();
+        for (Connection connection : connections) {
             PreparedStatement pstmt = connection.prepareStatement(sql);
             ResultSet rs = pstmt.executeQuery();
             while (rs.next()){
@@ -109,6 +112,7 @@ public class Metrics {
             rs.close();
             pstmt.close();
         }
+        plugin.closeConnections(connections);
         return reportObjectSet;
     }
 
