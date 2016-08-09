@@ -128,6 +128,7 @@ public class JDBCMetricsValue extends MetricsCommon{
                 }
                 rs.close();
                 pstmt.close();
+                connection.close();
             }
         }
         return result;

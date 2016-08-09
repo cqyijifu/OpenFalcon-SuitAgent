@@ -58,9 +58,4 @@ public interface JDBCPlugin extends Plugin{
      */
     Collection<FalconReportObject> inbuiltReportObjectsForValid() throws SQLException, ClassNotFoundException;
 
-    /**
-     * JDBC连接的关闭
-     * @throws SQLException
-     */
-    void close() throws SQLException;
 }

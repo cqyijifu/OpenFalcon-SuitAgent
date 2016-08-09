@@ -20,11 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.*;
 
 import static com.yiji.falcon.agent.plugins.metrics.MetricsCommon.getMetricsName;
 
@@ -33,7 +29,6 @@ import static com.yiji.falcon.agent.plugins.metrics.MetricsCommon.getMetricsName
  */
 public class OraclePlugin implements JDBCPlugin {
     private final Logger log = LoggerFactory.getLogger(this.getClass());
-    private final ConcurrentHashMap<JDBCUserInfo,Connection> connectionCache = new ConcurrentHashMap<>();
     private final List<JDBCUserInfo> userInfoList = new ArrayList<>();
     private int step;
     private PluginActivateType pluginActivateType;
@@ -50,23 +45,13 @@ public class OraclePlugin implements JDBCPlugin {
      */
     @Override
     public Collection<Connection> getConnections() throws SQLException, ClassNotFoundException {
-        if(connectionCache.isEmpty()){
-            String driver_jdbc = "oracle.jdbc.driver.OracleDriver";
-            Class.forName(driver_jdbc);
-            for (JDBCUserInfo userInfo : userInfoList) {
-                connectionCache.put(userInfo,
-                        DriverManager.getConnection(userInfo.getUrl(), userInfo.getUsername(), userInfo.getPassword()));
-            }
-            return connectionCache.values();
+        Set<Connection> connections = new HashSet<>();
+        String driver_jdbc = "oracle.jdbc.driver.OracleDriver";
+        Class.forName(driver_jdbc);
+        for (JDBCUserInfo userInfo : userInfoList) {
+            connections.add(DriverManager.getConnection(userInfo.getUrl(), userInfo.getUsername(), userInfo.getPassword()));
         }
-        for (JDBCUserInfo userInfo : connectionCache.keySet()) {
-            if(connectionCache.get(userInfo) == null ||
-                    connectionCache.get(userInfo).isClosed()){
-                connectionCache.put(userInfo,
-                        DriverManager.getConnection(userInfo.getUrl(), userInfo.getUsername(), userInfo.getPassword()));
-            }
-        }
-        return connectionCache.values();
+        return connections;
     }
 
     /**
@@ -127,21 +112,10 @@ public class OraclePlugin implements JDBCPlugin {
             }
             rs.close();
             pstmt.close();
+            connection.close();
         }
 
         return result;
-    }
-
-    /**
-     * JDBC连接的关闭
-     */
-    @Override
-    public void close() throws SQLException {
-        for (Connection connection : connectionCache.values()) {
-            if(connection != null){
-                connection.close();
-            }
-        }
     }
 
     /**

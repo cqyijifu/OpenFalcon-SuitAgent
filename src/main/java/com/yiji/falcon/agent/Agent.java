@@ -6,7 +6,6 @@ package com.yiji.falcon.agent;
 
 import com.yiji.falcon.agent.config.AgentConfiguration;
 import com.yiji.falcon.agent.jmx.JMXConnection;
-import com.yiji.falcon.agent.plugins.JDBCPlugin;
 import com.yiji.falcon.agent.plugins.metrics.SNMPV3MetricsValue;
 import com.yiji.falcon.agent.plugins.util.PluginExecute;
 import com.yiji.falcon.agent.plugins.util.PluginLibraryHelper;
@@ -213,15 +212,6 @@ public class Agent extends Thread{
 
         log.info("关闭JMX连接");
         JMXConnection.close();
-        log.info("关闭数据库连接");
-        PluginLibraryHelper.getJDBCPlugins().forEach(plugin -> {
-            try {
-                JDBCPlugin jdbcPlugin = (JDBCPlugin) plugin;
-                jdbcPlugin.close();
-            } catch (Exception e) {
-                log.error("数据库关闭异常",e);
-            }
-        });
         log.info("关闭SNMP连接");
         SNMPV3MetricsValue.closeAllSession();
 
