@@ -11,6 +11,7 @@ package com.yiji.falcon.agent.plugins.plugin.ping;
 import com.yiji.falcon.agent.plugins.DetectPlugin;
 import com.yiji.falcon.agent.plugins.Plugin;
 import com.yiji.falcon.agent.util.CommandUtil;
+import com.yiji.falcon.agent.util.Maths;
 import com.yiji.falcon.agent.util.StringUtils;
 import com.yiji.falcon.agent.vo.detect.DetectResult;
 import org.slf4j.Logger;
@@ -48,14 +49,15 @@ public class PingPlugin implements DetectPlugin {
      */
     @Override
     public DetectResult detectResult(String address) {
+        int pingCount = 5;
         try {
             DetectResult result = new DetectResult();
-            double time = CommandUtil.ping(address,5);
-            if(time == -2){
+            CommandUtil.PingResult pingResult = CommandUtil.ping(address,pingCount);
+            if(pingResult.resultCode == -2){
                 //命令执行失败
                 return null;
             }
-            if(time == -1){
+            if(pingResult.resultCode == -1){
                 result.setSuccess(false);
                 //返回探测失败结果
                 return result;
@@ -63,7 +65,8 @@ public class PingPlugin implements DetectPlugin {
                 //探测成功,并添加延迟值
                 result.setSuccess(true);
                 Map<String,Double> metrics = new HashMap<>();
-                metrics.put("pingAvgTime",time);
+                metrics.put("pingAvgTime",pingResult.avgTime);
+                metrics.put("pingSuccessRatio", Maths.div(pingResult.successCount,pingCount));
                 result.setMetricsMap(metrics);
                 return result;
             }

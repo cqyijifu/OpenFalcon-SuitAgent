@@ -217,12 +217,12 @@ public class SNMPV3MetricsValue extends MetricsCommon {
         String address = session.getUserInfo().getAddress();
 
         try {
-            Double time = CommandUtil.ping(address,count);
-            if(time == -2){
+            CommandUtil.PingResult pingResult = CommandUtil.ping(address,count);
+            if(pingResult.resultCode == -2){
                 //命令执行失败
                 return null;
             }
-            reportObject.setValue(time + "");
+            reportObject.setValue(pingResult.avgTime + "");
         } catch (IOException e) {
             logger.error("Ping {} 命令执行异常",address,e);
             return null;

@@ -96,7 +96,8 @@ public class CommandUtil {
      * 返回 -1 代表 Ping超时
      * 返回 -2 代表 命令执行失败
      */
-    public static double ping(String address,int count) throws IOException {
+    public static PingResult ping(String address,int count) throws IOException {
+        PingResult pingResult = new PingResult();
         String commend = String.format("ping -c %d %s",count,address);
         CommandUtil.ExecuteResult executeResult = CommandUtil.exec(commend);
 
@@ -114,20 +115,41 @@ public class CommandUtil {
 
             if(times.isEmpty()){
                 logger.warn(String.format("ping 地址 %s 无法连通",address));
-                return -1;
+                pingResult.resultCode = -1;
             }else{
                 float sum = 0;
                 for (Float time : times) {
                     sum += time;
                 }
-                return Maths.div(sum,times.size(),3);
+                pingResult.resultCode = 1;
+                pingResult.avgTime = Maths.div(sum,times.size(),3);
+                pingResult.successCount = times.size();
             }
 
         }else{
             logger.error("命令{}执行失败",commend);
-            return -2;
+            pingResult.resultCode = -2;
         }
 
+        return pingResult;
+    }
+
+    public static class PingResult{
+        /**
+         * 执行结果
+         * 返回  1 代表执行成功
+         * 返回 -1 代表 Ping超时
+         * 返回 -2 代表 命令执行失败
+         */
+        public int resultCode;
+        /**
+         * 成功返回ping延迟的次数
+         */
+        public int successCount;
+        /**
+         * ping的平均延迟值
+         */
+        public double avgTime;
     }
 
 }
