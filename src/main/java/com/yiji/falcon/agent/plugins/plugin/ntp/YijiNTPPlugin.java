@@ -69,7 +69,7 @@ public class YijiNTPPlugin implements DetectPlugin {
             detectResult.setSuccess(true);
             double value = Double.parseDouble(msg.substring(index1 + 6, index2).trim());
             Map<String,Double> map = new HashMap<>();
-            map.put("ntpOffset",value);
+            map.put("ntpOffset",Math.abs(value));
             detectResult.setMetricsMap(map);
         }
 
