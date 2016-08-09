@@ -18,7 +18,7 @@ public class ExecuteThreadUtil {
     static {
         final int cpuCore = Runtime.getRuntime().availableProcessors();
         //线程数
-        final int poolSize = cpuCore * 2;
+        final int poolSize = cpuCore * 3;
         //定义并发执行服务
         executorService = new ThreadPoolExecutor(5,poolSize,0L,TimeUnit.MILLISECONDS,
                 new SynchronousQueue<>(),
@@ -38,5 +38,12 @@ public class ExecuteThreadUtil {
      */
     public static void execute(Runnable task){
         executorService.submit(task);
+    }
+
+    /**
+     * 关闭线程池
+     */
+    public static void shutdown(){
+        executorService.shutdown();
     }
 }

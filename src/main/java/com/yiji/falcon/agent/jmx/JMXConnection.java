@@ -16,6 +16,7 @@ import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /*
@@ -107,10 +108,10 @@ public class JMXConnection {
 
                     try {
                         JMXServiceURL url = new JMXServiceURL(connectorAddress);
-                        JMXConnector connector = JMXConnectorFactory.connect(url);
+                        JMXConnector connector = JMXConnectWithTimeout.connectWithTimeout(url,10, TimeUnit.SECONDS);
                         connections.add(initJMXConnectionInfo(connector,desc, UUID.randomUUID().toString()));
                         count++;
-                    } catch (IOException e) {
+                    } catch (Exception e) {
                         log.error("JMX 连接获取异常",e);
                     }
                 }

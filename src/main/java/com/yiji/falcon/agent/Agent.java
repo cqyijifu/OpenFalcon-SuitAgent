@@ -10,10 +10,7 @@ import com.yiji.falcon.agent.plugins.JDBCPlugin;
 import com.yiji.falcon.agent.plugins.metrics.SNMPV3MetricsValue;
 import com.yiji.falcon.agent.plugins.util.PluginExecute;
 import com.yiji.falcon.agent.plugins.util.PluginLibraryHelper;
-import com.yiji.falcon.agent.util.CommandUtil;
-import com.yiji.falcon.agent.util.FileUtil;
-import com.yiji.falcon.agent.util.HttpUtil;
-import com.yiji.falcon.agent.util.StringUtils;
+import com.yiji.falcon.agent.util.*;
 import com.yiji.falcon.agent.vo.HttpResult;
 import com.yiji.falcon.agent.watcher.ConfDirWatcher;
 import com.yiji.falcon.agent.watcher.PluginPropertiesWatcher;
@@ -243,6 +240,9 @@ public class Agent extends Thread{
         } catch (IOException e) {
             log.error("Falcon Agent 自动关闭失败,请手动关闭,Falcon Agent 进程ID为 : {}",falconAgentPid,e);
         }
+
+        log.info("关闭线程池");
+        ExecuteThreadUtil.shutdown();
 
         log.info("服务器关闭成功");
         System.exit(0);
