@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+START_DATE=`date +%Y%m%d%H%M%S`
 FINDNAME=$0
 while [ -h $FINDNAME ] ; do FINDNAME=`ls -ld $FINDNAME | awk '{print $NF}'` ; done
 RUNDIR=`echo $FINDNAME | sed -e 's@/[^/]*$@@'`
@@ -40,6 +41,11 @@ agent_classpath="${agent_classpath}:${agentHome}/lib/http-request-6.0.jar"
 agent_class=com.yiji.falcon.agent.Agent
 
 client_cmd="${JAVA} \
+	-server -Xms128m -Xmx128m -XX:MetaspaceSize=128m -XX:MaxMetaspaceSize=512m -XX:SurvivorRatio=4 -XX:+UseConcMarkSweepGC -XX:+CMSParallelRemarkEnabled -XX:LargePageSizeInBytes=128m \
+	-XX:+UseFastAccessorMethods -XX:+UseCMSInitiatingOccupancyOnly -XX:CMSInitiatingOccupancyFraction=70 -XX:+UseParNewGC -XX:MaxTenuringThreshold=5 -XX:+CMSClassUnloadingEnabled \
+	-XX:+TieredCompilation -XX:+ExplicitGCInvokesConcurrent -XX:AutoBoxCacheMax=20000 \
+	-verbosegc  -XX:+PrintGCDateStamps -XX:+PrintGCDetails -Xloggc:${agentHome}/logs/gc.log \
+	-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${agentHome}/logs/oom-${START_DATE}.hprof \
 	-Dagent.conf.path=${agentHome}/conf/agent.properties \
 	-Dauthorization.conf.path=${agentHome}/conf/authorization.properties \
 	-Dagent.quartz.conf.path=${agentHome}/conf/quartz.properties \
