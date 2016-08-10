@@ -46,7 +46,7 @@ public class JMXPluginJob implements Job {
                         jmxMetricsValueInfo.getJmxConnectionInfo().getPid());
                 if ("{jmxServerName}".equals(agentSignName)) {
                     //设置变量
-                    jmxMetricsValueInfo.getJmxConnectionInfo().setName(jmxPlugin.jmxServerName());
+                    jmxMetricsValueInfo.getJmxConnectionInfo().setName(jmxServerName);
                 }else{
                     jmxMetricsValueInfo.getJmxConnectionInfo().setName(agentSignName);
                 }
