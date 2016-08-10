@@ -54,7 +54,7 @@ public class ReportMetrics {
             try {
                 result = HttpUtil.postJSON(AgentConfiguration.INSTANCE.getAgentPushUrl(),jsonArray.toString());
             } catch (Exception e) {
-                log.error("post请求异常",e);
+                log.error("metrics push异常,检查Falcon组件是否运行正常",e);
                 return;
             }
             log.info("push回执: {}" , result);
@@ -88,7 +88,7 @@ public class ReportMetrics {
         try {
             result = HttpUtil.postJSON(AgentConfiguration.INSTANCE.getAgentPushUrl(),jsonArray.toString());
         } catch (Exception e) {
-            log.error("post请求异常",e);
+            log.error("metrics push异常,检查Falcon组件是否运行正常",e);
             return;
         }
         log.info("push回执: {}" , result);
