@@ -99,7 +99,7 @@ public class JMXConnection {
             List<VirtualMachineDescriptor> vms = VirtualMachine.list();
             for (VirtualMachineDescriptor desc : vms) {
                 if(desc.displayName().contains(serverName)){
-                    String connectorAddress = new AbstractJmxCommand().findJMXUrlByProcessId(Integer.parseInt(desc.id()));
+                    String connectorAddress = AbstractJmxCommand.findJMXUrlByProcessId(Integer.parseInt(desc.id()));
                     if (connectorAddress == null) {
                         log.error("应用 {} 的JMX连接URL获取失败",desc.displayName());
                         continue;
@@ -160,7 +160,7 @@ public class JMXConnection {
             int count = 0;
             //重新构建连接
             for (VirtualMachineDescriptor desc : targetDesc) {
-                String connectorAddress = new AbstractJmxCommand().findJMXUrlByProcessId(Integer.parseInt(desc.id()));
+                String connectorAddress = AbstractJmxCommand.findJMXUrlByProcessId(Integer.parseInt(desc.id()));
                 if (connectorAddress == null) {
                     log.error("应用{}的JMX连接URL获取失败",serverName);
                     continue;

@@ -4,6 +4,9 @@
  */
 package com.yiji.falcon.agent.jmx;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -21,6 +24,9 @@ import java.util.Properties;
  * @author guqiu@yiji.com
  */
 public class AbstractJmxCommand {
+
+    private final static Logger logger = LoggerFactory.getLogger(AbstractJmxCommand.class);
+
     private static final String CONNECTOR_ADDRESS =
         "com.sun.management.jmxremote.localConnectorAddress";
 
@@ -40,7 +46,7 @@ public class AbstractJmxCommand {
      * 返回查找的JMX本地连接地址或查找失败返回Null
      */
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    public String findJMXUrlByProcessId(int pid) {
+    public static String findJMXUrlByProcessId(int pid) {
 
         if (isSunJVM()) {
             try {
@@ -127,7 +133,8 @@ public class AbstractJmxCommand {
                         }
                     }
                 }
-            } catch (Exception ignore) {
+            } catch (Exception e) {
+                logger.error("JMX 连接地址获取异常",e);
             	return null;
             }
         }
