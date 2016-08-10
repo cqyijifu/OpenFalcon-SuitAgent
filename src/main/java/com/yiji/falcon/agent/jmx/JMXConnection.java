@@ -109,6 +109,7 @@ public class JMXConnection {
                         JMXServiceURL url = new JMXServiceURL(connectorAddress);
                         JMXConnector connector = JMXConnectWithTimeout.connectWithTimeout(url,10, TimeUnit.SECONDS);
                         connections.add(initJMXConnectionInfo(connector,desc, UUID.randomUUID().toString()));
+                        log.debug("应用 {} JMX 连接已建立",serverName);
                         count++;
                     } catch (Exception e) {
                         log.error("JMX 连接获取异常",e);
@@ -168,6 +169,7 @@ public class JMXConnection {
                     JMXServiceURL url = new JMXServiceURL(connectorAddress);
                     JMXConnector connector = JMXConnectWithTimeout.connectWithTimeout(url,10, TimeUnit.SECONDS);
                     initJMXConnectionInfo(connector,desc,UUID.randomUUID().toString());
+                    log.debug("应用 {} JMX 连接已建立",serverName);
                     count++;
                 } catch (IOException e) {
                     log.error("JMX 连接获取异常",e);
