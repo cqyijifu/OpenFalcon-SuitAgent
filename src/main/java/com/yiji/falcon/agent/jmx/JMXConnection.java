@@ -99,7 +99,8 @@ public class JMXConnection {
             List<VirtualMachineDescriptor> vms = VirtualMachine.list();
             for (VirtualMachineDescriptor desc : vms) {
                 if(desc.displayName().contains(serverName)){
-                    String connectorAddress = AbstractJmxCommand.findJMXUrlByProcessId(Integer.parseInt(desc.id()));
+                    String connectorAddress = getConnectorAddress(desc);
+
                     if (connectorAddress == null) {
                         log.error("应用 {} 的JMX连接URL获取失败",desc.displayName());
                         continue;
@@ -160,7 +161,7 @@ public class JMXConnection {
             int count = 0;
             //重新构建连接
             for (VirtualMachineDescriptor desc : targetDesc) {
-                String connectorAddress = AbstractJmxCommand.findJMXUrlByProcessId(Integer.parseInt(desc.id()));
+                String connectorAddress = getConnectorAddress(desc);
                 if (connectorAddress == null) {
                     log.error("应用{}的JMX连接URL获取失败",serverName);
                     continue;
@@ -178,6 +179,18 @@ public class JMXConnection {
             serverConnectCount.put(serverName,count);
         }
 
+    }
+
+    private String getConnectorAddress(VirtualMachineDescriptor desc){
+        String connectorAddress = AbstractJmxCommand.findJMXLocalUrlByProcessId(Integer.parseInt(desc.id()));
+        if(connectorAddress == null){
+            log.info("本地JMX连接Attach失败,尝试JMX Remote 连接");
+            connectorAddress = AbstractJmxCommand.findJMXRemoteUrlByProcessId(Integer.parseInt(desc.id()),"127.0.0.1");
+            if(connectorAddress != null){
+                connectorAddress = "service:jmx:rmi:///jndi/rmi://" +connectorAddress + "/jmxrmi";
+            }
+        }
+        return connectorAddress;
     }
 
     /**

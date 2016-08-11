@@ -9,9 +9,13 @@ package com.yiji.falcon.agent.plugins;
  */
 
 import com.yiji.falcon.agent.plugins.util.PluginActivateType;
+import com.yiji.falcon.agent.util.StringUtils;
 import com.yiji.falcon.agent.vo.detect.DetectResult;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * 探测监控插件
@@ -56,5 +60,28 @@ public interface DetectPlugin extends Plugin {
     @Override
     default PluginActivateType activateType(){
         return PluginActivateType.AUTO;
+    }
+
+    /**
+     * 转换配置地址为地址集合工具方法
+     * @param address
+     * 配置的地址
+     * @param split
+     * 分隔的字符串
+     * null代表不分隔
+     * @return
+     */
+    default Collection<String> helpTransformAddressCollection(String address,String split){
+        Set<String> addresses = new HashSet<>();
+        if(!StringUtils.isEmpty(address)){
+            if(split != null){
+                Collections.addAll(addresses, address.split(split));
+            }else{
+                if(!StringUtils.isEmpty(address)){
+                    addresses.add(address);
+                }
+            }
+        }
+        return addresses;
     }
 }

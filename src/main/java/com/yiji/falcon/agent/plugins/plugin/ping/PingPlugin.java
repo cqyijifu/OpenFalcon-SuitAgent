@@ -12,13 +12,14 @@ import com.yiji.falcon.agent.plugins.DetectPlugin;
 import com.yiji.falcon.agent.plugins.Plugin;
 import com.yiji.falcon.agent.util.CommandUtil;
 import com.yiji.falcon.agent.util.Maths;
-import com.yiji.falcon.agent.util.StringUtils;
 import com.yiji.falcon.agent.vo.detect.DetectResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author guqiu@yiji.com
@@ -84,16 +85,7 @@ public class PingPlugin implements DetectPlugin {
      */
     @Override
     public Collection<String> detectAddressCollection() {
-        Set<String> addresses = new HashSet<>();
-        if(!StringUtils.isEmpty(this.address)){
-            for (String address : this.address.split(",")) {
-                address = address.trim();
-                if(!StringUtils.isEmpty(address)){
-                    addresses.add(address);
-                }
-            }
-        }
-        return addresses;
+        return helpTransformAddressCollection(this.address,",");
     }
 
     /**

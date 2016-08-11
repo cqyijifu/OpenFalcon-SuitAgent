@@ -10,7 +10,6 @@ package com.yiji.falcon.agent.plugins.plugin.tcp;
 
 import com.yiji.falcon.agent.plugins.DetectPlugin;
 import com.yiji.falcon.agent.plugins.Plugin;
-import com.yiji.falcon.agent.util.StringUtils;
 import com.yiji.falcon.agent.vo.detect.DetectResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,9 +19,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * @author guqiu@yiji.com
@@ -97,16 +94,7 @@ public class TcpPlugin implements DetectPlugin {
      */
     @Override
     public Collection<String> detectAddressCollection() {
-        Set<String> addresses = new HashSet<>();
-        if(!StringUtils.isEmpty(this.address)){
-            for (String address : this.address.split(",")) {
-                address = address.trim();
-                if(!StringUtils.isEmpty(address)){
-                    addresses.add(address);
-                }
-            }
-        }
-        return addresses;
+        return helpTransformAddressCollection(this.address,",");
     }
 
     /**

@@ -80,7 +80,7 @@ public class Metrics {
             rs.close();
             pstmt.close();
         }
-        plugin.closeConnections(connections);
+        plugin.helpCloseConnections(connections);
         return reportObjectSet;
     }
 
@@ -112,7 +112,7 @@ public class Metrics {
             rs.close();
             pstmt.close();
         }
-        plugin.closeConnections(connections);
+        plugin.helpCloseConnections(connections);
         return reportObjectSet;
     }
 

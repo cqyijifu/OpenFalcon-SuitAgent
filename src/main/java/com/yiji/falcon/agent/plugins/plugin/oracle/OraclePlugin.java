@@ -114,7 +114,7 @@ public class OraclePlugin implements JDBCPlugin {
             rs.close();
             pstmt.close();
         }
-        closeConnections(connections);
+        helpCloseConnections(connections);
 
         return result;
     }

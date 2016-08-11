@@ -130,7 +130,7 @@ public class JDBCMetricsValue extends MetricsCommon{
                 rs.close();
                 pstmt.close();
             }
-            jdbcPlugin.closeConnections(connections);
+            jdbcPlugin.helpCloseConnections(connections);
         }
         return result;
     }

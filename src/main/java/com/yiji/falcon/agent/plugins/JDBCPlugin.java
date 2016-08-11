@@ -59,12 +59,12 @@ public interface JDBCPlugin extends Plugin{
     Collection<FalconReportObject> inbuiltReportObjectsForValid() throws SQLException, ClassNotFoundException;
 
     /**
-     * 关闭数据库连接
+     * 关闭数据库连接的工具方法
      * @param connections
      * @throws SQLException
      * @throws ClassNotFoundException
      */
-    default void closeConnections(Collection<Connection> connections) throws SQLException, ClassNotFoundException {
+    default void helpCloseConnections(Collection<Connection> connections) throws SQLException, ClassNotFoundException {
         if(connections != null){
             connections.stream().filter(connection -> null != connection).forEach(connection -> {
                 try {

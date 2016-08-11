@@ -22,12 +22,13 @@ public class JmxTest {
 
     @Test
     public void jmxConnectTest() throws IOException, IntrospectionException, InstanceNotFoundException, ReflectionException {
-        String host = "localhost";
-        int port = 1234;
+        String host = "192.168.46.22";
+        int port = 4321;
         String jmxURL = "service:jmx:rmi:///jndi/rmi://" + host + ":" + port + "/jmxrmi";
         JMXServiceURL serviceUrl = new JMXServiceURL(jmxURL);
         JMXConnector jmxConnector = JMXConnectorFactory.connect(serviceUrl, null);
         System.out.println(jmxConnector.getMBeanServerConnection());
+        jmxConnector.close();
     }
 
     @Test

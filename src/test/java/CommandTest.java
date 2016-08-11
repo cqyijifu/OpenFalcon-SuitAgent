@@ -8,11 +8,13 @@
  */
 
 import com.yiji.falcon.agent.util.CommandUtil;
+import com.yiji.falcon.agent.util.StringUtils;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.StringTokenizer;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -50,6 +52,31 @@ public class CommandTest {
             }
 
         }
+    }
+
+    @Test
+    public void testJMXRemoteUrl() throws IOException {
+        int pid = 0;
+        String cmd = "ps aux | grep " + 6346;
+        String keyStr = "-Dcom.sun.management.jmxremote.port";
+
+        CommandUtil.ExecuteResult result = CommandUtil.execWithTimeOut(cmd,10,TimeUnit.SECONDS);
+        if(result.isSuccess){
+            String msg = result.msg;
+            StringTokenizer st = new StringTokenizer(msg," ",false);
+            while( st.hasMoreElements() ){
+                String split = st.nextToken();
+                if(!StringUtils.isEmpty(split) && split.contains(keyStr)){
+                    String[] ss = split.split("=");
+                    if(ss.length == 2){
+                        System.out.println(ss[1]);
+                    }
+                }
+            }
+        }else{
+            System.out.println("命令 " + cmd + " 执行失败");
+        }
+
     }
 
 }

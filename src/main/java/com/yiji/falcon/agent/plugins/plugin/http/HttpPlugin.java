@@ -17,7 +17,8 @@ import com.yiji.falcon.agent.vo.detect.DetectResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Map;
 
 /**
  * @author guqiu@yiji.com
@@ -145,11 +146,7 @@ public class HttpPlugin implements DetectPlugin {
      */
     @Override
     public Collection<String> detectAddressCollection() {
-        Set<String> addressSet = new HashSet<>();
-        if(!StringUtils.isEmpty(address)){
-            Collections.addAll(addressSet, address.split(","));
-        }
-        return addressSet;
+        return helpTransformAddressCollection(this.address,",");
     }
 
 }

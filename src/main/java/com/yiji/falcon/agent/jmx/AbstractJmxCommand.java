@@ -4,6 +4,8 @@
  */
 package com.yiji.falcon.agent.jmx;
 
+import com.yiji.falcon.agent.util.CommandUtil;
+import com.yiji.falcon.agent.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,6 +16,8 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.List;
 import java.util.Properties;
+import java.util.StringTokenizer;
+import java.util.concurrent.TimeUnit;
 
 /*
  * 修订记录:
@@ -37,7 +41,45 @@ public class AbstractJmxCommand {
     public static boolean isSunJVM() {
         return getJVM().equals("Sun Microsystems Inc.") || getJVM().startsWith("Oracle");
     }
-    
+
+    /**
+     * 通过进程id查找JMX的remote连接地址
+     * @param pid
+     * 查找的进行id
+     * @param ip
+     * 应用所在的IP地址
+     * @return
+     * 返回查找的JMX连接地址或查找失败返回Null
+     */
+    public static String findJMXRemoteUrlByProcessId(int pid,String ip){
+        String cmd = "ps aux | grep " + pid;
+        String keyStr = "-Dcom.sun.management.jmxremote.port";
+
+        try {
+            CommandUtil.ExecuteResult result = CommandUtil.execWithTimeOut(cmd,10, TimeUnit.SECONDS);
+            if(result.isSuccess){
+                String msg = result.msg;
+                StringTokenizer st = new StringTokenizer(msg," ",false);
+                while( st.hasMoreElements() ){
+                    String split = st.nextToken();
+                    if(!StringUtils.isEmpty(split) && split.contains(keyStr)){
+                        String[] ss = split.split("=");
+                        if(ss.length == 2){
+                            return ip + ":" + ss[1];
+                        }
+                    }
+                }
+            }else{
+                logger.error("命令 {} 执行失败",cmd);
+            }
+        } catch (Exception e) {
+            logger.error("JMX Remote Url 获取异常",e);
+            return null;
+        }
+
+        return null;
+    }
+
     /**
      * 通过进程id查找JMX的本地连接地址
      *
@@ -46,7 +88,7 @@ public class AbstractJmxCommand {
      * 返回查找的JMX本地连接地址或查找失败返回Null
      */
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    public static String findJMXUrlByProcessId(int pid) {
+    public static String findJMXLocalUrlByProcessId(int pid) {
 
         if (isSunJVM()) {
             try {
@@ -134,7 +176,6 @@ public class AbstractJmxCommand {
                     }
                 }
             } catch (Exception e) {
-                logger.error("JMX 连接地址获取异常",e);
             	return null;
             }
         }

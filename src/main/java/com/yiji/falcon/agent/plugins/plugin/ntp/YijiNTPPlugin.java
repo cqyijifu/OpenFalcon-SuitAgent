@@ -11,13 +11,14 @@ package com.yiji.falcon.agent.plugins.plugin.ntp;
 import com.yiji.falcon.agent.plugins.DetectPlugin;
 import com.yiji.falcon.agent.plugins.Plugin;
 import com.yiji.falcon.agent.util.CommandUtil;
-import com.yiji.falcon.agent.util.StringUtils;
 import com.yiji.falcon.agent.vo.detect.DetectResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -85,11 +86,7 @@ public class YijiNTPPlugin implements DetectPlugin {
      */
     @Override
     public Collection<String> detectAddressCollection() {
-        Set<String> addresses = new HashSet<>();
-        if(!StringUtils.isEmpty(this.address)){
-            addresses.add(this.address);
-        }
-        return addresses;
+        return helpTransformAddressCollection(this.address,null);
     }
 
     /**
