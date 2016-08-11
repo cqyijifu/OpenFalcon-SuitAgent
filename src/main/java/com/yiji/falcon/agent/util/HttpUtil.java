@@ -39,8 +39,8 @@ public class HttpUtil {
         HttpResult result = new HttpResult();
         HttpRequest httpRequest = new HttpRequest(new URL(url),"POST")
                 .connectTimeout(10000).readTimeout(10000)
-                .acceptJson()
-                .send(data.getBytes("utf-8"));
+                .contentType("application/json","UTF-8")
+                .send(data.getBytes("UTF-8"));
 
         result.setStatus(httpRequest.code());
         result.setResult(httpRequest.body());
