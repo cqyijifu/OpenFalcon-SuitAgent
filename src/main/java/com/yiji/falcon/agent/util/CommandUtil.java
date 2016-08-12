@@ -113,12 +113,18 @@ public class CommandUtil {
             }
             while ((num = processInStream.read(bs)) != -1) {
                 resultOutStream.write(bs, 0, num);
-                result.isSuccess = true;
             }
 
             result.msg = new String(resultOutStream.toByteArray(),"utf-8");
         }
-        result.isSuccess = process.exitValue() == 0;
+
+        if(process.exitValue() != 0){
+            logger.warn("命令 {} 执行失败 : {}",cmd,result.msg);
+            result.isSuccess = false;
+        }else {
+            result.isSuccess = true;
+        }
+
         process.destroy();
 
         return result;
