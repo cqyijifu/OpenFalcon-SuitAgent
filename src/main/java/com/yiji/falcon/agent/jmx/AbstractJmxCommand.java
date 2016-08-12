@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.StringTokenizer;
@@ -49,35 +50,155 @@ public class AbstractJmxCommand {
      * @param ip
      * 应用所在的IP地址
      * @return
-     * 返回查找的JMX连接地址或查找失败返回Null
+     * 返回查找的JMX连接地址对象或查找失败返回Null
      */
-    public static String findJMXRemoteUrlByProcessId(int pid,String ip){
+    public static JMXConnectUrlInfo findJMXRemoteUrlByProcessId(int pid, String ip){
         String cmd = "ps aux | grep " + pid;
-        String keyStr = "-Dcom.sun.management.jmxremote.port";
+        logger.info("JMX Remote Target Pid:{}", pid);
+        String jmxPortOpt = "-Dcom.sun.management.jmxremote.port";
+        String authPortOpt = "-Dcom.sun.management.jmxremote.authenticate";
 
         try {
+            JMXConnectUrlInfo remoteUrlInfo = new JMXConnectUrlInfo();
+
             CommandUtil.ExecuteResult result = CommandUtil.execWithTimeOut(cmd,10, TimeUnit.SECONDS);
+
             if(result.isSuccess){
                 String msg = result.msg;
                 StringTokenizer st = new StringTokenizer(msg," ",false);
                 while( st.hasMoreElements() ){
                     String split = st.nextToken();
-                    if(!StringUtils.isEmpty(split) && split.contains(keyStr)){
-                        String[] ss = split.split("=");
-                        if(ss.length == 2){
-                            return ip + ":" + ss[1];
+                    if(!StringUtils.isEmpty(split)){
+                        if(split.contains(jmxPortOpt)){
+                            String[] ss = split.split("=");
+                            if(ss.length == 2){
+                                remoteUrlInfo.setRemoteUrl("service:jmx:rmi:///jndi/rmi://" + ip + ":" + ss[1].trim() + "/jmxrmi");
+                            }
+                        }else if(split.contains(authPortOpt)){
+                            //是否需要JMX Remote 认证
+                            String[] ss = split.split("=");
+                            boolean isAuth = "true".equalsIgnoreCase(ss[1].trim());
+                            remoteUrlInfo.setAuthentication(isAuth);
+                            if(isAuth){
+                                //寻找JMX的认证信息
+                                String cmdJavaHome = "echo $JAVA_HOME";
+                                CommandUtil.ExecuteResult javaHomeExe = CommandUtil.execWithTimeOut(cmdJavaHome,10,TimeUnit.SECONDS);
+                                if(!javaHomeExe.isSuccess){
+                                    logger.error("请配置 JAVA_HOME 的系统变量");
+                                    return null;
+                                }
+                                String javaHome = javaHomeExe.msg;
+                                String accessFile = javaHome + "/" + "jre/lib/management/jmxremote.access";
+                                String passwordFile = javaHome + "/" + "jre/lib/management/jmxremote.password";
+                                String suffix = ".YijiFalconAgent";
+                                List<Boolean> results = new ArrayList<>();
+                                //因java授权文件有严格的读取权限控制,为能够读到授权文件信息,创建临时文件
+                                results.add(CommandUtil.execWithTimeOut(String.format("cp %s %s",accessFile,accessFile + suffix),10,TimeUnit.SECONDS).isSuccess);
+                                results.add(CommandUtil.execWithTimeOut(String.format("chmod 777 %s",accessFile + suffix),10,TimeUnit.SECONDS).isSuccess);
+                                results.add(CommandUtil.execWithTimeOut(String.format("cp %s %s",passwordFile,passwordFile + suffix),10,TimeUnit.SECONDS).isSuccess);
+                                results.add(CommandUtil.execWithTimeOut(String.format("chmod 777 %s",passwordFile + suffix),10,TimeUnit.SECONDS).isSuccess);
+                                if(results.contains(Boolean.FALSE)){
+                                    logger.error("JMX的授权文件操作失败");
+                                    //删除临时文件
+                                    CommandUtil.execWithTimeOut(String.format("rm -rf %s",accessFile + suffix),10,TimeUnit.SECONDS);
+                                    CommandUtil.execWithTimeOut(String.format("rm -rf %s",passwordFile + suffix),10,TimeUnit.SECONDS);
+                                    return null;
+                                }
+
+                                String contentForAccess = CommandUtil.execWithTimeOut(String.format("cat %s",accessFile + suffix),10,TimeUnit.SECONDS).msg;
+                                String user = getJmxUser(contentForAccess);
+                                String contentForPassword = CommandUtil.execWithTimeOut(String.format("cat %s",passwordFile + suffix),10,TimeUnit.SECONDS).msg;
+                                String password = getJmxPassword(contentForPassword,user);
+
+                                //删除临时文件
+                                CommandUtil.execWithTimeOut(String.format("rm -rf %s",accessFile + suffix),10,TimeUnit.SECONDS);
+                                CommandUtil.execWithTimeOut(String.format("rm -rf %s",passwordFile + suffix),10,TimeUnit.SECONDS);
+
+                                remoteUrlInfo.setJmxUser(user);
+                                remoteUrlInfo.setJmxPassword(password);
+
+                                if(StringUtils.isEmpty(user) || StringUtils.isEmpty(password)){
+                                    logger.error("JMX Remote 的认证User 和Password 获取失败");
+                                }
+                            }
                         }
                     }
                 }
             }else{
                 logger.error("命令 {} 执行失败",cmd);
+                return null;
             }
+
+            return remoteUrlInfo;
         } catch (Exception e) {
             logger.error("JMX Remote Url 获取异常",e);
             return null;
         }
 
+    }
+
+    /**
+     * 获取JMX授权用户
+     * @param content
+     * @return
+     */
+    private static String getJmxUser(String content){
+        content = getRidOfCommend(content);
+        String[] users = content.split("\n");
+        if(users.length < 1){
+            return null;
+        }
+        String[] user = users[0].split("\\s");
+        return user[0].trim();
+    }
+
+    /**
+     * 获取JMX授权密码
+     * @param content
+     * @param user
+     * @return
+     */
+    private static String getJmxPassword(String content,String user){
+        if(user == null){
+            return null;
+        }
+        content = getRidOfCommend(content);
+        String[] passwords = content.split("\n");
+        if(passwords.length < 1){
+            return null;
+        }
+
+        for (String password : passwords) {
+            String[] passwordConf = password.trim().split("\\s");
+            if(user.equals(passwordConf[0].trim())){
+                if(passwordConf.length != 2){
+                    return passwordConf[passwordConf.length - 1];
+                }else{
+                    return passwordConf[1].trim();
+                }
+            }
+        }
+
         return null;
+    }
+
+    /**
+     * 去掉注释行
+     * @param content
+     * @return
+     */
+    private static String getRidOfCommend(String content){
+        StringBuilder sb = new StringBuilder();
+        StringTokenizer st = new StringTokenizer(content,"\n",false);
+        while( st.hasMoreElements() ){
+            String split = st.nextToken().trim();
+            if(!StringUtils.isEmpty(split)){
+                if(split.indexOf("#") != 0){
+                    sb.append(split).append("\r\n");
+                }
+            }
+        }
+        return sb.toString();
     }
 
     /**
@@ -182,4 +303,6 @@ public class AbstractJmxCommand {
 
         return null;
     }
+
+
 }

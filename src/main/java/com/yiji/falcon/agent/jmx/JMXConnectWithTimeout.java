@@ -16,6 +16,8 @@ import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
 import java.io.IOException;
 import java.net.SocketTimeoutException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -25,11 +27,34 @@ import java.util.concurrent.TimeUnit;
  */
 public class JMXConnectWithTimeout {
 
-    public static JMXConnector connectWithTimeout( final JMXServiceURL url, long timeout, TimeUnit unit) throws IOException {
+    /**
+     * JMX连接
+     * @param url
+     * JMX连接地址
+     * @param jmxUser
+     * JMX授权用户 null为无授权用户
+     * @param jmxPassword
+     * JMX授权密码 null为无授权密码
+     * @param timeout
+     * 超时时间
+     * @param unit
+     * 超时单位
+     * @return
+     * @throws IOException
+     */
+    public static JMXConnector connectWithTimeout( final JMXServiceURL url,String jmxUser,String jmxPassword, long timeout, TimeUnit unit) throws IOException {
         final BlockingQueue<Object> blockingQueue = new ArrayBlockingQueue<>(1);
         ExecuteThreadUtil.execute(() -> {
             try {
-                JMXConnector connector = JMXConnectorFactory.connect(url);
+                JMXConnector connector;
+                if(jmxUser != null && jmxPassword != null){
+                    Map<String,String[]> map = new HashMap<>();
+                    String[] credentials = new String[] { jmxUser, jmxPassword };
+                    map.put("jmx.remote.credentials", credentials);
+                    connector = JMXConnectorFactory.connect(url,map);
+                }else{
+                    connector = JMXConnectorFactory.connect(url,null);
+                }
                 if (!blockingQueue.offer(connector))
                     connector.close();
             } catch (Throwable t) {

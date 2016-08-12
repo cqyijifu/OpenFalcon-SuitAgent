@@ -9,6 +9,7 @@
 
 import com.yiji.falcon.agent.util.CommandUtil;
 import com.yiji.falcon.agent.util.StringUtils;
+import org.apache.log4j.PropertyConfigurator;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -22,8 +23,17 @@ import java.util.concurrent.TimeUnit;
  */
 public class CommandTest {
 
+    static {
+        PropertyConfigurator.configure("/Users/QianL/Documents/develop/falcon-agent/falcon-agent/src/main/resources_ext/conf/log4j.properties");
+    }
+
     @Test
-    public void test() throws IOException {
+    public void exec() throws IOException {
+        System.out.println(CommandUtil.execWithTimeOut("rm /hahah/haha.hah",10,TimeUnit.SECONDS));
+    }
+
+    @Test
+    public void ping() throws IOException {
         int count = 5;
         String address = "www.deh4.com";
 
@@ -77,6 +87,92 @@ public class CommandTest {
             System.out.println("命令 " + cmd + " 执行失败");
         }
 
+    }
+
+    @Test
+    public void jmxAuth() throws IOException, InterruptedException {
+//        String cmdJavaHome = "echo $JAVA_HOME";
+//        CommandUtil.ExecuteResult javaHomeExe = CommandUtil.execWithTimeOut(cmdJavaHome,10,TimeUnit.SECONDS);
+//        if(!javaHomeExe.isSuccess){
+//            System.out.println("请配置 JAVA_HOME 的系统变量");
+//            return;
+//        }
+        String javaHome = "/Users/QianL/Desktop/jmx";
+        String accessFile = javaHome + "/" + "jre/lib/management/jmxremote.access";
+        String passwordFile = javaHome + "/" + "jre/lib/management/jmxremote.password";
+        String suffix = ".YijiFalconAgent";
+        List<Boolean> results = new ArrayList<>();
+        results.add(CommandUtil.execWithTimeOut(String.format("cp %s %s",accessFile,accessFile + suffix),10,TimeUnit.SECONDS).isSuccess);
+        results.add(CommandUtil.execWithTimeOut(String.format("chmod 777 %s",accessFile + suffix),10,TimeUnit.SECONDS).isSuccess);
+        results.add(CommandUtil.execWithTimeOut(String.format("cp %s %s",passwordFile,passwordFile + suffix),10,TimeUnit.SECONDS).isSuccess);
+        results.add(CommandUtil.execWithTimeOut(String.format("chmod 777 %s",passwordFile + suffix),10,TimeUnit.SECONDS).isSuccess);
+        if(results.contains(Boolean.FALSE)){
+            System.out.println("JMX的授权文件操作失败");
+            CommandUtil.execWithTimeOut(String.format("rm -rf %s",accessFile + suffix),10,TimeUnit.SECONDS);
+            CommandUtil.execWithTimeOut(String.format("rm -rf %s",passwordFile + suffix),10,TimeUnit.SECONDS);
+            return;
+        }
+
+        String contentForAccess = CommandUtil.execWithTimeOut(String.format("cat %s",accessFile + suffix),10,TimeUnit.SECONDS).msg;
+        String user = getJmxUser(contentForAccess);
+        System.out.println("jmx user : " + user);
+        String contentForPassword = CommandUtil.execWithTimeOut(String.format("cat %s",passwordFile + suffix),10,TimeUnit.SECONDS).msg;
+        String password = getJmxPassword(contentForPassword,user);
+        System.out.println("jmx password : " + password);
+
+
+        CommandUtil.execWithTimeOut(String.format("rm -rf %s",accessFile + suffix),10,TimeUnit.SECONDS);
+        CommandUtil.execWithTimeOut(String.format("rm -rf %s",passwordFile + suffix),10,TimeUnit.SECONDS);
+
+        Thread.sleep(20000);
+    }
+
+    private String getJmxUser(String content){
+        content = getRidOfCommend(content);
+        String[] users = content.split("\n");
+        if(users.length < 1){
+            return null;
+        }
+        String[] user = users[0].split("\\s");
+        return user[0].trim();
+    }
+
+    private String getJmxPassword(String content,String user){
+        if(user == null){
+            return null;
+        }
+        content = getRidOfCommend(content);
+        String[] passwords = content.split("\n");
+        if(passwords.length < 1){
+            return null;
+        }
+
+        for (String password : passwords) {
+            String[] passwordConf = password.trim().split("\\s");
+            if(user.equals(passwordConf[0].trim())){
+                if(passwordConf.length != 2){
+                    return passwordConf[passwordConf.length - 1];
+                }else{
+                    return passwordConf[1].trim();
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private String getRidOfCommend(String content){
+        StringBuilder sb = new StringBuilder();
+        StringTokenizer st = new StringTokenizer(content,"\n",false);
+        while( st.hasMoreElements() ){
+            String split = st.nextToken().trim();
+            if(!StringUtils.isEmpty(split)){
+                if(split.indexOf("#") != 0){
+                    sb.append(split).append("\r\n");
+                }
+            }
+        }
+        return sb.toString();
     }
 
 }

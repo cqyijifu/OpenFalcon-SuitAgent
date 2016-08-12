@@ -99,16 +99,21 @@ public class JMXConnection {
             List<VirtualMachineDescriptor> vms = VirtualMachine.list();
             for (VirtualMachineDescriptor desc : vms) {
                 if(desc.displayName().contains(serverName)){
-                    String connectorAddress = getConnectorAddress(desc);
-
-                    if (connectorAddress == null) {
+                    JMXConnectUrlInfo jmxConnectUrlInfo = getConnectorAddress(desc);
+                    if (jmxConnectUrlInfo == null) {
                         log.error("应用 {} 的JMX连接URL获取失败",desc.displayName());
                         continue;
                     }
 
                     try {
-                        JMXServiceURL url = new JMXServiceURL(connectorAddress);
-                        JMXConnector connector = JMXConnectWithTimeout.connectWithTimeout(url,10, TimeUnit.SECONDS);
+                        JMXServiceURL url = new JMXServiceURL(jmxConnectUrlInfo.getRemoteUrl());
+                        JMXConnector connector;
+                        if(jmxConnectUrlInfo.isAuthentication()){
+                            connector = JMXConnectWithTimeout.connectWithTimeout(url,jmxConnectUrlInfo.getJmxUser(),
+                                    jmxConnectUrlInfo.getJmxPassword(),10, TimeUnit.SECONDS);
+                        }else{
+                            connector = JMXConnectWithTimeout.connectWithTimeout(url,null,null,10, TimeUnit.SECONDS);
+                        }
                         connections.add(initJMXConnectionInfo(connector,desc, UUID.randomUUID().toString()));
                         log.debug("应用 {} JMX 连接已建立",serverName);
                         count++;
@@ -161,14 +166,20 @@ public class JMXConnection {
             int count = 0;
             //重新构建连接
             for (VirtualMachineDescriptor desc : targetDesc) {
-                String connectorAddress = getConnectorAddress(desc);
-                if (connectorAddress == null) {
+                JMXConnectUrlInfo jmxConnectUrlInfo = getConnectorAddress(desc);
+                if (jmxConnectUrlInfo == null) {
                     log.error("应用{}的JMX连接URL获取失败",serverName);
                     continue;
                 }
                 try {
-                    JMXServiceURL url = new JMXServiceURL(connectorAddress);
-                    JMXConnector connector = JMXConnectWithTimeout.connectWithTimeout(url,10, TimeUnit.SECONDS);
+                    JMXServiceURL url = new JMXServiceURL(jmxConnectUrlInfo.getRemoteUrl());
+                    JMXConnector connector;
+                    if(jmxConnectUrlInfo.isAuthentication()){
+                        connector = JMXConnectWithTimeout.connectWithTimeout(url,jmxConnectUrlInfo.getJmxUser()
+                                ,jmxConnectUrlInfo.getJmxPassword(),10, TimeUnit.SECONDS);
+                    }else{
+                        connector = JMXConnectWithTimeout.connectWithTimeout(url,null,null,10, TimeUnit.SECONDS);
+                    }
                     initJMXConnectionInfo(connector,desc,UUID.randomUUID().toString());
                     log.debug("应用 {} JMX 连接已建立",serverName);
                     count++;
@@ -181,16 +192,20 @@ public class JMXConnection {
 
     }
 
-    private String getConnectorAddress(VirtualMachineDescriptor desc){
+
+
+    private JMXConnectUrlInfo getConnectorAddress(VirtualMachineDescriptor desc){
         String connectorAddress = AbstractJmxCommand.findJMXLocalUrlByProcessId(Integer.parseInt(desc.id()));
-        if(connectorAddress == null){
-            log.info("本地JMX连接Attach失败,尝试JMX Remote 连接");
-            connectorAddress = AbstractJmxCommand.findJMXRemoteUrlByProcessId(Integer.parseInt(desc.id()),"127.0.0.1");
-            if(connectorAddress != null){
-                connectorAddress = "service:jmx:rmi:///jndi/rmi://" +connectorAddress + "/jmxrmi";
-            }
+        if(connectorAddress != null){
+            return new JMXConnectUrlInfo(connectorAddress);
         }
-        return connectorAddress;
+
+        log.info("本地JMX连接Attach失败,尝试JMX Remote 连接");
+        JMXConnectUrlInfo jmxConnectUrlInfo = AbstractJmxCommand.findJMXRemoteUrlByProcessId(Integer.parseInt(desc.id()),"127.0.0.1");
+        if(jmxConnectUrlInfo != null){
+            log.info("JMX Remote URL:{}",jmxConnectUrlInfo.getRemoteUrl());
+        }
+        return jmxConnectUrlInfo;
     }
 
     /**
