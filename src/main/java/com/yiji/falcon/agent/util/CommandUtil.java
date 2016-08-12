@@ -118,7 +118,7 @@ public class CommandUtil {
 
             result.msg = new String(resultOutStream.toByteArray(),"utf-8");
         }
-
+        result.isSuccess = process.exitValue() == 0;
         process.destroy();
 
         return result;
