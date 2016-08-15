@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -33,6 +34,7 @@ import java.util.concurrent.TimeUnit;
 public class TomcatPlugin implements JMXPlugin {
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
+    private ConcurrentHashMap<Integer,String> serverDirNameCatch = new ConcurrentHashMap<>();
 
     private String basePropertiesKey;
     private String jmxServerName;
@@ -161,23 +163,26 @@ public class TomcatPlugin implements JMXPlugin {
 
     @Override
     public String serverDirName(int pid) {
-        String dirName = "";
-        try {
-            String cmd = "lsof -p " + pid + " | grep catalina.jar";
-            CommandUtil.ExecuteResult executeResult = CommandUtil.execWithTimeOut(cmd,10, TimeUnit.SECONDS);
-            String msg = executeResult.msg;
-            String[] ss = msg.split("\\s");
-            for (String s : ss) {
-                if(s.contains("catalina.jar")){
-                    s = s.substring(0,s.lastIndexOf("/"));
-                    s = s.substring(0,s.lastIndexOf("/"));
-                    s = s.substring(s.lastIndexOf("/") + 1,s.length());
-                    dirName = s;
-                    break;
+        String dirName = serverDirNameCatch.get(pid);
+        if(dirName == null){
+            try {
+                String cmd = "lsof -p " + pid + " | grep catalina.jar";
+                CommandUtil.ExecuteResult executeResult = CommandUtil.execWithTimeOut(cmd,10, TimeUnit.SECONDS);
+                String msg = executeResult.msg;
+                String[] ss = msg.split("\\s");
+                for (String s : ss) {
+                    if(s.contains("catalina.jar")){
+                        s = s.substring(0,s.lastIndexOf("/"));
+                        s = s.substring(0,s.lastIndexOf("/"));
+                        s = s.substring(s.lastIndexOf("/") + 1,s.length());
+                        dirName = s;
+                        serverDirNameCatch.put(pid,dirName);
+                        break;
+                    }
                 }
+            } catch (IOException e) {
+                log.error("tomcat serverDirName获取异常",e);
             }
-        } catch (IOException e) {
-            log.error("tomcat serverDirName获取异常",e);
         }
         return dirName;
     }
