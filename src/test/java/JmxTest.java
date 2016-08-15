@@ -14,6 +14,8 @@ import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by QianLong on 16/4/25.
@@ -23,10 +25,15 @@ public class JmxTest {
     @Test
     public void jmxConnectTest() throws IOException, IntrospectionException, InstanceNotFoundException, ReflectionException {
         String host = "192.168.46.22";
-        int port = 4321;
+        int port = 4444;
         String jmxURL = "service:jmx:rmi:///jndi/rmi://" + host + ":" + port + "/jmxrmi";
         JMXServiceURL serviceUrl = new JMXServiceURL(jmxURL);
-        JMXConnector jmxConnector = JMXConnectorFactory.connect(serviceUrl, null);
+
+        Map<String,Object> map = new HashMap<>();
+        String[] credentials = new String[] { "yijifu", "123456" };
+        map.put(JMXConnector.CREDENTIALS, credentials);
+
+        JMXConnector jmxConnector = JMXConnectorFactory.connect(serviceUrl, map);
         System.out.println(jmxConnector.getMBeanServerConnection());
         jmxConnector.close();
     }

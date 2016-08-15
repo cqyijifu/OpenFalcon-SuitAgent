@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.StringTokenizer;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -53,19 +54,21 @@ public class CommandUtil {
     }
 
     /**
-     * 执行命令
+     * 执行命令,指定执行体
+     * @param execTarget
+     * 指定执行体,null则使用默认执行体(/bin/sh)
      * @param cmd
      * @param timeout
      * @param unit
      * @return
      * @throws IOException
      */
-    public static ExecuteResult execWithTimeOut(String cmd, long timeout, TimeUnit unit) throws IOException {
+    public static ExecuteResult execWithTimeOut(String execTarget,String cmd, long timeout, TimeUnit unit) throws IOException {
         final ExecuteResult[] executeResult = {new ExecuteResult()};
         final BlockingQueue<Object> blockingQueue = new ArrayBlockingQueue<>(1);
         ExecuteThreadUtil.execute(() -> {
             try {
-                executeResult[0] = exec(cmd);
+                executeResult[0] = exec(execTarget,cmd);
                 if (!blockingQueue.offer(executeResult[0]))
                     logger.error("阻塞队列插入失败");
             } catch (Throwable t) {
@@ -89,16 +92,41 @@ public class CommandUtil {
     }
 
     /**
+     * 执行命令,使用默认执行体(/bin/sh)
+     * @param cmd
+     * @param timeout
+     * @param unit
+     * @return
+     * @throws IOException
+     */
+    public static ExecuteResult execWithTimeOut(String cmd, long timeout, TimeUnit unit) throws IOException {
+        return execWithTimeOut(null,cmd,timeout,unit);
+    }
+
+
+    /**
      * 执行命令
+     * @param execTarget
+     * 执行体
+     * 默认 /bin/sh
      * @param cmd
      * 待执行的命令
      * @return
      * @throws IOException
      */
-    private static ExecuteResult exec(String cmd) throws IOException {
+    private static ExecuteResult exec(String execTarget,String cmd) throws IOException {
         ExecuteResult result = new ExecuteResult();
 
-        String[] sh = new String[]{"/bin/sh", "-c", cmd};
+        String[] sh;
+        if(execTarget == null){
+            execTarget = "/bin/sh";
+            sh = new String[]{execTarget, "-c", cmd};
+        }else{
+            sh = new String[]{execTarget, cmd};
+        }
+
+        logger.info("执行命令 : {} {}",execTarget,cmd);
+
         ProcessBuilder pb = new ProcessBuilder(sh);
         Process process = pb.start();
 
@@ -118,11 +146,15 @@ public class CommandUtil {
             result.msg = new String(resultOutStream.toByteArray(),"utf-8");
         }
 
-        if(process.exitValue() != 0){
-            logger.warn("命令 {} 执行失败 : {}",cmd,result.msg);
-            result.isSuccess = false;
-        }else {
-            result.isSuccess = true;
+        try {
+            if(process.waitFor() != 0){
+                logger.warn("命令 {} 执行失败 : {}",cmd,result.msg);
+                result.isSuccess = false;
+            }else {
+                result.isSuccess = true;
+            }
+        } catch (InterruptedException e) {
+            logger.error("命令 {} 执行异常",cmd,e);
         }
 
         process.destroy();
@@ -177,6 +209,38 @@ public class CommandUtil {
         }
 
         return pingResult;
+    }
+
+    /**
+     * 从 /etc/profile 文件获取JAVA_HOME
+     * @return
+     * null : 获取失败
+     * @throws IOException
+     */
+    public static String getJavaHomeFromEtcProfile() throws IOException {
+        ExecuteResult executeResult = execWithTimeOut("cat /etc/profile",10,TimeUnit.SECONDS);
+        if(!executeResult.isSuccess){
+            return null;
+        }
+        String msg = executeResult.msg;
+        StringTokenizer st = new StringTokenizer(msg,"\n",false);
+        while( st.hasMoreElements() ){
+            String split = st.nextToken().trim();
+            if(!StringUtils.isEmpty(split)){
+                if(split.contains("JAVA_HOME")){
+                    String[] ss = split.split("=");
+                    List<String> list = new ArrayList<>();
+                    for (String s : ss) {
+                        if(!StringUtils.isEmpty(s)){
+                            list.add(s);
+                        }
+                    }
+                    return list.get(list.size() - 1);
+                }
+            }
+        }
+
+        return null;
     }
 
     public static class PingResult{

@@ -203,7 +203,7 @@ public class JMXConnection {
         log.info("本地JMX连接Attach失败,尝试JMX Remote 连接");
         JMXConnectUrlInfo jmxConnectUrlInfo = AbstractJmxCommand.findJMXRemoteUrlByProcessId(Integer.parseInt(desc.id()),"127.0.0.1");
         if(jmxConnectUrlInfo != null){
-            log.info("JMX Remote URL:{}",jmxConnectUrlInfo.getRemoteUrl());
+            log.info("JMX Remote URL:{}",jmxConnectUrlInfo);
         }
         return jmxConnectUrlInfo;
     }

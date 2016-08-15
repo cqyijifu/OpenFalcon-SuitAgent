@@ -29,7 +29,7 @@ public class CommandTest {
 
     @Test
     public void exec() throws IOException {
-        System.out.println(CommandUtil.execWithTimeOut("rm /hahah/haha.hah",10,TimeUnit.SECONDS));
+        System.out.println(CommandUtil.getJavaHomeFromEtcProfile());
     }
 
     @Test
@@ -91,12 +91,12 @@ public class CommandTest {
 
     @Test
     public void jmxAuth() throws IOException, InterruptedException {
-//        String cmdJavaHome = "echo $JAVA_HOME";
-//        CommandUtil.ExecuteResult javaHomeExe = CommandUtil.execWithTimeOut(cmdJavaHome,10,TimeUnit.SECONDS);
-//        if(!javaHomeExe.isSuccess){
-//            System.out.println("请配置 JAVA_HOME 的系统变量");
-//            return;
-//        }
+        String cmdJavaHome = "echo $JAVA_HOME";
+        CommandUtil.ExecuteResult javaHomeExe = CommandUtil.execWithTimeOut("/bin/echo",cmdJavaHome,10,TimeUnit.SECONDS);
+        if(!javaHomeExe.isSuccess){
+            System.out.println("请配置 JAVA_HOME 的系统变量");
+            return;
+        }
         String javaHome = "/Users/QianL/Desktop/jmx";
         String accessFile = javaHome + "/" + "jre/lib/management/jmxremote.access";
         String passwordFile = javaHome + "/" + "jre/lib/management/jmxremote.password";
@@ -124,7 +124,6 @@ public class CommandTest {
         CommandUtil.execWithTimeOut(String.format("rm -rf %s",accessFile + suffix),10,TimeUnit.SECONDS);
         CommandUtil.execWithTimeOut(String.format("rm -rf %s",passwordFile + suffix),10,TimeUnit.SECONDS);
 
-        Thread.sleep(20000);
     }
 
     private String getJmxUser(String content){

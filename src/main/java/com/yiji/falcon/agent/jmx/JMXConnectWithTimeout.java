@@ -48,10 +48,10 @@ public class JMXConnectWithTimeout {
             try {
                 JMXConnector connector;
                 if(jmxUser != null && jmxPassword != null){
-                    Map<String,String[]> map = new HashMap<>();
+                    Map<String,Object> env = new HashMap<>();
                     String[] credentials = new String[] { jmxUser, jmxPassword };
-                    map.put("jmx.remote.credentials", credentials);
-                    connector = JMXConnectorFactory.connect(url,map);
+                    env.put(JMXConnector.CREDENTIALS, credentials);
+                    connector = JMXConnectorFactory.connect(url,env);
                 }else{
                     connector = JMXConnectorFactory.connect(url,null);
                 }
