@@ -34,6 +34,8 @@ public class Client {
 
     private Charset charset = Charset.forName("UTF-8");
 
+    private boolean shutdown = false;
+
     /**
      * 启动client服务
      * @throws IOException
@@ -85,6 +87,10 @@ public class Client {
                 if(key.isReadable()){
                     receive(key);
                 }
+                if(shutdown){
+                    key.cancel();
+                    return;
+                }
                 if(key.isWritable()){
                     send(key);
                 }
@@ -110,10 +116,8 @@ public class Client {
             if("echo:exit\r\n".equals(outputData)){
                 key.cancel();
                 socketChannel.close();
-                //关闭服务器连接
-                close();
                 Agent.OUT.println("Agent已关闭成功");
-                System.exit(0);
+                closeClient();
             }
 
             ByteBuffer temp = encode(outputData);
@@ -126,9 +130,10 @@ public class Client {
      * 关闭连接资源
      * @throws IOException
      */
-    public void close() throws IOException {
+    public void closeClient() throws IOException {
         socketChannel.close();
         selector.close();
+        shutdown = true;
     }
 
     /**

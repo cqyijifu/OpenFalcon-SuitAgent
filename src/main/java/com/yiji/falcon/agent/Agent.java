@@ -57,6 +57,15 @@ public class Agent extends Thread{
 
     @Override
     public void run() {
+
+        //Agent主服务添加关闭钩子
+        Runtime.getRuntime().addShutdownHook(new Thread(){
+            @Override
+            public void run() {
+                stopAgent();
+            }
+        });
+
         try {
             this.agentWebServerStart(AgentConfiguration.INSTANCE.getAgentWebPort());
             this.agentServerStart(AgentConfiguration.INSTANCE.getAgentPort());
@@ -99,25 +108,20 @@ public class Agent extends Thread{
         if(FileUtil.writeTextToTextFile(falconAgentConfContent,falconAgentDir,"cfg.json",false)){
             String common = falconAgentDir + File.separator + "control start";
             CommandUtil.ExecuteResult executeResult = CommandUtil.execWithTimeOut(common,10, TimeUnit.SECONDS);
-            if(executeResult.isSuccess){
-                log.info("正在启动 Falcon Agent : {}",executeResult.msg);
-                String msg = executeResult.msg.trim();
-                if(msg.contains("falcon-agent started")){
-                    falconAgentPid = Integer.parseInt(msg.substring(
-                            msg.indexOf("pid=") + 4
-                    ));
-                    log.info("Falcon Agent 启动成功,进程ID为 : {}",falconAgentPid);
-                }else if(msg.contains("falcon-agent now is running already")){
-                    falconAgentPid = Integer.parseInt(msg.substring(
-                            msg.indexOf("pid=") + 4
-                    ));
-                    log.info("Falcon Agent 已启动,无需重复启动,进程ID为 : {}",falconAgentPid);
-                }else{
-                    log.error("Agent启动失败 - Falcon Agent 启动失败");
-                    System.exit(0);
-                }
+            log.info("正在启动 Falcon Agent : {}",executeResult.msg);
+            String msg = executeResult.msg.trim();
+            if(msg.contains("falcon-agent started")){
+                falconAgentPid = Integer.parseInt(msg.substring(
+                        msg.indexOf("pid=") + 4
+                ));
+                log.info("Falcon Agent 启动成功,进程ID为 : {}",falconAgentPid);
+            }else if(msg.contains("falcon-agent now is running already")){
+                falconAgentPid = Integer.parseInt(msg.substring(
+                        msg.indexOf("pid=") + 4
+                ));
+                log.info("Falcon Agent 已启动,无需重复启动,进程ID为 : {}",falconAgentPid);
             }else{
-                log.error("Agent启动失败 - Falcon Agent启动失败");
+                log.error("Agent启动失败 - Falcon Agent 启动失败");
                 System.exit(0);
             }
         }else{
@@ -293,31 +297,39 @@ public class Agent extends Thread{
                 main.start();
                 break;
             case "stop":
-                try {
-                    Client client = new Client();
-                    client.start(AgentConfiguration.INSTANCE.getAgentPort());
-                    client.sendCloseCommend();
-                    client.talk();
-                } catch (IOException e) {
-                    exception(e);
-                    OUT.println("Connection refused ! Agent Not Start");
-                }
+                stopAgent();
                 break;
             case "status":
-                try {
-                    Client client = new Client();
-                    client.start(AgentConfiguration.INSTANCE.getAgentPort());
-                    OUT.println("Agent Started On Port " + AgentConfiguration.INSTANCE.getAgentPort());
-                    client.close();
-                } catch (IOException e) {
-                    exception(e);
-                    OUT.println("Connection refused ! Agent Not Start");
-                }
+                statusAgent();
                 break;
             default:
                 OUT.println(errorMsg);
         }
 
+    }
+
+    private static void statusAgent(){
+        try {
+            Client client = new Client();
+            client.start(AgentConfiguration.INSTANCE.getAgentPort());
+            OUT.println("Agent Started On Port " + AgentConfiguration.INSTANCE.getAgentPort());
+            client.closeClient();
+        } catch (IOException e) {
+            exception(e);
+            OUT.println("Connection refused ! Agent Not Start");
+        }
+    }
+
+    private static void stopAgent(){
+        try {
+            Client client = new Client();
+            client.start(AgentConfiguration.INSTANCE.getAgentPort());
+            client.sendCloseCommend();
+            client.talk();
+        } catch (IOException e) {
+            exception(e);
+            OUT.println("Connection refused ! Agent Not Start");
+        }
     }
 
     private static void exception(Exception e){
