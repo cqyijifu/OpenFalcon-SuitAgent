@@ -91,6 +91,11 @@ public enum  AgentConfiguration {
      */
     private int agentFlushTime = 300;
 
+    /**
+     * JMX连接是否支持本地连接
+     */
+    private boolean agentJMXLocalConnect = false;
+
 
     private static final String CONF_AGENT_ENDPOINT = "agent.endpoint";
     private static final String CONF_AGENT_FLUSH_TIME = "agent.flush.time";
@@ -102,6 +107,7 @@ public enum  AgentConfiguration {
     private static final String AUTHORIZATION_CONF_PATH = "authorization.conf.path";
     private static final String FALCON_DIR_PATH = "agent.falcon.dir";
     private static final String FALCON_CONF_DIR_PATH = "agent.falcon.conf.dir";
+    private static final String CONF_AGENT_JMX_LOCAL_CONNECT = "agent.jmx.localConnectSupport";
 
     private Properties agentConf = null;
 
@@ -178,19 +184,18 @@ public enum  AgentConfiguration {
         if(!StringUtils.isEmpty(agentConf.getProperty(CONF_AGENT_WEB_PORT))){
             try {
                 this.agentWebPort = Integer.parseInt(agentConf.getProperty(CONF_AGENT_WEB_PORT));
-            } catch (NumberFormatException e) {
+            } catch (Exception e) {
                 log.error("Agent启动失败,端口配置{}无效:{}", CONF_AGENT_WEB_PORT, agentConf.getProperty(CONF_AGENT_WEB_PORT));
                 System.exit(0);
             }
         }
 
         if(!StringUtils.isEmpty(agentConf.getProperty(CONF_AGENT_WEB_ENABLE))){
-            try {
-                this.webEnable = "true".equals(agentConf.getProperty(CONF_AGENT_WEB_ENABLE));
-            } catch (NumberFormatException e) {
-                log.error("Agent启动失败,端口配置{}无效:{}", CONF_AGENT_WEB_ENABLE, agentConf.getProperty(CONF_AGENT_WEB_ENABLE));
-                System.exit(0);
-            }
+            this.webEnable = "true".equals(agentConf.getProperty(CONF_AGENT_WEB_ENABLE));
+        }
+
+        if(!StringUtils.isEmpty(agentConf.getProperty(CONF_AGENT_JMX_LOCAL_CONNECT))){
+            this.agentJMXLocalConnect = "true".equals(agentConf.getProperty(CONF_AGENT_JMX_LOCAL_CONNECT));
         }
 
         if(!StringUtils.isEmpty(agentConf.getProperty(CONF_AGENT_PORT))){
@@ -284,5 +289,9 @@ public enum  AgentConfiguration {
 
     public boolean isWebEnable() {
         return webEnable;
+    }
+
+    public boolean isAgentJMXLocalConnect() {
+        return agentJMXLocalConnect;
     }
 }

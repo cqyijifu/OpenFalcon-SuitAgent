@@ -4,8 +4,10 @@
  */
 package com.yiji.falcon.agent.jmx;
 
+import com.sun.tools.attach.AttachNotSupportedException;
 import com.sun.tools.attach.VirtualMachine;
 import com.sun.tools.attach.VirtualMachineDescriptor;
+import com.yiji.falcon.agent.config.AgentConfiguration;
 import com.yiji.falcon.agent.jmx.vo.JMXConnectionInfo;
 import com.yiji.falcon.agent.util.StringUtils;
 import org.slf4j.Logger;
@@ -195,15 +197,18 @@ public class JMXConnection {
 
 
     private JMXConnectUrlInfo getConnectorAddress(VirtualMachineDescriptor desc){
-        String connectorAddress = AbstractJmxCommand.findJMXLocalUrlByProcessId(Integer.parseInt(desc.id()));
-        if(connectorAddress != null){
-            return new JMXConnectUrlInfo(connectorAddress);
+        if(AgentConfiguration.INSTANCE.isAgentJMXLocalConnect()){
+            String connectorAddress = AbstractJmxCommand.findJMXLocalUrlByProcessId(Integer.parseInt(desc.id()));
+            if(connectorAddress != null){
+                return new JMXConnectUrlInfo(connectorAddress);
+            }
         }
 
-        log.info("本地JMX连接Attach失败,尝试JMX Remote 连接");
         JMXConnectUrlInfo jmxConnectUrlInfo = AbstractJmxCommand.findJMXRemoteUrlByProcessId(Integer.parseInt(desc.id()),"127.0.0.1");
         if(jmxConnectUrlInfo != null){
             log.info("JMX Remote URL:{}",jmxConnectUrlInfo);
+        }else if(!AgentConfiguration.INSTANCE.isAgentJMXLocalConnect()){
+            log.warn("应用未配置JMX Remote功能,请给应用配置JMX Remote");
         }
         return jmxConnectUrlInfo;
     }

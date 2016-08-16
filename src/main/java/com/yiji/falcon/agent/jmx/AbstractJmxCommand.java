@@ -4,7 +4,6 @@
  */
 package com.yiji.falcon.agent.jmx;
 
-import com.google.common.collect.Lists;
 import com.yiji.falcon.agent.util.CommandUtil;
 import com.yiji.falcon.agent.util.StringUtils;
 import org.slf4j.Logger;
@@ -278,12 +277,6 @@ public class AbstractJmxCommand {
 
         if (isSunJVM()) {
             try {
-                // Classes are all dynamically loaded, since they are specific to Sun VM
-                // if it fails for any reason default jmx url will be used
-
-                // tools.jar are not always included used by default class loader, so we
-                // will try to use custom loader that will try to load tools.jar
-
                 String javaHome = System.getProperty("java.home");
                 String tools = javaHome + File.separator +
                         ".." + File.separator + "lib" + File.separator + "tools.jar";
@@ -296,6 +289,8 @@ public class AbstractJmxCommand {
                 Method attachToVM = virtualMachine.getMethod("attach", String.class);
                 Method getAgentProperties = virtualMachine.getMethod("getAgentProperties", (Class[])null);
                 Method getVMId = virtualMachineDescriptor.getMethod("id",  (Class[])null);
+
+
 
                 List allVMs = (List)getVMList.invoke(null, (Object[])null);
 
