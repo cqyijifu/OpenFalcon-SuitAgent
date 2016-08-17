@@ -11,7 +11,6 @@ package com.yiji.falcon.agent.util;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -22,6 +21,8 @@ public class JSONUtil {
 
     /**
      * JSON转map
+     * @param map
+     * 数据保存的对象
      * @param target
      * {@link com.alibaba.fastjson.JSONObject} 对象
      * @param keys
@@ -30,31 +31,43 @@ public class JSONUtil {
      * keys
      * @return
      */
-    public static Map<String,Object> jsonToMap(Object target, String keys){
-        Map<String,Object> map = new HashMap<>();
+    public static void jsonToMap(Map<String,Object> map,Object target, String keys){
+        if(map == null){
+            return;
+        }
         if(target instanceof JSONObject){
             JSONObject jsonObject = (JSONObject) target;
             for (String key : jsonObject.keySet()) {
                 Object object = jsonObject.get(key);
                 if(object instanceof JSONObject){
-                    map.putAll(jsonToMap(object, StringUtils.isEmpty(keys) ? key : (keys + "." + key)));
+                    jsonToMap(map,object, StringUtils.isEmpty(keys) ? key : (keys + "." + key));
                 }else if(object instanceof JSONArray){
-                    map.putAll(jsonToMap(object, StringUtils.isEmpty(keys) ? key : (keys + "." + key)));
+                    jsonToMap(map,object, StringUtils.isEmpty(keys) ? key : (keys + "." + key));
                 }else{
-                    map.put(StringUtils.isEmpty(keys) ? key : (keys + "." + key),object);
+                    map.put(getKey(map,StringUtils.isEmpty(keys) ? key : (keys + "." + key),0),object);
                 }
             }
         }else if(target instanceof JSONArray){
             JSONArray jsonArray = (JSONArray) target;
             for (Object object : jsonArray) {
-                map.putAll(jsonToMap(object,keys));
+                jsonToMap(map,object,keys);
             }
         }else{
             if(keys != null){
-                map.put(keys,target);
+                map.put(getKey(map,keys,0),target);
             }
         }
+    }
 
-        return map;
+    private static String getKey(Map<String,Object> map,String key,int index){
+        String newKey = key;
+        if(index > 0){
+            newKey += "." + index;
+        }
+        if(map.get(newKey) != null){
+            newKey = getKey(map,key,++index);
+
+        }
+        return newKey;
     }
 }

@@ -19,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
 
@@ -43,13 +44,30 @@ public class DockerTest {
             String id = container.getString("Id");
             JSONObject result = dockerRemoteUtil.getStatsJSON(id);
 
-            Map<String ,Object> map = JSONUtil.jsonToMap(result,null);
+            Map<String ,Object> map = new HashMap<>();
+            JSONUtil.jsonToMap(map,result,null);
             for (Map.Entry<String, Object> entry : map.entrySet()) {
-                System.out.println(entry.getKey());
-//                System.out.println(entry.getKey() + " : " + entry.getValue() + " : " + entry.getValue().getClass());
+                System.out.println(entry.getKey() + "\t\t:\t\t" + entry.getValue() + "\t\t:\t\t" + entry.getValue().getClass());
             }
         }
     }
+
+//    @Test
+//    public void statistic() throws IOException {
+//        DockerRemoteUtil dockerRemoteUtil = new DockerRemoteUtil("192.168.46.22:4232");
+//        JSONArray containers = dockerRemoteUtil.getContainersJSON();
+//        for (int i = 0;i<containers.size();i++){
+//            JSONObject container = containers.getJSONObject(i);
+//            logger.info("容器{}的状态信息:",container.get("Names"));
+//            String id = container.getString("Id");
+//            JSONObject result = dockerRemoteUtil.getStatsJSON(id);
+//
+//            JSONObject precpu_stats = result.getJSONObject("precpu_stats");
+//            JSONObject cpu_usage = precpu_stats.getJSONObject("cpu_usage");
+//            long system_cpu_usage
+//
+//        }
+//    }
 
     @Test
     public void exec() throws IOException {
