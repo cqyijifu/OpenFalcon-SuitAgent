@@ -26,11 +26,11 @@ import java.util.Set;
  * 监控值收集
  * @author guqiu@yiji.com
  */
-public class Metrics {
+class Metrics {
 
     private JDBCPlugin plugin;
 
-    public Metrics(JDBCPlugin plugin) {
+    Metrics(JDBCPlugin plugin) {
         this.plugin = plugin;
     }
 
@@ -38,7 +38,7 @@ public class Metrics {
      * 获取监控值
      * @return
      */
-    public Collection<FalconReportObject> getReports() throws SQLException, ClassNotFoundException {
+    Collection<FalconReportObject> getReports() throws SQLException, ClassNotFoundException {
         Set<FalconReportObject> reportObjectSet = new HashSet<>();
         reportObjectSet.addAll(getGlobalStatus());
         reportObjectSet.addAll(getGlobalVariables());
