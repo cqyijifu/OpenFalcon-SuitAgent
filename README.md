@@ -107,8 +107,7 @@
 				- 监控的设备采集信息和采集逻辑主要参考了Falcon社区的swcollector项目，因swcollector不支持SNMP V3协议。  
 					[https://github.com/gaochao1/swcollector](https://github.com/gaochao1/swcollector)
 			- 采集的私有metric列表
-				- 公共的metrics数据  
-				  ****
+				- 公共的metrics数据
 				- CPU利用率
 				- 内存利用率
 			- 内存和CPU的目前测试的支持设备
@@ -153,7 +152,7 @@
 				- availability
 					- `0`：Docker失败
 					- `1`：Docker监控成功
-				- availability-container
+				- availability.container
 					- 说明：在Agent第一次运行Docker插件时，会将第一次检测到的容器名称保存到内存缓存中，在以后的每一次监控时，会上报内存缓存中的容器的可用性状态
 					- `0`：容器已停止运行
 					- `1`：容器正在运行
