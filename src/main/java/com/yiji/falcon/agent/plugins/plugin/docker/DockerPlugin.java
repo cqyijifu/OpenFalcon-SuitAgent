@@ -32,6 +32,7 @@ public class DockerPlugin implements DetectPlugin {
 
     private int step;
     private String address;
+    private static final List<String> addressesCache = new ArrayList<>();
 
     /**
      * 自动探测地址的实现
@@ -42,7 +43,9 @@ public class DockerPlugin implements DetectPlugin {
      */
     @Override
     public Collection<String> autoDetectAddress() {
-        List<String> addresses = new ArrayList<>();
+        if(!addressesCache.isEmpty()){
+            return addressesCache;
+        }
         try {
             CommandUtil.ExecuteResult executeResult = CommandUtil.execWithTimeOut("ps aux | grep docker",10, TimeUnit.SECONDS);
             if(!executeResult.isSuccess){
@@ -59,7 +62,7 @@ public class DockerPlugin implements DetectPlugin {
                         if(!StringUtils.isEmpty(s)){
                             Matcher matcher = Pattern.compile("^\\d.\\d.\\d.\\d:\\d+$").matcher(s);
                             if(matcher.find()){
-                                addresses.add(s);
+                                addressesCache.add(s);
                                 logger.info("Docker 自动探测连接地址: {}",s);
                             }
                         }
@@ -70,7 +73,7 @@ public class DockerPlugin implements DetectPlugin {
             logger.error("自动地址探测异常");
             return null;
         }
-        return addresses;
+        return addressesCache;
     }
 
     /**
