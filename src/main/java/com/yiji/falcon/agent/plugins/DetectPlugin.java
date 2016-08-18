@@ -84,4 +84,14 @@ public interface DetectPlugin extends Plugin {
         }
         return addresses;
     }
+
+    /**
+     * 自动探测地址的实现
+     * 若配置文件已配置地址,将不会调用此方法
+     * 若配置文件未配置探测地址的情况下,将会调用此方法,若该方法返回非null且有元素的集合,则启动运行插件,使用该方法返回的探测地址进行监控
+     * @return
+     */
+    default Collection<String> autoDetectAddress(){
+        return null;
+    }
 }

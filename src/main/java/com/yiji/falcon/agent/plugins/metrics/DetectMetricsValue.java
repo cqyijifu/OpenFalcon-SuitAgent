@@ -39,6 +39,10 @@ public class DetectMetricsValue extends MetricsCommon {
     public Collection<FalconReportObject> getReportObjects() {
         Set<FalconReportObject> result = new HashSet<>();
         Collection<String> addressCollection = detectPlugin.detectAddressCollection();
+        if(addressCollection == null || addressCollection.isEmpty()){
+            //若无配置地址,获取自动探测的地址
+            addressCollection = detectPlugin.autoDetectAddress();
+        }
         if(addressCollection != null && !addressCollection.isEmpty()){
             addressCollection.forEach(address -> {
                 DetectResult detectResult = detectPlugin.detectResult(address);

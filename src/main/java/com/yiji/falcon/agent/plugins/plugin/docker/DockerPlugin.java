@@ -11,14 +11,16 @@ package com.yiji.falcon.agent.plugins.plugin.docker;
 import com.yiji.falcon.agent.falcon.CounterType;
 import com.yiji.falcon.agent.plugins.DetectPlugin;
 import com.yiji.falcon.agent.plugins.Plugin;
+import com.yiji.falcon.agent.util.CommandUtil;
+import com.yiji.falcon.agent.util.StringUtils;
 import com.yiji.falcon.agent.vo.detect.DetectResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Docker的监控插件
@@ -30,6 +32,46 @@ public class DockerPlugin implements DetectPlugin {
 
     private int step;
     private String address;
+
+    /**
+     * 自动探测地址的实现
+     * 若配置文件已配置地址,将不会调用此方法
+     * 若配置文件未配置探测地址的情况下,将会调用此方法,若该方法返回非null且有元素的集合,则启动运行插件,使用该方法返回的探测地址进行监控
+     *
+     * @return
+     */
+    @Override
+    public Collection<String> autoDetectAddress() {
+        List<String> addresses = new ArrayList<>();
+        try {
+            CommandUtil.ExecuteResult executeResult = CommandUtil.execWithTimeOut("ps aux | grep docker",10, TimeUnit.SECONDS);
+            if(!executeResult.isSuccess){
+                return null;
+            }
+            String msg = executeResult.msg;
+            StringTokenizer st = new StringTokenizer(msg,"\n",false);
+            while( st.hasMoreElements() ){
+                String split = st.nextToken();
+                if(split.contains("-H")){
+                    String[] ss = split.split("\\s");
+                    for (String s : ss) {
+                        s = s.trim();
+                        if(!StringUtils.isEmpty(s)){
+                            Matcher matcher = Pattern.compile("^\\d.\\d.\\d.\\d:\\d+$").matcher(s);
+                            if(matcher.find()){
+                                addresses.add(s);
+                                logger.info("Docker 自动探测连接地址: {}",s);
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            logger.error("自动地址探测异常");
+            return null;
+        }
+        return addresses;
+    }
 
     /**
      * 监控的具体服务的agentSignName tag值

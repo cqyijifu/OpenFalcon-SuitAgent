@@ -6,9 +6,9 @@ package com.yiji.falcon.agent.common;
 
 import com.yiji.falcon.agent.config.AgentConfiguration;
 import com.yiji.falcon.agent.jmx.JMXConnection;
+import com.yiji.falcon.agent.plugins.DetectPlugin;
 import com.yiji.falcon.agent.plugins.JDBCPlugin;
 import com.yiji.falcon.agent.plugins.SNMPV3Plugin;
-import com.yiji.falcon.agent.plugins.DetectPlugin;
 import com.yiji.falcon.agent.plugins.metrics.SNMPV3MetricsValue;
 import com.yiji.falcon.agent.plugins.util.PluginActivateType;
 import com.yiji.falcon.agent.plugins.util.SNMPV3Session;
@@ -150,9 +150,20 @@ public class AgentJobHelper {
         String serverName = plugin.serverName();
         //只有指定job未启动过的情况下才进行work开启
         if(!isHasWorked(serverName)){
-            if(plugin.detectAddressCollection() != null &&
-                    !plugin.detectAddressCollection().isEmpty()){
-                //只要配置了监控地址,就开启监控服务
+            //只要配置了监控地址,就启动监控
+            Collection<String> addresses = plugin.detectAddressCollection();
+            boolean start = false;
+            if(addresses != null && !addresses.isEmpty()){
+                start = true;
+            }else{
+                //未配置探测地址,尝试自动探测地址
+                addresses = plugin.autoDetectAddress();
+                if(addresses != null && !addresses.isEmpty()){
+                    start = true;
+                }
+            }
+            if(start){
+                //开启监控服务
                 log.info("发现服务 {} , 启动插件 {} ",serverName,pluginName);
                 doJob(jobClazz,pluginName,plugin.step(),jobDataMap,serverName);
             }

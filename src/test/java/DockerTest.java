@@ -8,12 +8,16 @@
  */
 
 import com.yiji.falcon.agent.plugins.plugin.docker.DockerMetrics;
+import com.yiji.falcon.agent.util.StringUtils;
 import org.apache.log4j.PropertyConfigurator;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.StringTokenizer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author guqiu@yiji.com
@@ -49,6 +53,22 @@ public class DockerTest{
                 "root     22606  0.0  0.0 227044 14084 ?        Sl   Aug11   4:16 /usr/bin/docker -d\n" +
                 "root     23981  0.0  0.0 357988 14900 ?        Sl   Aug11   3:59 /usr/bin/docker -d\n" +
                 "root     27750  0.0  0.0 292452 12280 ?        Sl   Aug11   4:19 /usr/bin/docker -d --registry-mirror=http://74ecfe5d.m.daocloud.io\n";
+        StringTokenizer st = new StringTokenizer(msg,"\n",false);
+        while( st.hasMoreElements() ){
+            String split = st.nextToken();
+            if(split.contains("-H")){
+                String[] ss = split.split("\\s");
+                for (String s : ss) {
+                    s = s.trim();
+                    if(!StringUtils.isEmpty(s)){
+                        Matcher matcher = Pattern.compile("^\\d.\\d.\\d.\\d:\\d+$").matcher(s);
+                        if(matcher.find()){
+                            System.out.println(s);
+                        }
+                    }
+                }
+            }
+        }
 
     }
 
