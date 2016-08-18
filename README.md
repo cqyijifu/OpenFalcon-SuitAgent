@@ -1,3 +1,5 @@
+[click me](https://www.zybuluo.com/guqiu/note/440143)
+
 
 # Open-Falcon
 
@@ -146,6 +148,43 @@
 					- `1`：NTP监控成功
 				- ntpOffset
 					- ntpdate命令解析的offset值
+		- Docker 监控
+			- 监控Metrics
+				- availability
+					- `0`：Docker失败
+					- `1`：Docker监控成功
+				- availability-container
+					- 说明：在Agent第一次运行Docker插件时，会将第一次检测到的容器名称保存到内存缓存中，在以后的每一次监控时，会上报内存缓存中的容器的可用性状态
+					- `0`：容器已停止运行
+					- `1`：容器正在运行
+				- total.cpu.usage.rate
+					- CPU使用率百分比
+				- kernel.cpu.usage.rate
+					- 内核态的CPU使用率百分比
+				- user.cpu.usage.rate
+					- 用户态的CPU使用率百分比
+				- mem.total.usage
+					- 当前已使用的内存
+				- mem.total.limit
+					- 一共可用的内存
+				- mem.total.usage.rate
+					- 内存使用率百分比
+				- net.if.in.bytes
+					- 网络IO流入字节数
+				- net.if.in.packets
+					- 网络IO流入包数
+				- net.if.in.dropped
+					- 网络IO流入丢弃数
+				- net.if.in.errors
+					- 网络IO流入出错数
+				- net.if.out.bytes
+					- 网络IO流出字节数
+				- net.if.out.packets
+					- 网络IO流出包数
+				- net.if.out.dropped
+					- 网络IO流出丢弃数
+				- net.if.out.errors
+					- 网络IO流出出错数
 - 自动发现服务监控说明
 	- zookeeper
 		- 无需配置，可自动发现
@@ -171,6 +210,9 @@
 		- 只要配置了被探测的地址，就会触发监控服务
 	- NTP监控
 		- 只要配置了NTP服务器地址，就会触发监控服务
+	- Docker监控
+		- 若配置了探测地址，则直接启动，使用配置的探测地址  
+		  若配置文件没有配置探测地址，则Agent会自动检测本机Docker服务，自动获取Remote 端口，获取成功便会自动启动
 - 配置动态生效
 	- Agent支持部分配置的动态生效，支持的范围见如下说明
 		- authorization.properties文件的改动
