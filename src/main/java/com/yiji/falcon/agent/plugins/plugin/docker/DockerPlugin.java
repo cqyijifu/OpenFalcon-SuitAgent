@@ -8,13 +8,16 @@ package com.yiji.falcon.agent.plugins.plugin.docker;
  * guqiu@yiji.com 2016-08-10 11:15 创建
  */
 
+import com.yiji.falcon.agent.falcon.CounterType;
 import com.yiji.falcon.agent.plugins.DetectPlugin;
 import com.yiji.falcon.agent.plugins.Plugin;
 import com.yiji.falcon.agent.vo.detect.DetectResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -47,7 +50,28 @@ public class DockerPlugin implements DetectPlugin {
      */
     @Override
     public DetectResult detectResult(String address) {
-        return null;
+        DetectResult detectResult = new DetectResult();
+        DockerMetrics dockerMetrics = new DockerMetrics(address);
+        try {
+            List<DockerMetrics.CollectObject> collectObjectList = dockerMetrics.getMetrics(1000);
+
+            List<DetectResult.Metric> metrics = new ArrayList<>();
+            for (DockerMetrics.CollectObject collectObject : collectObjectList) {
+                DetectResult.Metric metric = new DetectResult.Metric(collectObject.getMetric(),
+                        collectObject.getValue(),
+                        CounterType.GAUGE,
+                        "containerName=" + collectObject.getContainerName());
+                metrics.add(metric);
+            }
+            detectResult.setMetricsList(metrics);
+
+            detectResult.setSuccess(true);
+        } catch (Exception e) {
+            logger.error("Docker数据采集异常",e);
+            detectResult.setSuccess(false);
+        }
+
+        return detectResult;
     }
 
     /**

@@ -19,7 +19,7 @@ import java.io.IOException;
 /**
  * @author guqiu@yiji.com
  */
-public class DockerRemoteUtil {
+class DockerRemoteUtil {
 
     private String urlPrefix;
 
@@ -28,7 +28,7 @@ public class DockerRemoteUtil {
      * @param remoteAddress
      * Docker Remote API 的连接地址
      */
-    public DockerRemoteUtil(String remoteAddress) {
+    DockerRemoteUtil(String remoteAddress) {
         this.urlPrefix = "http://" + remoteAddress + "/";
     }
 
@@ -37,7 +37,7 @@ public class DockerRemoteUtil {
      * @return
      * @throws IOException
      */
-    public JSONArray getContainersJSON() throws IOException {
+    JSONArray getContainersJSON() throws IOException {
         String url = urlPrefix + "containers/json";
         return JSON.parseArray(HttpUtil.get(url).getResult());
     }
@@ -49,7 +49,7 @@ public class DockerRemoteUtil {
      * @return
      * @throws IOException
      */
-    public JSONObject getStatsJSON(String containerIdOrName) throws IOException {
+    JSONObject getStatsJSON(String containerIdOrName) throws IOException {
         String url = urlPrefix + "containers/" + containerIdOrName + "/stats?stream=0";
         return JSON.parseObject(HttpUtil.get(url).getResult());
     }

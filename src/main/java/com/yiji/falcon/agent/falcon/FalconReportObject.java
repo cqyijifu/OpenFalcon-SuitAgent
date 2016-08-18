@@ -86,10 +86,12 @@ public class FalconReportObject implements Cloneable{
      * @return
      */
     public FalconReportObject appendTags(String newTag){
-        if(StringUtils.isEmpty(this.getTags())){
-            this.setTags(newTag);
-        }else{
-            this.setTags(this.getTags() + "," + newTag);
+        if(!StringUtils.isEmpty(newTag)){
+            if(StringUtils.isEmpty(this.getTags())){
+                this.setTags(newTag);
+            }else{
+                this.setTags(this.getTags() + "," + newTag);
+            }
         }
         return this;
     }

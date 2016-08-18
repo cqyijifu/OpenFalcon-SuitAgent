@@ -8,7 +8,9 @@ package com.yiji.falcon.agent.vo.detect;
  * guqiu@yiji.com 2016-07-22 11:49 创建
  */
 
-import java.util.Map;
+import com.yiji.falcon.agent.falcon.CounterType;
+
+import java.util.List;
 
 /**
  * 一次探测的结果
@@ -23,22 +25,23 @@ public class DetectResult {
 
     /**
      * 自定义的监控值
-     * Agent会将此Map中的key当做metrics名称,value当做metrics的值进行上报
+     * Agent会将此Map中的key当做metrics名称,{@link com.yiji.falcon.agent.vo.detect.DetectResult.Metric} 对象组建上报值进行上报
      */
-    private Map<String,Double> metricsMap;
+    private List<Metric> metricsList;
+
 
     /**
-     * 自定义的tag信息
+     * 自定义的公共的tag信息
      * 形如tag1={tag1},tag2={tag2}
+     * 设置后,将会对每个监控值都会打上此tag
      */
-    private String tag;
-
+    private String commonTag;
     @Override
     public String toString() {
         return "DetectResult{" +
                 "success=" + success +
-                ", metricsMap=" + metricsMap +
-                ", tag='" + tag + '\'' +
+                ", metricsList=" + metricsList +
+                ", commonTag='" + commonTag + '\'' +
                 '}';
     }
 
@@ -50,19 +53,55 @@ public class DetectResult {
         this.success = success;
     }
 
-    public Map<String, Double> getMetricsMap() {
-        return metricsMap;
+    public String getCommonTag() {
+        return commonTag;
     }
 
-    public void setMetricsMap(Map<String, Double> metricsMap) {
-        this.metricsMap = metricsMap;
+    public void setCommonTag(String commonTag) {
+        this.commonTag = commonTag;
     }
 
-    public String getTag() {
-        return tag;
+    public List<Metric> getMetricsList() {
+        return metricsList;
     }
 
-    public void setTag(String tag) {
-        this.tag = tag;
+    public void setMetricsList(List<Metric> metricsList) {
+        this.metricsList = metricsList;
+    }
+
+    public static class Metric{
+        /**
+         * 自定义监控名
+         */
+        public String metricName;
+        /**
+         * 自定义监控值的value
+         */
+        public String value;
+        /**
+         * 自定义监控值的上报类型
+         */
+        public CounterType counterType;
+        /**
+         * 自定义监控值的tag
+         */
+        public String tags;
+
+        public Metric(String metricName,String value, CounterType counterType, String tags) {
+            this.metricName = metricName;
+            this.value = value;
+            this.counterType = counterType;
+            this.tags = tags;
+        }
+
+        @Override
+        public String toString() {
+            return "Metric{" +
+                    "metricName='" + metricName + '\'' +
+                    ", value=" + value +
+                    ", counterType=" + counterType +
+                    ", tags='" + tags + '\'' +
+                    '}';
+        }
     }
 }

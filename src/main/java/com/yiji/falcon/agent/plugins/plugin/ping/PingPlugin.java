@@ -8,6 +8,7 @@ package com.yiji.falcon.agent.plugins.plugin.ping;
  * guqiu@yiji.com 2016-07-25 09:58 创建
  */
 
+import com.yiji.falcon.agent.falcon.CounterType;
 import com.yiji.falcon.agent.plugins.DetectPlugin;
 import com.yiji.falcon.agent.plugins.Plugin;
 import com.yiji.falcon.agent.util.CommandUtil;
@@ -17,8 +18,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -65,10 +67,10 @@ public class PingPlugin implements DetectPlugin {
             }else{
                 //探测成功,并添加延迟值
                 result.setSuccess(true);
-                Map<String,Double> metrics = new HashMap<>();
-                metrics.put("pingAvgTime",pingResult.avgTime);
-                metrics.put("pingSuccessRatio", Maths.div(pingResult.successCount,pingCount));
-                result.setMetricsMap(metrics);
+                List<DetectResult.Metric> metrics = new ArrayList<>();
+                metrics.add(new DetectResult.Metric("pingAvgTime",pingResult.avgTime + "", CounterType.GAUGE,null));
+                metrics.add(new DetectResult.Metric("pingSuccessRatio",Maths.div(pingResult.successCount,pingCount) + "",CounterType.GAUGE,null));
+                result.setMetricsList(metrics);
                 return result;
             }
         } catch (IOException e) {

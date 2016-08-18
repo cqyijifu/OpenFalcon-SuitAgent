@@ -12,7 +12,7 @@ package com.yiji.falcon.agent.plugins.plugin.docker;
  * Docker执行exec命令返回值封装类
  * @author guqiu@yiji.com
  */
-public class DockerExecResult {
+class DockerExecResult {
     /**
      * 执行是否成功
      */

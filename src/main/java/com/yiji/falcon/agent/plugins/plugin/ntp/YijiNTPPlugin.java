@@ -8,6 +8,7 @@ package com.yiji.falcon.agent.plugins.plugin.ntp;
  * guqiu@yiji.com 2016-08-08 13:45 创建
  */
 
+import com.yiji.falcon.agent.falcon.CounterType;
 import com.yiji.falcon.agent.plugins.DetectPlugin;
 import com.yiji.falcon.agent.plugins.Plugin;
 import com.yiji.falcon.agent.util.CommandUtil;
@@ -16,8 +17,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -70,9 +72,9 @@ public class YijiNTPPlugin implements DetectPlugin {
             int index2 = msg.indexOf("sec");
             detectResult.setSuccess(true);
             double value = Double.parseDouble(msg.substring(index1 + 6, index2).trim());
-            Map<String,Double> map = new HashMap<>();
-            map.put("ntpOffset",Math.abs(value));
-            detectResult.setMetricsMap(map);
+            List<DetectResult.Metric> metricList = new ArrayList<>();
+            metricList.add(new DetectResult.Metric("ntpOffset",Math.abs(value) + "", CounterType.GAUGE,null));
+            detectResult.setMetricsList(metricList);
         }
 
         return detectResult;

@@ -8,7 +8,6 @@ package com.yiji.falcon.agent.plugins.metrics;
  * guqiu@yiji.com 2016-07-22 10:56 创建
  */
 
-import com.yiji.falcon.agent.falcon.CounterType;
 import com.yiji.falcon.agent.falcon.FalconReportObject;
 import com.yiji.falcon.agent.falcon.MetricsType;
 import com.yiji.falcon.agent.plugins.DetectPlugin;
@@ -17,7 +16,7 @@ import com.yiji.falcon.agent.vo.detect.DetectResult;
 
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Map;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -47,25 +46,28 @@ public class DetectMetricsValue extends MetricsCommon {
                     //可用性
                     if(detectResult.isSuccess()){
                         FalconReportObject falconReportObject = MetricsCommon.generatorVariabilityReport(true,detectPlugin.agentSignName(address),detectPlugin.step(),detectPlugin,detectPlugin.serverName());
-                        addTagFromDetectResult(detectResult,falconReportObject);
+                        addCommonTagFromDetectResult(detectResult,falconReportObject);
                         result.add(falconReportObject);
                     }else{
                         FalconReportObject falconReportObject = MetricsCommon.generatorVariabilityReport(false,detectPlugin.agentSignName(address),detectPlugin.step(),detectPlugin,detectPlugin.serverName());
-                        addTagFromDetectResult(detectResult,falconReportObject);
+                        addCommonTagFromDetectResult(detectResult,falconReportObject);
                         result.add(falconReportObject);
                     }
                     //自定义Metrics
-                    Map<String,Double> metricsMap = detectResult.getMetricsMap();
-                    if(metricsMap != null && !metricsMap.isEmpty()){
-                        metricsMap.forEach((metrics,value) -> {
+                    List<DetectResult.Metric> metricsList = detectResult.getMetricsList();
+                    if(metricsList != null && !metricsList.isEmpty()){
+                        metricsList.forEach(metric -> {
                             FalconReportObject reportObject = new FalconReportObject();
-                            reportObject.setMetric(MetricsCommon.getMetricsName(metrics));
-                            reportObject.setCounterType(CounterType.GAUGE);
-                            reportObject.setValue(value + "");
+                            reportObject.setMetric(MetricsCommon.getMetricsName(metric.metricName));
+                            reportObject.setCounterType(metric.counterType);
+                            reportObject.setValue(metric.value);
                             reportObject.setTimestamp(System.currentTimeMillis() / 1000);
-                            reportObject.appendTags(MetricsCommon.getTags(detectPlugin.agentSignName(address),detectPlugin,detectPlugin.serverName(), MetricsType.SQL_CONF));
+                            //打默认tag
+                            reportObject.appendTags(MetricsCommon.getTags(detectPlugin.agentSignName(address),detectPlugin,detectPlugin.serverName(), MetricsType.SQL_CONF))
+                                    //打该监控值指定的tag
+                                    .appendTags(metric.tags);
                             MetricsCommon.setReportCommonValue(reportObject,detectPlugin.step());
-                            addTagFromDetectResult(detectResult,reportObject);
+                            addCommonTagFromDetectResult(detectResult,reportObject);
                             result.add(reportObject);
                         });
                     }
@@ -75,8 +77,13 @@ public class DetectMetricsValue extends MetricsCommon {
         return result;
     }
 
-    private void addTagFromDetectResult(DetectResult detectResult, FalconReportObject reportObject){
-       String tag = detectResult.getTag();
+    /**
+     * 设置探测结果的公共的tag
+     * @param detectResult
+     * @param reportObject
+     */
+    private void addCommonTagFromDetectResult(DetectResult detectResult, FalconReportObject reportObject){
+       String tag = detectResult.getCommonTag();
         if(!StringUtils.isEmpty(tag)){
             reportObject.appendTags(tag);
         }
