@@ -48,7 +48,7 @@ public class PluginExecute {
         Set<Plugin> jmxPlugins = PluginLibraryHelper.getJMXPlugins();
         Set<Plugin> jdbcPlugins = PluginLibraryHelper.getJDBCPlugins();
         Set<Plugin> snmpv3Plugins = PluginLibraryHelper.getSNMPV3Plugins();
-        Set<Plugin> tcpIPPLugins = PluginLibraryHelper.getDetectPlugins();
+        Set<Plugin> detectPlugins = PluginLibraryHelper.getDetectPlugins();
 
         jmxPlugins.forEach(plugin -> {
             try {
@@ -89,7 +89,7 @@ public class PluginExecute {
             }
         });
 
-        tcpIPPLugins.forEach(plugin -> {
+        detectPlugins.forEach(plugin -> {
             try {
                 DetectPlugin detectPlugin = (DetectPlugin) plugin;
                 JobDataMap jobDataMap = new JobDataMap();
