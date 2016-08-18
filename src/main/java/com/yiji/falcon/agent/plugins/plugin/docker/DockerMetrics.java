@@ -79,9 +79,9 @@ public class DockerMetrics {
         //容器可用性
         for (String containerName : containerNameCache) {
             if(containerNames.contains(containerName)){
-                collectObjectList.add(new CollectObject(containerName,"availability-container","1"));
+                collectObjectList.add(new CollectObject(containerName,"availability.container","1"));
             }else{
-                collectObjectList.add(new CollectObject(containerName,"availability-container","0"));
+                collectObjectList.add(new CollectObject(containerName,"availability.container","0"));
             }
         }
 
