@@ -36,6 +36,17 @@ public class HttpUtil {
      * @throws IOException
      */
     public static HttpResult postJSON(String url,String data) throws IOException {
+        return postJSON(url,data,10000,10000);
+    }
+
+    /**
+     * 发送json post请求
+     * @param url
+     * @param data
+     * @return
+     * @throws IOException
+     */
+    public static HttpResult postJSON(String url,String data,int connectTimeout,int readTimeout) throws IOException {
         HttpResult result = new HttpResult();
         HttpRequest httpRequest = new HttpRequest(new URL(url),"POST")
                 .connectTimeout(10000).readTimeout(10000)
@@ -54,12 +65,24 @@ public class HttpUtil {
      * @throws IOException
      */
     public static HttpResult get(String url) throws IOException {
+        return get(url,10000,10000);
+    }
+
+    /**
+     * 发送json post请求
+     * @param url
+     * @param connectTimeout
+     * @param readTimeout
+     * @return
+     * @throws IOException
+     */
+    public static HttpResult get(String url,int connectTimeout,int readTimeout) throws IOException {
         HttpResult result = new HttpResult();
 
         if(!StringUtils.isEmpty(url)){
             URL requestUrl = new URL(url);
             HttpRequest httpRequest = new HttpRequest(requestUrl,"GET")
-                    .connectTimeout(10000).readTimeout(10000).trustAllCerts().trustAllHosts();
+                    .connectTimeout(connectTimeout).readTimeout(readTimeout).trustAllCerts().trustAllHosts();
             result.setStatus(httpRequest.code());
             result.setResult(httpRequest.body());
         }
@@ -75,6 +98,20 @@ public class HttpUtil {
      * @return
      */
     public static HttpResult post(Map<String,String> params,String address) throws IOException {
+        return post(params,address,10000,10000);
+    }
+
+    /**
+     * 构造POST提交表单请求，返回响应结果
+     * @param params
+     * 提交的参数
+     * @param address
+     * 提交的地址
+     * @param connectTimeout
+     * @param readTimeout
+     * @return
+     */
+    public static HttpResult post(Map<String,String> params,String address,int connectTimeout,int readTimeout) throws IOException {
         HttpResult result = new HttpResult();
         if(params == null){
             params = new HashMap<>();
@@ -85,7 +122,7 @@ public class HttpUtil {
         }
         URL requestUrl = new URL(address);
         HttpRequest httpRequest = new HttpRequest(requestUrl,"POST")
-                .connectTimeout(100000).readTimeout(10000).trustAllCerts().trustAllHosts();
+                .connectTimeout(connectTimeout).readTimeout(readTimeout).trustAllCerts().trustAllHosts();
         httpRequest.form(params,"UTF-8");
         result.setStatus(httpRequest.code());
         result.setResult(httpRequest.body());

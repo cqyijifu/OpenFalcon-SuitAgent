@@ -39,7 +39,7 @@ class DockerRemoteUtil {
      */
     JSONArray getContainersJSON() throws IOException {
         String url = urlPrefix + "containers/json";
-        return JSON.parseArray(HttpUtil.get(url).getResult());
+        return JSON.parseArray(HttpUtil.get(url,30000,30000).getResult());
     }
 
     /**
@@ -51,7 +51,7 @@ class DockerRemoteUtil {
      */
     JSONObject getStatsJSON(String containerIdOrName) throws IOException {
         String url = urlPrefix + "containers/" + containerIdOrName + "/stats?stream=0";
-        return JSON.parseObject(HttpUtil.get(url).getResult());
+        return JSON.parseObject(HttpUtil.get(url,30000,30000).getResult());
     }
 
     /**
@@ -80,13 +80,13 @@ class DockerRemoteUtil {
             }
         }
         execCmdBody.put("Cmd",cmdArray);
-        String createExecResult = HttpUtil.postJSON(createUrl,execCmdBody.toJSONString()).getResult();
+        String createExecResult = HttpUtil.postJSON(createUrl,execCmdBody.toJSONString(),30000,30000).getResult();
         String execId = JSON.parseObject(createExecResult).getString("Id");
 
         //执行exec
         String execUrl = urlPrefix + "exec/" + execId + "/start";
         String execBody = "{\"Detach\": false,\"Tty\": false}";
-        execResult.setResult(HttpUtil.postJSON(execUrl,execBody).getResult());
+        execResult.setResult(HttpUtil.postJSON(execUrl,execBody,30000,30000).getResult());
 
         //判断执行结果
         String execResultUrl = urlPrefix + "exec/" + execId + "/json";

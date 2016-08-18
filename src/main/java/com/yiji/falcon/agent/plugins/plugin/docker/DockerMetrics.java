@@ -16,7 +16,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author guqiu@yiji.com
@@ -26,6 +28,11 @@ public class DockerMetrics {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private DockerRemoteUtil dockerRemoteUtil;
+
+    /**
+     * 保存第一次监控到的Container的名称
+     */
+    public static final Set<String> containerNameCache = new HashSet<>();
 
     /**
      * Docker Metrics 采集
@@ -45,11 +52,19 @@ public class DockerMetrics {
     public List<CollectObject> getMetrics(long interval) throws IOException, InterruptedException {
         List<CollectObject> collectObjectList = new ArrayList<>();
         JSONArray containers = dockerRemoteUtil.getContainersJSON();
+        Set<String> containerNames = new HashSet<>();
+        //只保存第一次运行时的容器名称
+        boolean saveContainerName = containerNameCache.isEmpty();
         for (int i = 0;i<containers.size();i++){
             JSONObject container = containers.getJSONObject(i);
             String id = container.getString("Id");
             JSONArray names = container.getJSONArray("Names");
             String containerName = getContainerName(names);
+
+            containerNames.add(containerName);
+            if(saveContainerName){
+                containerNameCache.add(containerName);
+            }
 
             JSONObject result = dockerRemoteUtil.getStatsJSON(id);
             Thread.sleep(interval);
@@ -60,6 +75,16 @@ public class DockerMetrics {
             collectObjectList.addAll(getMemMetrics(containerName,result2));
             collectObjectList.addAll(getNetMetrics(containerName,result2));
         }
+
+        //容器可用性
+        for (String containerName : containerNameCache) {
+            if(containerNames.contains(containerName)){
+                collectObjectList.add(new CollectObject(containerName,"availability-container","1"));
+            }else{
+                collectObjectList.add(new CollectObject(containerName,"availability-container","0"));
+            }
+        }
+
         return collectObjectList;
     }
 
@@ -109,9 +134,9 @@ public class DockerMetrics {
         long limit = memory_stats.getLong("limit");
         //内存使用百分比
         double rate = Maths.div(usage,limit,5) * 100;
-        collectObjectList.add(new CollectObject(containerName,"mem_total_usage", "" + usage));
-        collectObjectList.add(new CollectObject(containerName,"mem_total_limit", "" + limit));
-        collectObjectList.add(new CollectObject(containerName,"mem_total_usage_rate", "" + rate));
+        collectObjectList.add(new CollectObject(containerName,"mem.total.usage", "" + usage));
+        collectObjectList.add(new CollectObject(containerName,"mem.total.limit", "" + limit));
+        collectObjectList.add(new CollectObject(containerName,"mem.total.usage.rate", "" + rate));
         return collectObjectList;
     }
 
@@ -173,9 +198,9 @@ public class DockerMetrics {
         //用户CPU使用率
         double userUsageRate = Maths.div(totalUserCpuTime,totalCpuTime,5) * 100;
 
-        collectObjectList.add(new CollectObject(containerName,"total_cpu_usage_rate",totalCpuUsageRate + ""));
-        collectObjectList.add(new CollectObject(containerName,"kernel_cpu_usage_rate",kernelUsageRate + ""));
-        collectObjectList.add(new CollectObject(containerName,"user_cpu_usage_rate",userUsageRate + ""));
+        collectObjectList.add(new CollectObject(containerName,"total.cpu.usage.rate",totalCpuUsageRate + ""));
+        collectObjectList.add(new CollectObject(containerName,"kernel.cpu.usage.rate",kernelUsageRate + ""));
+        collectObjectList.add(new CollectObject(containerName,"user.cpu.usage.rate",userUsageRate + ""));
 
         return collectObjectList;
     }
