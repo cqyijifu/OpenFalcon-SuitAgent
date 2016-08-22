@@ -43,7 +43,7 @@ public class DockerTest{
                 System.out.println(collectObject);
             }
             System.out.println();
-            Thread.sleep(15000);
+            Thread.sleep(5000);
         }
     }
 

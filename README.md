@@ -152,10 +152,14 @@
 				- availability
 					- `0`：Docker失败
 					- `1`：Docker监控成功
-				- availability.container
+				- availability-container
 					- 说明：在Agent第一次运行Docker插件时，会将第一次检测到的容器名称保存到内存缓存中，在以后的每一次监控时，会上报内存缓存中的容器的可用性状态
 					- `0`：容器已停止运行
 					- `1`：容器正在运行
+				- availability.container.app
+					- 说明：在Agent第一次运行Docker插件时，会将第一次检测到的容器内的进程情况进行缓存到内存中，在以后的每一次监控时，会重新获取容器内的进程情况，若与第一次一致，则为可用
+					- `0`：容器内应用运行不正常
+					- `1`：容器内应用正常运行
 				- total.cpu.usage.rate
 					- CPU使用率百分比
 				- kernel.cpu.usage.rate

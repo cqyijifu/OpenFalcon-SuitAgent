@@ -63,7 +63,7 @@ class DockerRemoteUtil {
      * @return
      * @throws IOException
      */
-    public DockerExecResult exec(String cmd,String containerIdOrName) throws IOException {
+    DockerExecResult exec(String cmd,String containerIdOrName) throws IOException {
         DockerExecResult execResult = new DockerExecResult();
 
         //创建exec

@@ -10,15 +10,16 @@ package com.yiji.falcon.agent.plugins.plugin.docker;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.yiji.falcon.agent.util.MD5Util;
 import com.yiji.falcon.agent.util.Maths;
+import com.yiji.falcon.agent.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Pattern;
 
 /**
  * @author guqiu@yiji.com
@@ -32,7 +33,12 @@ public class DockerMetrics {
     /**
      * 保存第一次监控到的Container的名称
      */
-    public static final Set<String> containerNameCache = new HashSet<>();
+    private static final Set<String> containerNameCache = new HashSet<>();
+    /**
+     * 容器内运行的命令的解析值
+     */
+    private static final ConcurrentHashMap<String,String> containerCmdParse = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String,String> containerCmd = new ConcurrentHashMap<>();
 
     /**
      * Docker Metrics 采集
@@ -74,6 +80,7 @@ public class DockerMetrics {
 
             collectObjectList.addAll(getMemMetrics(containerName,result2));
             collectObjectList.addAll(getNetMetrics(containerName,result2));
+            collectObjectList.add(containerAppMetrics(containerName,id));
         }
 
         //容器可用性
@@ -86,6 +93,92 @@ public class DockerMetrics {
         }
 
         return collectObjectList;
+    }
+
+    /**
+     * 容器内的应用监控
+     * @param containerName
+     * @param idOrName
+     * @return
+     * @throws IOException
+     */
+    private CollectObject containerAppMetrics(String containerName,String idOrName) throws IOException {
+        CollectObject collectObject = new CollectObject(containerName,"availability.container.app","0");
+
+        String cmd = "/bin/ps aux";
+        DockerExecResult execResult = dockerRemoteUtil.exec(cmd,idOrName);
+        if(execResult.isSuccess()){
+            String parseMD5 = psCommandMD5(containerName,execResult.getResult());
+            String cache = containerCmdParse.get(containerName);
+            if(cache == null){
+                //存放第一次的解析值,返回1
+                containerCmdParse.put(containerName,parseMD5);
+                collectObject.setValue("1");
+            }else{
+                //比较上一次解析值,若完全匹配,则设置1,代表容器内应用是活动的切与第一次监控的活动情况一致
+                if(cache.equals(parseMD5)){
+                    collectObject.setValue("1");
+                }else{
+                    logger.warn("与第一次监控的进程活动不同。\n第一次:{}\n现在的:{}",containerCmd.get(containerName + "-first"),containerCmd.get(containerName));
+                }
+            }
+        }else {
+            logger.error("Docker container exec {} execute failed : {}",cmd,execResult.getResult());
+        }
+
+        return collectObject;
+    }
+
+    /**
+     * ps aux 的命令解析
+     * @throws IOException
+     * @return
+     * 返回命令的MD5标识串
+     */
+    private String psCommandMD5(String containerName,String msg) throws IOException {
+        StringTokenizer st = new StringTokenizer(msg,"\n",false);
+        List<List<String>> psParseList = new ArrayList<>();
+        while( st.hasMoreElements() ){
+            String split = st.nextToken().trim();
+            if(!StringUtils.isEmpty(split)){
+                String[] ss = split.split("\\s+");
+                List<String> list = new ArrayList<>();
+                Collections.addAll(list, ss);
+                psParseList.add(list);
+            }
+        }
+
+        List<String> titles = psParseList.get(0);
+        List<String> command = new ArrayList<>();
+
+        int commandIndex = titles.indexOf("COMMAND");
+        for (int i = 1; i < psParseList.size(); i++) {
+            List<String> commandContent = psParseList.get(i);
+            StringBuilder sb = new StringBuilder();
+            for (int j = commandIndex; j < commandContent.size(); j++) {
+                //所有的命令
+                String str = commandContent.get(j);
+                if(!Pattern.matches("\\w*\\d+:\\d+\\w*",str)){
+                    //去掉可能出现的时间值,如 11:00 11:00AM
+                    sb.append(commandContent.get(j)).append(" ");
+                }
+            }
+            command.add(sb.toString());
+        }
+
+        Collections.sort(command,Collections.reverseOrder());
+        final StringBuilder sb = new StringBuilder();
+        command.forEach(sb::append);
+
+        String result = sb.toString();
+
+        if(containerCmd.get(containerName) == null){
+            containerCmd.put(containerName + "-first", result);
+        }
+        containerCmd.put(containerName, result);
+
+
+        return MD5Util.getMD5(result);
     }
 
     private List<CollectObject> getNetMetrics(String containerName,JSONObject result){
