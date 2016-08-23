@@ -37,7 +37,8 @@ public class JSONUtil {
         }
         if(target instanceof JSONObject){
             JSONObject jsonObject = (JSONObject) target;
-            for (String key : jsonObject.keySet()) {
+            for (Map.Entry<String, Object> entry : jsonObject.entrySet()) {
+                String key = entry.getKey();
                 Object object = jsonObject.get(key);
                 if(object instanceof JSONObject){
                     jsonToMap(map,object, StringUtils.isEmpty(keys) ? key : (keys + "." + key));

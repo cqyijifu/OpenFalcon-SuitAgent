@@ -218,7 +218,6 @@ public class DockerMetrics {
     private List<CollectObject> getMemMetrics(String containerName,JSONObject result) throws IOException {
         List<CollectObject> collectObjectList = new ArrayList<>();
         JSONObject memory_stats = result.getJSONObject("memory_stats");
-        JSONObject stats = memory_stats.getJSONObject("stats");
         //热内存使用
 //        long total_active_anon = stats.getLong("total_active_anon");
         //内存已使用原值
