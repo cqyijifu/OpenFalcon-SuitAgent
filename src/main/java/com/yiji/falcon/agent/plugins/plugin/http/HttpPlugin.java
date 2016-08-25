@@ -8,6 +8,7 @@ package com.yiji.falcon.agent.plugins.plugin.http;
  * guqiu@yiji.com 2016-07-21 14:59 创建
  */
 
+import com.yiji.falcon.agent.falcon.CounterType;
 import com.yiji.falcon.agent.plugins.DetectPlugin;
 import com.yiji.falcon.agent.plugins.Plugin;
 import com.yiji.falcon.agent.util.HttpUtil;
@@ -17,7 +18,9 @@ import com.yiji.falcon.agent.vo.detect.DetectResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -102,32 +105,38 @@ public class HttpPlugin implements DetectPlugin {
             String url = addObj.url;
             DetectResult detectResult = new DetectResult();
             if(addObj.isHttp() || addObj.isHttps()){
+                boolean isAva = false;
+                HttpResult httpResult = null;
                 String protocol = addObj.isHttps() ? "https://" : "http://";
                 if(addObj.isGetMethod()){
                     try {
-                        HttpResult httpResult = HttpUtil.get(protocol + url);
-                        if(httpResult.getStatus() >= 400){
-                            detectResult.setSuccess(false);
-                        }else{
-                            detectResult.setSuccess(true);
-                        }
+                        httpResult = HttpUtil.get(protocol + url);
+                        isAva = true;
                     } catch (Exception e) {
                         detectResult.setSuccess(false);
                     }
                 }else if(addObj.isPostMethod()){
                     try {
-                        HttpResult httpResult = HttpUtil.post(null,protocol + url);
-                        if(httpResult != null && httpResult.getStatus() >= 400){
-                            detectResult.setSuccess(false);
-                        }else{
-                            detectResult.setSuccess(true);
-                        }
+                        httpResult = HttpUtil.post(null,protocol + url);
+                        isAva = true;
                     } catch (Exception e) {
                         detectResult.setSuccess(false);
                     }
                 }else{
                     logger.error("请求协议值非法,只能是get或post。您的参数为:{}",address);
                 }
+
+                detectResult.setSuccess(isAva);
+
+                if(isAva && httpResult != null){
+                    List<DetectResult.Metric> metricList = new ArrayList<>();
+
+                    metricList.add(new DetectResult.Metric("response.code",String.valueOf(httpResult.getStatus()), CounterType.GAUGE,""));
+                    metricList.add(new DetectResult.Metric("response.time",String.valueOf(httpResult.getResponseTime()), CounterType.GAUGE,""));
+
+                    detectResult.setMetricsList(metricList);
+                }
+
             }else{
                 logger.error("请求协议值非法,只能是http或https。您的参数为:{}",address);
                 return null;

@@ -22,11 +22,17 @@ public class HttpResult {
      */
     private String result;
 
+    /**
+     * 响应时间
+     */
+    private long responseTime;
+
     @Override
     public String toString() {
         return "HttpResult{" +
                 "status='" + status + '\'' +
                 ", result='" + result + '\'' +
+                ", responseTime='" + responseTime + '\'' +
                 '}';
     }
 
@@ -44,5 +50,13 @@ public class HttpResult {
 
     public void setResult(String result) {
         this.result = result;
+    }
+
+    public long getResponseTime() {
+        return responseTime;
+    }
+
+    public void setResponseTime(long responseTime) {
+        this.responseTime = responseTime;
     }
 }

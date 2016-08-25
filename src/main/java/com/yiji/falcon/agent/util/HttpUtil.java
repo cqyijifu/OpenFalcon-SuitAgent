@@ -48,6 +48,7 @@ public class HttpUtil {
      */
     public static HttpResult postJSON(String url,String data,int connectTimeout,int readTimeout) throws IOException {
         HttpResult result = new HttpResult();
+        long start = System.currentTimeMillis();
         HttpRequest httpRequest = new HttpRequest(new URL(url),"POST")
                 .connectTimeout(10000).readTimeout(10000)
                 .contentType("application/json","UTF-8")
@@ -55,6 +56,7 @@ public class HttpUtil {
 
         result.setStatus(httpRequest.code());
         result.setResult(httpRequest.body());
+        result.setResponseTime(System.currentTimeMillis() - start);
         return result;
     }
 
@@ -81,10 +83,12 @@ public class HttpUtil {
 
         if(!StringUtils.isEmpty(url)){
             URL requestUrl = new URL(url);
+            long start = System.currentTimeMillis();
             HttpRequest httpRequest = new HttpRequest(requestUrl,"GET")
                     .connectTimeout(connectTimeout).readTimeout(readTimeout).trustAllCerts().trustAllHosts();
             result.setStatus(httpRequest.code());
             result.setResult(httpRequest.body());
+            result.setResponseTime(System.currentTimeMillis() - start);
         }
         return result;
     }
@@ -121,11 +125,13 @@ public class HttpUtil {
             return null;
         }
         URL requestUrl = new URL(address);
+        long start = System.currentTimeMillis();
         HttpRequest httpRequest = new HttpRequest(requestUrl,"POST")
                 .connectTimeout(connectTimeout).readTimeout(readTimeout).trustAllCerts().trustAllHosts();
         httpRequest.form(params,"UTF-8");
         result.setStatus(httpRequest.code());
         result.setResult(httpRequest.body());
+        result.setResponseTime(System.currentTimeMillis() - start);
         return result;
     }
 

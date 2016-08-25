@@ -87,6 +87,12 @@ public class DetectResult {
          */
         public String tags;
 
+        /**
+         * @param metricName
+         * @param value
+         * @param counterType
+         * @param tags
+         */
         public Metric(String metricName,String value, CounterType counterType, String tags) {
             this.metricName = metricName;
             this.value = value;

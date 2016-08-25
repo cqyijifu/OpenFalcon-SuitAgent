@@ -190,7 +190,11 @@ SuitAgent所有的监控服务都是插件式开发集成
 
 - HTTP监控
 
-	监控Metrics: `availability`
+	监控Metrics: 
+	
+		- availability
+		- response.code : 响应状态码
+		- response.time : 响应时间 毫秒
 		
 - Ping监控
 
