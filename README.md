@@ -206,7 +206,10 @@ SuitAgent所有的监控服务都是插件式开发集成
 			
 - TCP（Socket）监控
 
-	监控Metrics : `availability`
+	监控Metrics : 
+	
+		- availability
+		- response.time : 响应时间 毫秒
 	
 - Yiji NTP 监控
 

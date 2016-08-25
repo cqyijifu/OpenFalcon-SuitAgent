@@ -8,6 +8,7 @@ package com.yiji.falcon.agent.plugins.plugin.tcp;
  * guqiu@yiji.com 2016-07-25 13:53 创建
  */
 
+import com.yiji.falcon.agent.falcon.CounterType;
 import com.yiji.falcon.agent.plugins.DetectPlugin;
 import com.yiji.falcon.agent.plugins.Plugin;
 import com.yiji.falcon.agent.vo.detect.DetectResult;
@@ -18,7 +19,9 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -65,14 +68,26 @@ public class TcpPlugin implements DetectPlugin {
         DetectResult detectResult = new DetectResult();
         Socket socket = null;
         try {
+            boolean isAva = false;
+
+            long start = System.currentTimeMillis();
             socket = new Socket();
             socket.connect(new InetSocketAddress(InetAddress.getByName(ipAddr),port),5000);
             if(socket.isConnected()){
-                detectResult.setSuccess(true);
+                isAva = true;
             }else{
                 logger.warn("tcp地址:{} 连接失败");
-                detectResult.setSuccess(false);
             }
+
+            long time = System.currentTimeMillis() - start;
+
+            detectResult.setSuccess(isAva);
+            if(isAva){
+                detectResult.setMetricsList(
+                        Collections.singletonList(new DetectResult.Metric("response.time",String.valueOf(time), CounterType.GAUGE,""))
+                );
+            }
+
         } catch (IOException e) {
             detectResult.setSuccess(false);
         }finally {
