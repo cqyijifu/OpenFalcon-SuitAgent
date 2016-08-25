@@ -3,3 +3,5 @@
 /logs
 /target
 /.idea
+/src/main/resources_ext/falcon/osx/agent/var/
+/src/main/resources_ext/falcon/linux64/agent/var/

@@ -2,7 +2,7 @@
  * www.yiji.com Inc.
  * Copyright (c) 2016 All Rights Reserved
  */
-package com.yiji.falcon.agent.plugins.plugin.yijiBoot;
+package com.yiji.falcon.agent.plugins.plugin.standalone;
 /*
  * 修订记录:
  * guqiu@yiji.com 2016-06-27 16:13 创建
@@ -11,7 +11,6 @@ package com.yiji.falcon.agent.plugins.plugin.yijiBoot;
 import com.yiji.falcon.agent.falcon.FalconReportObject;
 import com.yiji.falcon.agent.jmx.vo.JMXMetricsValueInfo;
 import com.yiji.falcon.agent.plugins.JMXPlugin;
-import com.yiji.falcon.agent.plugins.Plugin;
 import com.yiji.falcon.agent.plugins.util.PluginActivateType;
 
 import javax.management.MBeanServerConnection;
@@ -22,7 +21,7 @@ import java.util.Map;
 /**
  * @author guqiu@yiji.com
  */
-public class YijiBootPlugin implements JMXPlugin {
+public class StandaloneJarPlugin implements JMXPlugin {
 
     private String jmxServerName;
     private int step;
