@@ -36,7 +36,7 @@ public class ElasticSearchConfig {
 
     private static final Logger log = LoggerFactory.getLogger(ElasticSearchConfig.class);
 
-    private static ConcurrentHashMap<String,Map<String,Object>> cache = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String,Map<String,Object>> cache = new ConcurrentHashMap<>();
 
     /**
      * 根据进程id获取elasticSearch的配置文件配置
@@ -46,7 +46,7 @@ public class ElasticSearchConfig {
      * @throws IOException
      */
     private static Map<String,Object> getConfig(int pid) throws IOException {
-        String key = String.valueOf(pid).intern();
+        String key = StringUtils.getStringByInt(pid);
 
         //读取缓存
         Map<String,Object> result = cache.get(key);
@@ -92,13 +92,21 @@ public class ElasticSearchConfig {
     }
 
     /**
+     * 根据PID移除缓存
+     * @param pid
+     */
+    static void removeCache(int pid){
+        cache.remove(StringUtils.getStringByInt(pid));
+    }
+
+    /**
      * 获取es的http.port端口号
      * @param pid
      * es的进程id
      * @return
      * @throws IOException
      */
-    public static int getHttpPort(int pid) throws IOException {
+    static int getHttpPort(int pid) throws IOException {
         Integer port = (Integer) getConfig(pid).get("http.port");
         if(port == null){
             //未配置,返回默认配置值
@@ -113,7 +121,7 @@ public class ElasticSearchConfig {
      * @return
      * @throws IOException
      */
-    public static String getNetworkHost(int pid) throws IOException {
+    private static String getNetworkHost(int pid) throws IOException {
         String name = (String) getConfig(pid).get("network.host");
         //未配置,返回默认配置值
         if(StringUtils.isEmpty(name)){
@@ -129,7 +137,7 @@ public class ElasticSearchConfig {
      * @return
      * @throws IOException
      */
-    public static String getConnectionUrl(int pid) throws IOException {
+    static String getConnectionUrl(int pid) throws IOException {
         return "http://" + getNetworkHost(pid) + ":" + getHttpPort(pid);
     }
 
@@ -156,7 +164,7 @@ public class ElasticSearchConfig {
      * @return
      * @throws IOException
      */
-    public static String getNodeName(int pid) throws IOException {
+    static String getNodeName(int pid) throws IOException {
         String name = (String) getConfig(pid).get("node.name");
         if(StringUtils.isEmpty(name)){
             return getNodeNameOrId(pid,2);
@@ -171,7 +179,7 @@ public class ElasticSearchConfig {
      * @return
      * @throws IOException
      */
-    public static String getNodeId(int pid) throws IOException {
+    static String getNodeId(int pid) throws IOException {
         return getNodeNameOrId(pid,1);
     }
 

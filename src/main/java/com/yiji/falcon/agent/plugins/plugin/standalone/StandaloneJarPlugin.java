@@ -112,6 +112,17 @@ public class StandaloneJarPlugin implements JMXPlugin {
     }
 
     /**
+     * 当JMX连接的应用已下线(此链接的目标目录已不存在)时,将会在清除连接时,调用此方法进行相关资源的释放操作
+     * 该操作有具体的插件自己实现
+     *
+     * @param pid
+     */
+    @Override
+    public void releaseOption(int pid) {
+
+    }
+
+    /**
      * 插件初始化操作
      * 该方法将会在插件运行前进行调用
      * @param properties

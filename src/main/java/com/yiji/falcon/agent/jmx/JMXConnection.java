@@ -50,7 +50,7 @@ public class JMXConnection {
      * @param pid
      * 进程id
      */
-    public static void removeConnectCache(String serverName,String pid){
+    public static void removeConnectCache(String serverName,int pid){
         String key = serverName + pid;
         if(connectCacheLibrary.remove(key) != null){
             //删除成功,更新serverConnectCount

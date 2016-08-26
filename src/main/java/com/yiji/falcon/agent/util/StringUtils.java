@@ -23,4 +23,13 @@ public class StringUtils {
         return str == null || str.length() == 0;
     }
 
+    /**
+     * 返回指定数字的字符串形式
+     * @param value
+     * @return
+     */
+    public static String getStringByInt(int value){
+        return String.valueOf(value).intern();
+    }
+
 }

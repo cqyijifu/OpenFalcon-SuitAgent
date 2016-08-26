@@ -232,7 +232,8 @@ public class JMXMetricsValue extends MetricsCommon{
                     File file = new File(serverDirPath);
                     if(!file.exists()){
                         //JMX服务目录不存在,清除连接,跳过此次监控
-                        JMXConnection.removeConnectCache(jmxConnectionInfo.getConnectionServerName(), String.valueOf(jmxConnectionInfo.getPid()));
+                        JMXConnection.removeConnectCache(jmxConnectionInfo.getConnectionServerName(), jmxConnectionInfo.getPid());
+                        jmxPlugin.releaseOption(jmxConnectionInfo.getPid());
                         continue;
                     }
                 }

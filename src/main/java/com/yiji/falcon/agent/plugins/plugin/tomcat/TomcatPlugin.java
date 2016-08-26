@@ -13,6 +13,7 @@ import com.yiji.falcon.agent.jmx.vo.JMXMetricsValueInfo;
 import com.yiji.falcon.agent.plugins.JMXPlugin;
 import com.yiji.falcon.agent.plugins.util.PluginActivateType;
 import com.yiji.falcon.agent.util.CommandUtil;
+import com.yiji.falcon.agent.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,8 +35,8 @@ import java.util.concurrent.TimeUnit;
 public class TomcatPlugin implements JMXPlugin {
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
-    private ConcurrentHashMap<Integer,String> serverDirNameCatch = new ConcurrentHashMap<>();
-    private ConcurrentHashMap<Integer,String> serverDirPathCatch = new ConcurrentHashMap<>();
+    private ConcurrentHashMap<String,String> serverDirNameCatch = new ConcurrentHashMap<>();
+    private ConcurrentHashMap<String,String> serverDirPathCatch = new ConcurrentHashMap<>();
 
     private String basePropertiesKey;
     private String jmxServerName;
@@ -142,7 +143,7 @@ public class TomcatPlugin implements JMXPlugin {
                     }
                 }
             }
-            return name;
+            return StringUtils.isEmpty(name) ? serverDirName(pid) : name + "-" +serverDirName(pid);
         } catch (Exception e) {
             log.error("设置JMX name 失败",e);
             return "";
@@ -163,6 +164,18 @@ public class TomcatPlugin implements JMXPlugin {
     }
 
     /**
+     * 当JMX连接的应用已下线(此链接的目标目录已不存在)时,将会在清除连接时,调用此方法进行相关资源的释放操作
+     * 该操作有具体的插件自己实现
+     *
+     * @param pid
+     */
+    @Override
+    public void releaseOption(int pid) {
+        serverDirPathCatch.remove(StringUtils.getStringByInt(pid));
+        serverDirNameCatch.remove(StringUtils.getStringByInt(pid));
+    }
+
+    /**
      * JMX服务的目录路径
      * 若实现此方法,则若该JMX连接不可用时,将会检查该JMX服务的目录是否存在,若不存在,将会清除此连接,并不再监控此JMX。
      * 否则,若JMX连接不可用,将会上报不可用的报告,且不会清除
@@ -172,7 +185,8 @@ public class TomcatPlugin implements JMXPlugin {
      */
     @Override
     public String serverDirPath(int pid) {
-        String dirPath = serverDirPathCatch.get(pid);
+        String key = StringUtils.getStringByInt(pid);
+        String dirPath = serverDirPathCatch.get(key);
         if(dirPath == null){
             try {
                 String cmd = "lsof -p " + pid + " | grep catalina.jar";
@@ -182,7 +196,7 @@ public class TomcatPlugin implements JMXPlugin {
                 for (String s : ss) {
                     if(s.contains("catalina.jar")){
                         dirPath = s.trim();
-                        serverDirPathCatch.put(pid,dirPath);
+                        serverDirPathCatch.put(key,dirPath);
                         break;
                     }
                 }
@@ -195,7 +209,8 @@ public class TomcatPlugin implements JMXPlugin {
 
     @Override
     public String serverDirName(int pid) {
-        String dirName = serverDirNameCatch.get(pid);
+        String key = StringUtils.getStringByInt(pid);
+        String dirName = serverDirNameCatch.get(key);
         if(dirName == null){
             try {
                 String cmd = "lsof -p " + pid + " | grep catalina.jar";
@@ -208,7 +223,7 @@ public class TomcatPlugin implements JMXPlugin {
                         s = s.substring(0,s.lastIndexOf("/"));
                         s = s.substring(s.lastIndexOf("/") + 1,s.length());
                         dirName = s.trim();
-                        serverDirNameCatch.put(pid,dirName);
+                        serverDirNameCatch.put(key,dirName);
                         break;
                     }
                 }
