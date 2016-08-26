@@ -77,6 +77,11 @@ public enum  AgentConfiguration {
     private int agentPort = 4518;
 
     /**
+     * mock的有效时间
+     */
+    private int mockValidTime = 7200;
+
+    /**
      * agent web 监听端口
      */
     private int agentWebPort = 4519;
@@ -104,6 +109,7 @@ public enum  AgentConfiguration {
     private static final String CONF_AGENT_PORT = "agent.port";
     private static final String CONF_AGENT_WEB_PORT = "agent.web.port";
     private static final String CONF_AGENT_WEB_ENABLE = "agent.web.enable";
+    private static final String CONF_AGENT_MOCK_VALID_TIME = "agent.mock.valid.time";
     private static final String AUTHORIZATION_CONF_PATH = "authorization.conf.path";
     private static final String FALCON_DIR_PATH = "agent.falcon.dir";
     private static final String FALCON_CONF_DIR_PATH = "agent.falcon.conf.dir";
@@ -192,6 +198,15 @@ public enum  AgentConfiguration {
 
         if(!StringUtils.isEmpty(agentConf.getProperty(CONF_AGENT_WEB_ENABLE))){
             this.webEnable = "true".equals(agentConf.getProperty(CONF_AGENT_WEB_ENABLE));
+        }
+
+        if(!StringUtils.isEmpty(agentConf.getProperty(CONF_AGENT_MOCK_VALID_TIME))){
+            try {
+                this.mockValidTime = Integer.parseInt(agentConf.getProperty(CONF_AGENT_MOCK_VALID_TIME));
+            } catch (NumberFormatException e) {
+                log.error("Agent启动失败,mock有效时间配置 {} 无效: {}", CONF_AGENT_MOCK_VALID_TIME, agentConf.getProperty(CONF_AGENT_MOCK_VALID_TIME));
+                System.exit(0);
+            }
         }
 
         if(!StringUtils.isEmpty(agentConf.getProperty(CONF_AGENT_JMX_LOCAL_CONNECT))){
@@ -297,5 +312,9 @@ public enum  AgentConfiguration {
 
     public boolean isAgentJMXLocalConnect() {
         return agentJMXLocalConnect;
+    }
+
+    public int getMockValidTime() {
+        return mockValidTime;
     }
 }

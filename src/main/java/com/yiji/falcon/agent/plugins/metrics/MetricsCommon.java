@@ -4,7 +4,6 @@
  */
 package com.yiji.falcon.agent.plugins.metrics;
 
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.yiji.falcon.agent.config.AgentConfiguration;
 import com.yiji.falcon.agent.falcon.CounterType;
@@ -39,7 +38,69 @@ public abstract class MetricsCommon {
 
     private static final Logger logger = LoggerFactory.getLogger(MetricsCommon.class);
 
+    private static final ConcurrentHashMap<String,Long> mockValid = new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<String,Set<String>> mockService = new ConcurrentHashMap<>();
+
+
+    private static String getMockValidKey(String serviceType,String service){
+        return serviceType + "-" + service;
+    }
+
+    private static boolean isExistFromMockValid(String serviceType, String service){
+        String key = getMockValidKey(serviceType,service);
+        return mockValid.containsKey(key);
+    }
+
+    /**
+     * 添加Mock的有效时间记录
+     * @param serviceType
+     * @param service
+     */
+    private static void addMockValidShutdownTime(String serviceType, String service){
+        String key = getMockValidKey(serviceType,service);
+        if(!isExistFromMockValid(serviceType,service)){
+            logger.info("添加mock服务的停机时间 - {}:{}",serviceType,service);
+            mockValid.put(key,System.currentTimeMillis());
+        }
+    }
+
+    /**
+     * 删除Mock有效时间记录
+     * @param serviceType
+     * @param service
+     */
+    private static void removeMockValidTimeRecord(String serviceType,String service){
+        String key = getMockValidKey(serviceType,service);
+        if(mockValid.remove(key) != null){
+            logger.info("已移除 Mock有效性时间记录 - {}:{}",serviceType,service);
+        }
+    }
+
+    /**
+     * 检查Mock是否有效
+     * @param serviceType
+     * @param service
+     * @return
+     * 0 : mock有效
+     * >0 : mock无效,返回的数值代表当前服务已停机时间
+     */
+    private static long isValidMock(String serviceType, String service){
+        String key = getMockValidKey(serviceType,service);
+        Long shutdownTime = mockValid.get(key);
+        if(shutdownTime == null){
+            // 未获取到记录,说明目标服务还未添加停机时间,返回可用
+            return 0;
+        }
+        int maxTime = AgentConfiguration.INSTANCE.getMockValidTime() * 1000;
+
+        long timeout = System.currentTimeMillis() - shutdownTime;
+
+        if(timeout <= maxTime){
+            return 0;
+        }else{
+            return timeout;
+        }
+    }
 
     /**
      * 获取当前mock的服务列表
@@ -50,12 +111,15 @@ public abstract class MetricsCommon {
         JSONObject result = new JSONObject();
 
         for (String key : mockService.keySet()) {
-            JSONArray typeJson = new JSONArray();
+            JSONObject jsonObject = new JSONObject();
             Set<String> services = mockService.get(key);
             for (String service : services) {
-                typeJson.add(service);
+                jsonObject.put("service",service);
+                long shutdownTime = isValidMock(key,service);
+                jsonObject.put("isTimeout",shutdownTime > 0);
+                jsonObject.put("shutdownTime",shutdownTime);
             }
-            result.put(key,typeJson);
+            result.put(key,jsonObject);
         }
 
         return result.toJSONString();
@@ -77,6 +141,7 @@ public abstract class MetricsCommon {
             mockServices.add(service);
             mockService.put(serviceType,mockServices);
         }
+        logger.info("已添加Mock服务 - {}:{}",serviceType,service);
     }
 
     /**
@@ -87,8 +152,11 @@ public abstract class MetricsCommon {
     public static void removeMockService(String serviceType,String service){
         if(mockService.get(serviceType) != null){
             Set<String> mockServices = mockService.get(serviceType);
-            mockServices.remove(service);
+            if(mockServices.remove(service)){
+                logger.info("已移除Mock服务 - {}:{}",serviceType,service);
+            }
             mockService.put(serviceType,mockServices);
+            removeMockValidTimeRecord(serviceType,service);
         }
     }
 
@@ -116,8 +184,8 @@ public abstract class MetricsCommon {
         falconReportObject.appendTags(getTags(agentSignName,plugin,serverName,MetricsType.AVAILABILITY));
         falconReportObject.setTimestamp(System.currentTimeMillis() / 1000);
 
-        //mock判断
         if(!isAva){
+            //mock处理
             boolean isOK = false;
             for (String key : mockService.keySet()) {
                 String targetType = "service.type=" + key;
@@ -126,9 +194,19 @@ public abstract class MetricsCommon {
                     if(tag.contains(targetType)){
                         Set<String> mockServices = mockService.get(key);
                         for (String targetService : mockServices) {
+                            //判断Mock有效性
+                            long mockTime = isValidMock(key,targetService);
+                            if(mockTime > 0){
+                                logger.info("发现超时的mock服务 - {}:{} 已超时: {} 毫秒",key,targetService,mockTime);
+                                falconReportObject.appendTags("mock=timeout-" + mockTime);
+                                break;
+                            }
+
                             String agentSign = ",agentSignName=" + targetService;
                             String service = "service=" + targetService;
                             if(tag.contains(agentSign) || tag.contains(service)){
+                                //添加mock的停机时间
+                                addMockValidShutdownTime(key,targetService);
                                 logger.info("mock服务 {}:{} 的 availability",targetType,targetService);
                                 falconReportObject.setValue("1");
                                 falconReportObject.appendTags("mock=true");
@@ -141,6 +219,16 @@ public abstract class MetricsCommon {
                         }
                     }
                 }
+            }
+        }else{
+            //mock清除处理
+            String serviceType = getServiceTypeByPlugin(plugin);
+
+            if(isExistFromMockValid(serviceType,agentSignName)){
+                removeMockService(serviceType,agentSignName);
+            }
+            if(isExistFromMockValid(serviceType,serverName)){
+                removeMockService(serviceType,serverName);
             }
         }
 
@@ -204,17 +292,7 @@ public abstract class MetricsCommon {
      */
     public static String getTags(String agentSignName,Plugin plugin,String serverName,MetricsType metricsType){
         String signName = "service=" + serverName;
-        if(JMXPlugin.class.isAssignableFrom(plugin.getClass())){
-            signName += ",service.type=jmx";
-        }else if(JDBCPlugin.class.isAssignableFrom(plugin.getClass())){
-            signName += ",service.type=database";
-        }else if(SNMPV3Plugin.class.isAssignableFrom(plugin.getClass())){
-            signName += ",service.type=snmp";
-        }else if(DetectPlugin.class.isAssignableFrom(plugin.getClass())){
-            signName += ",service.type=detect";
-        }else{
-            signName += ",service.type=unKnow";
-        }
+        signName += ",service.type=" + getServiceTypeByPlugin(plugin);
         if(metricsType != null){
             signName += ",metrics.type=" + metricsType.getTypeName();
         }
@@ -222,6 +300,21 @@ public abstract class MetricsCommon {
             return signName;
         }
         return signName + ",agentSignName=" + agentSignName;
+    }
+
+    private static String getServiceTypeByPlugin(Plugin plugin){
+        String type = "unknow";
+        if(JMXPlugin.class.isAssignableFrom(plugin.getClass())){
+            type = "jmx";
+        }else if(JDBCPlugin.class.isAssignableFrom(plugin.getClass())){
+            type = "database";
+        }else if(SNMPV3Plugin.class.isAssignableFrom(plugin.getClass())){
+            type = "snmp";
+        }else if(DetectPlugin.class.isAssignableFrom(plugin.getClass())){
+            type = "detect";
+        }
+
+        return type;
     }
 
     /**

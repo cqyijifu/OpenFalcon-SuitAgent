@@ -331,13 +331,28 @@ plugin目录下的插件配置文件的改动
 
 接口说明
 
-`SuitAgent`提供可用性(`availability`)的`mock`服务，可利用此接口，在指定服务停止时，`mock`一个可用的标志，并上报，使其不触发报警。`SuitAgent`将会匹配接口传入的`serviceType`和`service`参数
+`SuitAgent`提供可用性(`availability`)的`mock`服务。
+
+`mock`服务具有有效性,有效性时长,通过配置 `agent.properties` 文件的 `agent.mock.valid.time` 配置项
+
+有效的`mock`,将会让`mock`的目标服务即使已经停止运行,也会上报一个可用的监控数据,并且带上 `mock=true` 的 `tag`
+
+若`mock`的时间超时,既无效,则会上报目标服务不可用的监控数据,并且带上 `mock=timeout-{time}` 的 `tag` 。其中`{time}`是停机时间
 
 接口使用
 
 - http://ip:port/mock/list
 
-	- 查看`SuitAgent`当前所有的mock配置，返回json格式的数据
+	- 查看`SuitAgent`当前所有的mock配置，返回json格式的数据,示例:
+	
+		{
+          "jmx": {
+            "service": "tomcat",
+            "isTimeout": false,
+            "shutdownTime": 0
+          }
+        }
+        
 	
 - http://ip:port/mock/add/`serviceType`/`service`
 
