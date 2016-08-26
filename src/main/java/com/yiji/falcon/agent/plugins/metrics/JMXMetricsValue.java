@@ -223,7 +223,7 @@ public class JMXMetricsValue extends MetricsCommon{
 
             //JMX 服务是否已被停掉的检查
             JMXConnectionInfo jmxConnectionInfo = metricsValueInfo.getJmxConnectionInfo();
-            String serverDirPath = jmxPlugin.serverDirPath(jmxConnectionInfo.getPid());
+            String serverDirPath = jmxPlugin.serverPath(jmxConnectionInfo.getPid(),jmxConnectionInfo.getConnectionServerName());
             if(!StringUtils.isEmpty(serverDirPath)){
                 if(serverDirPath.contains(" ")){
                     log.warn("发现路径: {} 有空格,请及时处理,否则Agent可能会工作不正常",serverDirPath);

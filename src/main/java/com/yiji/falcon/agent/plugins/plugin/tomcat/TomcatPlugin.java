@@ -174,16 +174,8 @@ public class TomcatPlugin implements JMXPlugin {
         serverDirNameCatch.remove(StringUtils.getStringByInt(pid));
     }
 
-    /**
-     * JMX服务的目录路径
-     * 若实现此方法,则若该JMX连接不可用时,将会检查该JMX服务的目录是否存在,若不存在,将会清除此连接,并不再监控此JMX。
-     * 否则,若JMX连接不可用,将会上报不可用的报告,且不会清除
-     *
-     * @param pid 服务的进程id
-     * @return
-     */
     @Override
-    public String serverDirPath(int pid) {
+    public String serverPath(int pid, String serverName) {
         String key = StringUtils.getStringByInt(pid);
         String dirPath = serverDirPathCatch.get(key);
         if(dirPath == null){
@@ -204,7 +196,7 @@ public class TomcatPlugin implements JMXPlugin {
         String key = StringUtils.getStringByInt(pid);
         String dirName = serverDirNameCatch.get(key);
         if(dirName == null){
-            String dirPath = serverDirPath(pid);
+            String dirPath = serverPath(pid,"");
             if(dirPath != null){
                 dirName = dirPath.replace("/bin","");
                 dirName = dirName.substring(dirName.lastIndexOf("/") + 1);

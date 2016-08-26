@@ -228,15 +228,16 @@ public class ElasticSearchPlugin implements JMXPlugin {
     }
 
     /**
-     * JMX服务的目录路径
+     * 能够代表该JMX服务的绝对路径
      * 若实现此方法,则若该JMX连接不可用时,将会检查该JMX服务的目录是否存在,若不存在,将会清除此连接,并不再监控此JMX。
      * 否则,若JMX连接不可用,将会上报不可用的报告,且不会清除
      *
-     * @param pid 服务的进程id
+     * @param pid        服务的进程id
+     * @param serverName jmx 服务名
      * @return
      */
     @Override
-    public String serverDirPath(int pid) {
+    public String serverPath(int pid, String serverName) {
         String key = StringUtils.getStringByInt(pid);
         String dirPath = serverDirPathCatch.get(key);
         if(dirPath == null){
