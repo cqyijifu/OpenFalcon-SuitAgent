@@ -12,6 +12,7 @@ import com.yiji.falcon.agent.falcon.FalconReportObject;
 import com.yiji.falcon.agent.jmx.vo.JMXMetricsValueInfo;
 import com.yiji.falcon.agent.plugins.JMXPlugin;
 import com.yiji.falcon.agent.plugins.util.PluginActivateType;
+import com.yiji.falcon.agent.util.CommandUtil;
 import com.yiji.falcon.agent.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +24,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author guqiu@yiji.com
@@ -31,6 +33,7 @@ public class StandaloneJarPlugin implements JMXPlugin {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
+    private ConcurrentHashMap<String,String> serverDirPathCatch = new ConcurrentHashMap<>();
     private String jmxServerDir;
     private String jmxServerName;
     private int step;
@@ -168,5 +171,30 @@ public class StandaloneJarPlugin implements JMXPlugin {
     @Override
     public PluginActivateType activateType() {
         return pluginActivateType;
+    }
+
+    /**
+     * JMX服务的目录路径
+     * 若实现此方法,则若该JMX连接不可用时,将会检查该JMX服务的目录是否存在,若不存在,将会清除此连接,并不再监控此JMX。
+     * 否则,若JMX连接不可用,将会上报不可用的报告,且不会清除
+     *
+     * @param pid 服务的进程id
+     * @return
+     */
+    @Override
+    public String serverDirPath(int pid) {
+        String key = StringUtils.getStringByInt(pid);
+        String dirPath = serverDirPathCatch.get(key);
+        if(dirPath == null){
+            try {
+                dirPath = CommandUtil.getCmdDirByPid(pid);
+                if (dirPath != null) {
+                    serverDirPathCatch.put(key,dirPath);
+                }
+            } catch (IOException e) {
+                logger.error("standaloneJar serverDirPath获取异常",e);
+            }
+        }
+        return dirPath;
     }
 }

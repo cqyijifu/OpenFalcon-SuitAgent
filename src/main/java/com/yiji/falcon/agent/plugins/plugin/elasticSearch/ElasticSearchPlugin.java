@@ -16,6 +16,7 @@ import com.yiji.falcon.agent.jmx.vo.JMXMetricsValueInfo;
 import com.yiji.falcon.agent.plugins.JMXPlugin;
 import com.yiji.falcon.agent.plugins.metrics.MetricsCommon;
 import com.yiji.falcon.agent.plugins.util.PluginActivateType;
+import com.yiji.falcon.agent.util.CommandUtil;
 import com.yiji.falcon.agent.util.HttpUtil;
 import com.yiji.falcon.agent.util.StringUtils;
 import org.ho.yaml.Yaml;
@@ -27,6 +28,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static com.yiji.falcon.agent.plugins.metrics.MetricsCommon.executeJsExpress;
 
@@ -37,6 +39,7 @@ public class ElasticSearchPlugin implements JMXPlugin {
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
+    private ConcurrentHashMap<String,String> serverDirPathCatch = new ConcurrentHashMap<>();
     private String basePropertiesKey;
     private String jmxServerName;
     private int step;
@@ -222,5 +225,30 @@ public class ElasticSearchPlugin implements JMXPlugin {
     @Override
     public PluginActivateType activateType() {
         return pluginActivateType;
+    }
+
+    /**
+     * JMX服务的目录路径
+     * 若实现此方法,则若该JMX连接不可用时,将会检查该JMX服务的目录是否存在,若不存在,将会清除此连接,并不再监控此JMX。
+     * 否则,若JMX连接不可用,将会上报不可用的报告,且不会清除
+     *
+     * @param pid 服务的进程id
+     * @return
+     */
+    @Override
+    public String serverDirPath(int pid) {
+        String key = StringUtils.getStringByInt(pid);
+        String dirPath = serverDirPathCatch.get(key);
+        if(dirPath == null){
+            try {
+                dirPath = CommandUtil.getCmdDirByPid(pid);
+                if (dirPath != null) {
+                    serverDirPathCatch.put(key,dirPath);
+                }
+            } catch (IOException e) {
+                logger.error("elasticSearch serverDirPath获取异常",e);
+            }
+        }
+        return dirPath;
     }
 }

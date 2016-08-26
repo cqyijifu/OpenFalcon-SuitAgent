@@ -63,17 +63,14 @@ public class JmxTest {
     @Test
     public void dirTest() throws IOException {
 
-        String cmd = "lsof -p " + 9749 + " | grep catalina.jar";
+        String cmd = "lsof -p " + 5645;
         CommandUtil.ExecuteResult executeResult = CommandUtil.execWithTimeOut(cmd,10, TimeUnit.SECONDS);
         String msg = executeResult.msg;
-        String[] ss = msg.split("\\s+");
+        String[] ss = msg.split("\n");
         for (String s : ss) {
-            if(s.contains("catalina.jar")){
-//                s = s.substring(0,s.lastIndexOf("/"));
-//                s = s.substring(0,s.lastIndexOf("/"));
-//                s = s.substring(s.lastIndexOf("/") + 1,s.length());
-                System.out.println(s);
-                break;
+            if(s.toLowerCase().contains("cwd")){
+                String[] split = s.split("\\s+");
+                System.out.println(split[split.length - 1]);
             }
         }
     }

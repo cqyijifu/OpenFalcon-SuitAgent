@@ -54,6 +54,27 @@ public class CommandUtil {
     }
 
     /**
+     * 获取指定进程的命令行目录
+     * @param pid
+     * @return
+     * @throws IOException
+     */
+    public static String getCmdDirByPid(int pid) throws IOException {
+        String cmd = "lsof -p " + pid;
+        CommandUtil.ExecuteResult executeResult = CommandUtil.execWithTimeOut(cmd,10, TimeUnit.SECONDS);
+        String msg = executeResult.msg;
+        String[] ss = msg.split("\n");
+        for (String s : ss) {
+            if(s.toLowerCase().contains("cwd")){
+                String[] split = s.split("\\s+");
+                return split[split.length - 1];
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * 执行命令,指定执行体
      * @param execTarget
      * 指定执行体,null则使用默认执行体(/bin/sh)

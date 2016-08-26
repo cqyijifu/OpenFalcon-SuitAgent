@@ -27,7 +27,6 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author guqiu@yiji.com
@@ -189,16 +188,9 @@ public class TomcatPlugin implements JMXPlugin {
         String dirPath = serverDirPathCatch.get(key);
         if(dirPath == null){
             try {
-                String cmd = "lsof -p " + pid + " | grep catalina.jar";
-                CommandUtil.ExecuteResult executeResult = CommandUtil.execWithTimeOut(cmd,10, TimeUnit.SECONDS);
-                String msg = executeResult.msg;
-                String[] ss = msg.split("\\s+");
-                for (String s : ss) {
-                    if(s.contains("catalina.jar")){
-                        dirPath = s.trim();
-                        serverDirPathCatch.put(key,dirPath);
-                        break;
-                    }
+                dirPath = CommandUtil.getCmdDirByPid(pid);
+                if (dirPath != null) {
+                    serverDirPathCatch.put(key,dirPath);
                 }
             } catch (IOException e) {
                 log.error("tomcat serverDirPath获取异常",e);
@@ -212,23 +204,11 @@ public class TomcatPlugin implements JMXPlugin {
         String key = StringUtils.getStringByInt(pid);
         String dirName = serverDirNameCatch.get(key);
         if(dirName == null){
-            try {
-                String cmd = "lsof -p " + pid + " | grep catalina.jar";
-                CommandUtil.ExecuteResult executeResult = CommandUtil.execWithTimeOut(cmd,10, TimeUnit.SECONDS);
-                String msg = executeResult.msg;
-                String[] ss = msg.split("\\s");
-                for (String s : ss) {
-                    if(s.contains("catalina.jar")){
-                        s = s.substring(0,s.lastIndexOf("/"));
-                        s = s.substring(0,s.lastIndexOf("/"));
-                        s = s.substring(s.lastIndexOf("/") + 1,s.length());
-                        dirName = s.trim();
-                        serverDirNameCatch.put(key,dirName);
-                        break;
-                    }
-                }
-            } catch (IOException e) {
-                log.error("tomcat serverDirName获取异常",e);
+            String dirPath = serverDirPath(pid);
+            if(dirPath != null){
+                dirName = dirPath.replace("/bin","");
+                dirName = dirName.substring(dirName.lastIndexOf("/") + 1);
+                serverDirNameCatch.put(key,dirName);
             }
         }
         return dirName;
