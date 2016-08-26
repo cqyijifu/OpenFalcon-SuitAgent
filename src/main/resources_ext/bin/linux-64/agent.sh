@@ -42,7 +42,7 @@ agent_classpath="${agent_classpath}:${agentHome}/lib/http-request-6.0.jar"
 agent_class=com.yiji.falcon.agent.Agent
 
 client_cmd="${JAVA} \
-	-server -Xms128m -Xmx128m -XX:MetaspaceSize=128m -XX:MaxMetaspaceSize=512m -XX:SurvivorRatio=4 -XX:+UseConcMarkSweepGC -XX:+CMSParallelRemarkEnabled -XX:LargePageSizeInBytes=128m \
+	-server -Xms64m -Xmx128m -XX:MetaspaceSize=128m -XX:MaxMetaspaceSize=256m -XX:SurvivorRatio=4 -XX:+UseConcMarkSweepGC -XX:+CMSParallelRemarkEnabled -XX:LargePageSizeInBytes=128m \
 	-XX:+UseFastAccessorMethods -XX:+UseCMSInitiatingOccupancyOnly -XX:CMSInitiatingOccupancyFraction=70 -XX:+UseParNewGC -XX:MaxTenuringThreshold=5 -XX:+CMSClassUnloadingEnabled \
 	-XX:+TieredCompilation -XX:+ExplicitGCInvokesConcurrent -XX:AutoBoxCacheMax=20000 \
 	-verbosegc  -XX:+PrintGCDateStamps -XX:+PrintGCDetails -Xloggc:${agentHome}/logs/gc.log \
