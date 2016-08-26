@@ -8,6 +8,8 @@ import com.yiji.falcon.agent.config.AgentConfiguration;
 import com.yiji.falcon.agent.falcon.CounterType;
 import com.yiji.falcon.agent.falcon.FalconReportObject;
 import com.yiji.falcon.agent.falcon.MetricsType;
+import com.yiji.falcon.agent.jmx.JMXConnection;
+import com.yiji.falcon.agent.jmx.vo.JMXConnectionInfo;
 import com.yiji.falcon.agent.jmx.vo.JMXMetricsValueInfo;
 import com.yiji.falcon.agent.jmx.vo.JMXObjectNameInfo;
 import com.yiji.falcon.agent.plugins.JMXPlugin;
@@ -187,7 +189,7 @@ public class JMXMetricsValue extends MetricsCommon{
                     if(!reportInRepeat.equals(requestObject)){
                         // 若已有记录而且不相同,进行区分保存
                         result.remove(reportInRepeat);
-                        reportInRepeat.appendTags(requestObject.getObjectName().toString());
+                        reportInRepeat.appendTags(requestObject.getObjectName().toString());//JMX 的ObjectName名称符合tag格式
                         result.add(reportInRepeat);
 
                         requestObject.appendTags(requestObject.getObjectName().toString());
@@ -218,6 +220,24 @@ public class JMXMetricsValue extends MetricsCommon{
             return result;
         }
         for (JMXMetricsValueInfo metricsValueInfo : jmxMetricsValueInfos) {
+
+            //JMX 服务是否已被停掉的检查
+            JMXConnectionInfo jmxConnectionInfo = metricsValueInfo.getJmxConnectionInfo();
+            String serverDirPath = jmxPlugin.serverDirPath(jmxConnectionInfo.getPid());
+            if(!StringUtils.isEmpty(serverDirPath)){
+                if(serverDirPath.contains(" ")){
+                    log.warn("发现路径: {} 有空格,请及时处理,否则Agent可能会工作不正常",serverDirPath);
+                }
+                if(!jmxConnectionInfo.isValid()){
+                    File file = new File(serverDirPath);
+                    if(!file.exists()){
+                        //JMX服务目录不存在,清除连接,跳过此次监控
+                        JMXConnection.removeConnectCache(jmxConnectionInfo.getConnectionServerName(), String.valueOf(jmxConnectionInfo.getPid()));
+                        continue;
+                    }
+                }
+            }
+
             String dirName = jmxPlugin.serverDirName(metricsValueInfo.getJmxConnectionInfo().getPid());
             if(!metricsValueInfo.getJmxConnectionInfo().isValid()){
                 //该连接不可用,添加该 jmx不可用的监控报告

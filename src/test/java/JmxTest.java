@@ -3,6 +3,7 @@
  * Created by QianLong on 16/4/25.
  */
 
+import com.yiji.falcon.agent.util.CommandUtil;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Test;
@@ -14,8 +15,11 @@ import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
 import java.io.IOException;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by QianLong on 16/4/25.
@@ -54,6 +58,41 @@ public class JmxTest {
         jsonArray.put(j1);
         jsonArray.put(j1);
         System.out.println(jsonArray.toString());
+    }
+
+    @Test
+    public void dirTest() throws IOException {
+
+        String cmd = "lsof -p " + 9749 + " | grep catalina.jar";
+        CommandUtil.ExecuteResult executeResult = CommandUtil.execWithTimeOut(cmd,10, TimeUnit.SECONDS);
+        String msg = executeResult.msg;
+        String[] ss = msg.split("\\s+");
+        for (String s : ss) {
+            if(s.contains("catalina.jar")){
+//                s = s.substring(0,s.lastIndexOf("/"));
+//                s = s.substring(0,s.lastIndexOf("/"));
+//                s = s.substring(s.lastIndexOf("/") + 1,s.length());
+                System.out.println(s);
+                break;
+            }
+        }
+    }
+
+    @Test
+    public void dirWalk() throws IOException {
+        Path path = Paths.get("/Users/QianL/Documents/develop/falcon-agent/falcon-agent/target");
+        Files.walkFileTree(path,new SimpleFileVisitor<Path>(){
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                String fileName = file.getFileName().toString();
+                String fineNameLower = fileName.toLowerCase();
+                if(!fineNameLower.contains("-sources") && fineNameLower.endsWith(".jar")){
+                    System.out.println(fileName);
+                }
+
+                return super.visitFile(file, attrs);
+            }
+        });
     }
 
 }

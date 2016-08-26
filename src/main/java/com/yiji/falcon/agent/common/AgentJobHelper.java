@@ -132,7 +132,7 @@ public class AgentJobHelper {
                     }
                 } catch (Exception ignored) {
                 }
-            }else if(pluginActivateType == PluginActivateType.FORCE){
+            }else if(!StringUtils.isEmpty(jdbcPlugin.jdbcConfig()) && pluginActivateType == PluginActivateType.FORCE){
                 doJob(jobClazz,desc,step,jobDataMap,serverName);
             }
         }
@@ -195,7 +195,7 @@ public class AgentJobHelper {
                     }
                 } catch (Exception ignored) {
                 }
-            }else if(pluginActivateType == PluginActivateType.FORCE){
+            }else if(!snmpv3Plugin.userInfo().isEmpty() && pluginActivateType == PluginActivateType.FORCE){
                 doJob(jobClazz,desc,step,jobDataMap,serverName);
             }
         }

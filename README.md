@@ -270,7 +270,8 @@ SuitAgent所有的监控服务都是插件式开发集成
 	
 - standalone应用(java -jar 方式的Jar包运行)
 
-	需要配置`conf/plugin/standaloneJarPlugin.properties`配置文件的`jmxServerName`，然后SuitAgent会自动发现已配置的standalone应用
+	需要配置`conf/plugin/standaloneJarPlugin.properties`配置文件的`jmxServerName`或`jmxServerDir`，
+	然后SuitAgent会自动发现已配置的standalone应用
 	
 - Oracle
 

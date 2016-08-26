@@ -12,8 +12,14 @@ import com.yiji.falcon.agent.falcon.FalconReportObject;
 import com.yiji.falcon.agent.jmx.vo.JMXMetricsValueInfo;
 import com.yiji.falcon.agent.plugins.JMXPlugin;
 import com.yiji.falcon.agent.plugins.util.PluginActivateType;
+import com.yiji.falcon.agent.util.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.management.MBeanServerConnection;
+import java.io.IOException;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
@@ -23,6 +29,9 @@ import java.util.Map;
  */
 public class StandaloneJarPlugin implements JMXPlugin {
 
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+
+    private String jmxServerDir;
     private String jmxServerName;
     private int step;
     private PluginActivateType pluginActivateType;
@@ -45,7 +54,32 @@ public class StandaloneJarPlugin implements JMXPlugin {
      */
     @Override
     public String jmxServerName() {
-        return jmxServerName;
+        StringBuilder sb = new StringBuilder();
+        if(!StringUtils.isEmpty(jmxServerDir)){
+            for (String dir : jmxServerDir.split(",")) {
+                if(!StringUtils.isEmpty(dir)){
+                    Path path = Paths.get(dir);
+                    try {
+                        Files.walkFileTree(path,new SimpleFileVisitor<Path>(){
+                            @Override
+                            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                                String fileName = file.getFileName().toString();
+                                String fineNameLower = fileName.toLowerCase();
+                                if(!fineNameLower.contains("-sources") && fineNameLower.endsWith(".jar")){
+                                    sb.append(",").append(fileName);
+                                }
+
+                                return super.visitFile(file, attrs);
+                            }
+                        });
+                    } catch (IOException e) {
+                        logger.error("遍历目录 {} 发生异常",jmxServerDir);
+                    }
+                }
+            }
+        }
+        sb.append(jmxServerName == null ? "" : "," + jmxServerName);
+        return sb.toString();
     }
 
     /**
@@ -88,6 +122,7 @@ public class StandaloneJarPlugin implements JMXPlugin {
      */
     @Override
     public void init(Map<String, String> properties) {
+        jmxServerDir = properties.get("jmxServerDir");
         jmxServerName = properties.get("jmxServerName");
         step = Integer.parseInt(properties.get("step"));
         pluginActivateType = PluginActivateType.valueOf(properties.get("pluginActivateType"));
@@ -101,7 +136,7 @@ public class StandaloneJarPlugin implements JMXPlugin {
      */
     @Override
     public String serverName() {
-        return "yijiBoot";
+        return "standaloneJar";
     }
 
     /**

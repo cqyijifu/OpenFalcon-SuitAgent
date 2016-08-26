@@ -24,6 +24,7 @@ import java.util.Map;
  */
 public class LogstashPlugin implements JMXPlugin {
 
+    private String basePropertiesKey;
     private String jmxServerName;
     private int step;
     private PluginActivateType pluginActivateType;
@@ -35,7 +36,7 @@ public class LogstashPlugin implements JMXPlugin {
      */
     @Override
     public String basePropertiesKey() {
-        return null;
+        return this.basePropertiesKey;
     }
 
     /**
@@ -89,6 +90,7 @@ public class LogstashPlugin implements JMXPlugin {
      */
     @Override
     public void init(Map<String, String> properties) {
+        basePropertiesKey = properties.get("basePropertiesKey");
         jmxServerName = properties.get("jmxServerName");
         step = Integer.parseInt(properties.get("step"));
         pluginActivateType = PluginActivateType.valueOf(properties.get("pluginActivateType"));

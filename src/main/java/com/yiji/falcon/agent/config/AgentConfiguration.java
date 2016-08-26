@@ -219,6 +219,10 @@ public enum  AgentConfiguration {
         }
         try {
             this.agentFlushTime = Integer.parseInt(agentConf.getProperty(CONF_AGENT_FLUSH_TIME));
+            if(this.agentFlushTime <= 0){
+                log.error("Agent启动失败,自动发现服务的刷新周期配置 {} 必须大于0: {}",CONF_AGENT_FLUSH_TIME,agentConf.getProperty(CONF_AGENT_FLUSH_TIME));
+                System.exit(0);
+            }
         } catch (NumberFormatException e) {
             log.error("Agent启动失败,自动发现服务的刷新周期配置{}无效:{}",CONF_AGENT_FLUSH_TIME,agentConf.getProperty(CONF_AGENT_FLUSH_TIME));
             System.exit(0);

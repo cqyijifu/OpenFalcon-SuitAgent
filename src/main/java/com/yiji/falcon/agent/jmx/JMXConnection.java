@@ -4,7 +4,6 @@
  */
 package com.yiji.falcon.agent.jmx;
 
-import com.sun.tools.attach.AttachNotSupportedException;
 import com.sun.tools.attach.VirtualMachine;
 import com.sun.tools.attach.VirtualMachineDescriptor;
 import com.yiji.falcon.agent.config.AgentConfiguration;
@@ -16,7 +15,10 @@ import org.slf4j.LoggerFactory;
 import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXServiceURL;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -31,14 +33,31 @@ import java.util.stream.Collectors;
  */
 public class JMXConnection {
     private static final Logger log = LoggerFactory.getLogger(JMXConnection.class);
-    private static final Map<String,JMXConnectionInfo> connectLibrary = new HashMap<>();//JMX的连接缓存
+    private static final Map<String,JMXConnectionInfo> connectCacheLibrary = new HashMap<>();//JMX的连接缓存
     private static final Map<String,Integer> serverConnectCount = new HashMap<>();//记录服务应有的JMX连接数
-    private static List<JMXConnector> closeRecord = new ArrayList<>();
+    private static final List<JMXConnector> closeRecord = new ArrayList<>();
 
     private String serverName;
 
     public JMXConnection(String serverName) {
         this.serverName = serverName;
+    }
+
+    /**
+     * 删除JMX连接池连接
+     * @param serverName
+     * JMX服务名
+     * @param pid
+     * 进程id
+     */
+    public static void removeConnectCache(String serverName,String pid){
+        String key = serverName + pid;
+        if(connectCacheLibrary.remove(key) != null){
+            //删除成功,更新serverConnectCount
+            int count = serverConnectCount.get(serverName);
+            serverConnectCount.put(serverName,count - 1);
+            log.info("已清除JMX监控: {} , pid: {}",serverName,pid);
+        }
     }
 
     /**
@@ -82,6 +101,22 @@ public class JMXConnection {
     }
 
     /**
+     * 获取指定服务名的本地JMX VM 描述对象
+     * @param serverName
+     * @return
+     */
+    private List<VirtualMachineDescriptor> getVmDescByServerName(String serverName){
+        List<VirtualMachineDescriptor> vmDescList = new ArrayList<>();
+        List<VirtualMachineDescriptor> vms = VirtualMachine.list();
+        for (VirtualMachineDescriptor desc : vms) {
+            if(desc.displayName().contains(serverName)){
+                vmDescList.add(desc);
+            }
+        }
+        return vmDescList;
+    }
+
+    /**
      * 获取JMX连接
      * @return
      * @throws IOException
@@ -91,99 +126,87 @@ public class JMXConnection {
             log.error("获取JMX连接的serverName不能为空");
             return new ArrayList<>();
         }
-        List<JMXConnectionInfo> connections = connectLibrary.entrySet().
+
+        List<VirtualMachineDescriptor> vmDescList = getVmDescByServerName(serverName);
+
+        List<JMXConnectionInfo> connections = connectCacheLibrary.entrySet().
                 stream().
                 filter(entry -> entry.getKey().contains(serverName)).
                 map(Map.Entry::getValue).
                 collect(Collectors.toList());
-        if(connections.isEmpty()){
-            int count = 0;
-            List<VirtualMachineDescriptor> vms = VirtualMachine.list();
-            for (VirtualMachineDescriptor desc : vms) {
-                if(desc.displayName().contains(serverName)){
-                    JMXConnectUrlInfo jmxConnectUrlInfo = getConnectorAddress(desc);
-                    if (jmxConnectUrlInfo == null) {
-                        log.error("应用 {} 的JMX连接URL获取失败",desc.displayName());
-                        continue;
-                    }
 
-                    try {
-                        JMXServiceURL url = new JMXServiceURL(jmxConnectUrlInfo.getRemoteUrl());
-                        JMXConnector connector;
-                        if(jmxConnectUrlInfo.isAuthentication()){
-                            connector = JMXConnectWithTimeout.connectWithTimeout(url,jmxConnectUrlInfo.getJmxUser(),
-                                    jmxConnectUrlInfo.getJmxPassword(),10, TimeUnit.SECONDS);
-                        }else{
-                            connector = JMXConnectWithTimeout.connectWithTimeout(url,null,null,10, TimeUnit.SECONDS);
-                        }
-                        connections.add(initJMXConnectionInfo(connector,desc, UUID.randomUUID().toString()));
-                        log.debug("应用 {} JMX 连接已建立",serverName);
-                        count++;
-                    } catch (Exception e) {
-                        log.error("JMX 连接获取异常",e);
-                    }
+        if(connections.isEmpty()){ //JMX连接池为空,进行连接获取
+            int count = 0;
+            for (VirtualMachineDescriptor desc : vmDescList) {
+                JMXConnectUrlInfo jmxConnectUrlInfo = getConnectorAddress(desc);
+                if (jmxConnectUrlInfo == null) {
+                    log.error("应用 {} 的JMX连接URL获取失败",desc.displayName());
+                    continue;
+                }
+
+                try {
+                    connections.add(initJMXConnectionInfo(getJMXConnector(jmxConnectUrlInfo),desc));
+                    log.debug("应用 {} JMX 连接已建立",serverName);
+                    count++;
+                } catch (Exception e) {
+                    log.error("JMX 连接获取异常",e);
                 }
             }
+
             if(count > 0){
                 serverConnectCount.put(serverName,count);
             }
+        }else if(connections.size() != vmDescList.size()){//若探测的JMX连接与连接池中的数量不一致,执行reset处理逻辑,reset后的结果,将在下一次取监控时生效
+            resetMBeanConnection();
         }
+
         return connections;
     }
 
+    private JMXConnector getJMXConnector(JMXConnectUrlInfo jmxConnectUrlInfo) throws IOException {
+        JMXServiceURL url = new JMXServiceURL(jmxConnectUrlInfo.getRemoteUrl());
+        JMXConnector connector;
+        if(jmxConnectUrlInfo.isAuthentication()){
+            connector = JMXConnectWithTimeout.connectWithTimeout(url,jmxConnectUrlInfo.getJmxUser()
+                    ,jmxConnectUrlInfo.getJmxPassword(),10, TimeUnit.SECONDS);
+        }else{
+            connector = JMXConnectWithTimeout.connectWithTimeout(url,null,null,10, TimeUnit.SECONDS);
+        }
+        return connector;
+    }
+
     /**
-     * 重置指定应用的jmx连接
-     * 配置中指定的jmx服务名
+     * 重置jmx连接
      * @throws IOException
      */
     public synchronized void resetMBeanConnection() {
         if(StringUtils.isEmpty(serverName)){
             log.error("获取JMX连接的serverName不能为空");
         }
-        List<VirtualMachineDescriptor> vms = VirtualMachine.list();
 
         //本地JMX连接中根据指定的服务名命中的VirtualMachineDescriptor
-        List<VirtualMachineDescriptor> targetDesc = new ArrayList<>();
-
-        for (VirtualMachineDescriptor desc : vms) {
-            if(desc.displayName().contains(serverName)){
-                targetDesc.add(desc);
-            }
-        }
+        List<VirtualMachineDescriptor> targetDesc = getVmDescByServerName(serverName);
 
         //若命中的target数量大于或等于该服务要求的JMX连接数,则进行重置连接池中的连接
         if(targetDesc.size() >= getServerConnectCount(serverName)){
+
             //清除当前连接池中的连接
-            List<String> removeKey = new ArrayList<>();
-            for (String key : connectLibrary.keySet()) {
-                if(key.contains(serverName)){
-                    removeKey.add(key);
-                }
-            }
-            for (String key : removeKey) {
-                connectLibrary.remove(key);
-            }
+            List<String> removeKey = connectCacheLibrary.keySet().stream().filter(key -> key.contains(serverName)).collect(Collectors.toList());
+            removeKey.forEach(connectCacheLibrary::remove);
 
             //重新设置服务应有连接数
             int count = 0;
             //重新构建连接
             for (VirtualMachineDescriptor desc : targetDesc) {
+
                 JMXConnectUrlInfo jmxConnectUrlInfo = getConnectorAddress(desc);
                 if (jmxConnectUrlInfo == null) {
                     log.error("应用{}的JMX连接URL获取失败",serverName);
                     continue;
                 }
                 try {
-                    JMXServiceURL url = new JMXServiceURL(jmxConnectUrlInfo.getRemoteUrl());
-                    JMXConnector connector;
-                    if(jmxConnectUrlInfo.isAuthentication()){
-                        connector = JMXConnectWithTimeout.connectWithTimeout(url,jmxConnectUrlInfo.getJmxUser()
-                                ,jmxConnectUrlInfo.getJmxPassword(),10, TimeUnit.SECONDS);
-                    }else{
-                        connector = JMXConnectWithTimeout.connectWithTimeout(url,null,null,10, TimeUnit.SECONDS);
-                    }
-                    initJMXConnectionInfo(connector,desc,UUID.randomUUID().toString());
-                    log.debug("应用 {} JMX 连接已建立",serverName);
+                    initJMXConnectionInfo(getJMXConnector(jmxConnectUrlInfo),desc);
+                    log.debug("应用 {} JMX 连接已建立,将在下一周期获取Metrics值时生效",serverName);
                     count++;
                 } catch (IOException e) {
                     log.error("JMX 连接获取异常",e);
@@ -217,20 +240,19 @@ public class JMXConnection {
      * JMXConnectionInfo的初始化动作
      * @param connector
      * @param desc
-     * @param keyId
      * @return
      * @throws IOException
      */
-    private JMXConnectionInfo initJMXConnectionInfo(JMXConnector connector,VirtualMachineDescriptor desc,String keyId) throws IOException {
+    private JMXConnectionInfo initJMXConnectionInfo(JMXConnector connector,VirtualMachineDescriptor desc) throws IOException {
         JMXConnectionInfo jmxConnectionInfo = new JMXConnectionInfo();
-        jmxConnectionInfo.setCacheKeyId(keyId);
+        jmxConnectionInfo.setCacheKeyId(desc.id());
         jmxConnectionInfo.setConnectionServerName(serverName);
         jmxConnectionInfo.setConnectionQualifiedServerName(desc.displayName());
         jmxConnectionInfo.setmBeanServerConnection(connector.getMBeanServerConnection());
         jmxConnectionInfo.setValid(true);
         jmxConnectionInfo.setPid(Integer.parseInt(desc.id()));
 
-        connectLibrary.put(serverName + keyId,jmxConnectionInfo);
+        connectCacheLibrary.put(serverName + desc.id(),jmxConnectionInfo);
         //添加关闭集合
         closeRecord.add(connector);
         return jmxConnectionInfo;

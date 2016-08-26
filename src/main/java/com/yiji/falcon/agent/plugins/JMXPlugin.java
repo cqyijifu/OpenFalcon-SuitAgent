@@ -59,6 +59,18 @@ public interface JMXPlugin extends Plugin{
     Collection<FalconReportObject> inbuiltReportObjectsForValid(JMXMetricsValueInfo metricsValueInfo);
 
     /**
+     * JMX服务的目录路径
+     * 若实现此方法,则若该JMX连接不可用时,将会检查该JMX服务的目录是否存在,若不存在,将会清除此连接,并不再监控此JMX。
+     * 否则,若JMX连接不可用,将会上报不可用的报告,且不会清除
+     * @param pid
+     * 服务的进程id
+     * @return
+     */
+    default String serverDirPath(int pid){
+        return null;
+    }
+
+    /**
      * JMX服务器的目录名称
      * @param pid
      * 服务的进程id

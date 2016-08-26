@@ -35,6 +35,7 @@ public class TomcatPlugin implements JMXPlugin {
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
     private ConcurrentHashMap<Integer,String> serverDirNameCatch = new ConcurrentHashMap<>();
+    private ConcurrentHashMap<Integer,String> serverDirPathCatch = new ConcurrentHashMap<>();
 
     private String basePropertiesKey;
     private String jmxServerName;
@@ -161,6 +162,37 @@ public class TomcatPlugin implements JMXPlugin {
         return new ArrayList<>();
     }
 
+    /**
+     * JMX服务的目录路径
+     * 若实现此方法,则若该JMX连接不可用时,将会检查该JMX服务的目录是否存在,若不存在,将会清除此连接,并不再监控此JMX。
+     * 否则,若JMX连接不可用,将会上报不可用的报告,且不会清除
+     *
+     * @param pid 服务的进程id
+     * @return
+     */
+    @Override
+    public String serverDirPath(int pid) {
+        String dirPath = serverDirPathCatch.get(pid);
+        if(dirPath == null){
+            try {
+                String cmd = "lsof -p " + pid + " | grep catalina.jar";
+                CommandUtil.ExecuteResult executeResult = CommandUtil.execWithTimeOut(cmd,10, TimeUnit.SECONDS);
+                String msg = executeResult.msg;
+                String[] ss = msg.split("\\s+");
+                for (String s : ss) {
+                    if(s.contains("catalina.jar")){
+                        dirPath = s.trim();
+                        serverDirPathCatch.put(pid,dirPath);
+                        break;
+                    }
+                }
+            } catch (IOException e) {
+                log.error("tomcat serverDirPath获取异常",e);
+            }
+        }
+        return dirPath;
+    }
+
     @Override
     public String serverDirName(int pid) {
         String dirName = serverDirNameCatch.get(pid);
@@ -175,7 +207,7 @@ public class TomcatPlugin implements JMXPlugin {
                         s = s.substring(0,s.lastIndexOf("/"));
                         s = s.substring(0,s.lastIndexOf("/"));
                         s = s.substring(s.lastIndexOf("/") + 1,s.length());
-                        dirName = s;
+                        dirName = s.trim();
                         serverDirNameCatch.put(pid,dirName);
                         break;
                     }

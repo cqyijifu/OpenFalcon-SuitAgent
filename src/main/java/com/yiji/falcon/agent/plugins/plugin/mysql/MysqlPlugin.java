@@ -28,6 +28,7 @@ public class MysqlPlugin implements JDBCPlugin {
     private final List<JDBCUserInfo> userInfoList = new ArrayList<>();
     private int step;
     private PluginActivateType pluginActivateType;
+    private String jdbcConfig = null;
 
 
     /**
@@ -57,6 +58,16 @@ public class MysqlPlugin implements JDBCPlugin {
     @Override
     public String metricsConfName() {
         return null;
+    }
+
+    /**
+     * 配置的数据库连接地址
+     *
+     * @return 返回与配置文件中配置的地址一样即可, 用于启动判断
+     */
+    @Override
+    public String jdbcConfig() {
+        return this.jdbcConfig;
     }
 
     /**
@@ -97,9 +108,9 @@ public class MysqlPlugin implements JDBCPlugin {
      */
     @Override
     public void init(Map<String, String> properties) {
-        String authProp = properties.get("Mysql.jdbc.auth");
-        if(!StringUtils.isEmpty(authProp)){
-            String[] auths = authProp.split("\\^");
+        jdbcConfig = properties.get("Mysql.jdbc.auth");
+        if(!StringUtils.isEmpty(jdbcConfig)){
+            String[] auths = jdbcConfig.split("\\^");
             for (String auth : auths) {
                 if (!StringUtils.isEmpty(auth)){
                     String url = auth.substring(auth.indexOf("url=") + 4,auth.indexOf("user=") - 1);

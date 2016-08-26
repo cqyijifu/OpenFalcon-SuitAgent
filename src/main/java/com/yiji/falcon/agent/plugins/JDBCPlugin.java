@@ -41,6 +41,14 @@ public interface JDBCPlugin extends Plugin{
     }
 
     /**
+     * 配置的数据库连接地址
+     *
+     * @return
+     * 返回与配置文件中配置的地址一样即可,用于启动判断
+     */
+    String jdbcConfig();
+
+    /**
      * 该插件监控的服务标记名称,目的是为能够在操作系统中准确定位该插件监控的是哪个具体服务
      * 如该服务运行的端口号等
      * 若不需要指定则可返回null
