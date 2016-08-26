@@ -27,9 +27,9 @@ import java.util.concurrent.TimeUnit;
  * 命令执行
  * @author guqiu@yiji.com
  */
-public class CommandUtil {
+public class CommandUtilForUnix {
 
-    private static final Logger logger = LoggerFactory.getLogger(CommandUtil.class);
+    private static final Logger logger = LoggerFactory.getLogger(CommandUtilForUnix.class);
 
     /**
      * 命令执行的返回结果值类
@@ -61,7 +61,7 @@ public class CommandUtil {
      */
     public static String getCmdDirByPid(int pid) throws IOException {
         String cmd = "lsof -p " + pid;
-        CommandUtil.ExecuteResult executeResult = CommandUtil.execWithTimeOut(cmd,10, TimeUnit.SECONDS);
+        CommandUtilForUnix.ExecuteResult executeResult = CommandUtilForUnix.execWithTimeOut(cmd,10, TimeUnit.SECONDS);
         String msg = executeResult.msg;
         String[] ss = msg.split("\n");
         for (String s : ss) {
@@ -197,7 +197,7 @@ public class CommandUtil {
     public static PingResult ping(String address,int count) throws IOException {
         PingResult pingResult = new PingResult();
         String commend = String.format("ping -c %d %s",count,address);
-        CommandUtil.ExecuteResult executeResult = CommandUtil.execWithTimeOut(commend,10,TimeUnit.SECONDS);
+        CommandUtilForUnix.ExecuteResult executeResult = CommandUtilForUnix.execWithTimeOut(commend,10,TimeUnit.SECONDS);
 
         if(executeResult.isSuccess){
             List<Float> times = new ArrayList<>();

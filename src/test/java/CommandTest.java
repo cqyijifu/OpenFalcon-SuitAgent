@@ -7,7 +7,7 @@
  * guqiu@yiji.com 2016-07-15 10:59 创建
  */
 
-import com.yiji.falcon.agent.util.CommandUtil;
+import com.yiji.falcon.agent.util.CommandUtilForUnix;
 import com.yiji.falcon.agent.util.StringUtils;
 import org.apache.log4j.PropertyConfigurator;
 import org.junit.Test;
@@ -29,7 +29,7 @@ public class CommandTest {
 
     @Test
     public void exec() throws IOException {
-        System.out.println(CommandUtil.getJavaHomeFromEtcProfile());
+        System.out.println(CommandUtilForUnix.getJavaHomeFromEtcProfile());
     }
 
     @Test
@@ -37,7 +37,7 @@ public class CommandTest {
         int count = 5;
         String address = "www.deh4.com";
 
-        CommandUtil.ExecuteResult executeResult = CommandUtil.execWithTimeOut(String.format("ping -c %d %s",count,address),
+        CommandUtilForUnix.ExecuteResult executeResult = CommandUtilForUnix.execWithTimeOut(String.format("ping -c %d %s",count,address),
                 5, TimeUnit.SECONDS);
         if(executeResult.isSuccess){
             List<Float> times = new ArrayList<>();
@@ -70,7 +70,7 @@ public class CommandTest {
         String cmd = "ps aux | grep " + 6346;
         String keyStr = "-Dcom.sun.management.jmxremote.port";
 
-        CommandUtil.ExecuteResult result = CommandUtil.execWithTimeOut(cmd,10,TimeUnit.SECONDS);
+        CommandUtilForUnix.ExecuteResult result = CommandUtilForUnix.execWithTimeOut(cmd,10,TimeUnit.SECONDS);
         if(result.isSuccess){
             String msg = result.msg;
             StringTokenizer st = new StringTokenizer(msg," ",false);
@@ -92,7 +92,7 @@ public class CommandTest {
     @Test
     public void jmxAuth() throws IOException, InterruptedException {
         String cmdJavaHome = "echo $JAVA_HOME";
-        CommandUtil.ExecuteResult javaHomeExe = CommandUtil.execWithTimeOut("/bin/echo",cmdJavaHome,10,TimeUnit.SECONDS);
+        CommandUtilForUnix.ExecuteResult javaHomeExe = CommandUtilForUnix.execWithTimeOut("/bin/echo",cmdJavaHome,10,TimeUnit.SECONDS);
         if(!javaHomeExe.isSuccess){
             System.out.println("请配置 JAVA_HOME 的系统变量");
             return;
@@ -102,27 +102,27 @@ public class CommandTest {
         String passwordFile = javaHome + "/" + "jre/lib/management/jmxremote.password";
         String suffix = ".YijiFalconAgent";
         List<Boolean> results = new ArrayList<>();
-        results.add(CommandUtil.execWithTimeOut(String.format("cp %s %s",accessFile,accessFile + suffix),10,TimeUnit.SECONDS).isSuccess);
-        results.add(CommandUtil.execWithTimeOut(String.format("chmod 777 %s",accessFile + suffix),10,TimeUnit.SECONDS).isSuccess);
-        results.add(CommandUtil.execWithTimeOut(String.format("cp %s %s",passwordFile,passwordFile + suffix),10,TimeUnit.SECONDS).isSuccess);
-        results.add(CommandUtil.execWithTimeOut(String.format("chmod 777 %s",passwordFile + suffix),10,TimeUnit.SECONDS).isSuccess);
+        results.add(CommandUtilForUnix.execWithTimeOut(String.format("cp %s %s",accessFile,accessFile + suffix),10,TimeUnit.SECONDS).isSuccess);
+        results.add(CommandUtilForUnix.execWithTimeOut(String.format("chmod 777 %s",accessFile + suffix),10,TimeUnit.SECONDS).isSuccess);
+        results.add(CommandUtilForUnix.execWithTimeOut(String.format("cp %s %s",passwordFile,passwordFile + suffix),10,TimeUnit.SECONDS).isSuccess);
+        results.add(CommandUtilForUnix.execWithTimeOut(String.format("chmod 777 %s",passwordFile + suffix),10,TimeUnit.SECONDS).isSuccess);
         if(results.contains(Boolean.FALSE)){
             System.out.println("JMX的授权文件操作失败");
-            CommandUtil.execWithTimeOut(String.format("rm -rf %s",accessFile + suffix),10,TimeUnit.SECONDS);
-            CommandUtil.execWithTimeOut(String.format("rm -rf %s",passwordFile + suffix),10,TimeUnit.SECONDS);
+            CommandUtilForUnix.execWithTimeOut(String.format("rm -rf %s",accessFile + suffix),10,TimeUnit.SECONDS);
+            CommandUtilForUnix.execWithTimeOut(String.format("rm -rf %s",passwordFile + suffix),10,TimeUnit.SECONDS);
             return;
         }
 
-        String contentForAccess = CommandUtil.execWithTimeOut(String.format("cat %s",accessFile + suffix),10,TimeUnit.SECONDS).msg;
+        String contentForAccess = CommandUtilForUnix.execWithTimeOut(String.format("cat %s",accessFile + suffix),10,TimeUnit.SECONDS).msg;
         String user = getJmxUser(contentForAccess);
         System.out.println("jmx user : " + user);
-        String contentForPassword = CommandUtil.execWithTimeOut(String.format("cat %s",passwordFile + suffix),10,TimeUnit.SECONDS).msg;
+        String contentForPassword = CommandUtilForUnix.execWithTimeOut(String.format("cat %s",passwordFile + suffix),10,TimeUnit.SECONDS).msg;
         String password = getJmxPassword(contentForPassword,user);
         System.out.println("jmx password : " + password);
 
 
-        CommandUtil.execWithTimeOut(String.format("rm -rf %s",accessFile + suffix),10,TimeUnit.SECONDS);
-        CommandUtil.execWithTimeOut(String.format("rm -rf %s",passwordFile + suffix),10,TimeUnit.SECONDS);
+        CommandUtilForUnix.execWithTimeOut(String.format("rm -rf %s",accessFile + suffix),10,TimeUnit.SECONDS);
+        CommandUtilForUnix.execWithTimeOut(String.format("rm -rf %s",passwordFile + suffix),10,TimeUnit.SECONDS);
 
     }
 

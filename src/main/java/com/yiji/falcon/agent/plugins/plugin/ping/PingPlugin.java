@@ -11,7 +11,7 @@ package com.yiji.falcon.agent.plugins.plugin.ping;
 import com.yiji.falcon.agent.falcon.CounterType;
 import com.yiji.falcon.agent.plugins.DetectPlugin;
 import com.yiji.falcon.agent.plugins.Plugin;
-import com.yiji.falcon.agent.util.CommandUtil;
+import com.yiji.falcon.agent.util.CommandUtilForUnix;
 import com.yiji.falcon.agent.util.Maths;
 import com.yiji.falcon.agent.vo.detect.DetectResult;
 import org.slf4j.Logger;
@@ -55,7 +55,7 @@ public class PingPlugin implements DetectPlugin {
         int pingCount = 5;
         try {
             DetectResult result = new DetectResult();
-            CommandUtil.PingResult pingResult = CommandUtil.ping(address,pingCount);
+            CommandUtilForUnix.PingResult pingResult = CommandUtilForUnix.ping(address,pingCount);
             if(pingResult.resultCode == -2){
                 //命令执行失败
                 return null;

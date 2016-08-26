@@ -3,7 +3,7 @@
  * Created by QianLong on 16/4/25.
  */
 
-import com.yiji.falcon.agent.util.CommandUtil;
+import com.yiji.falcon.agent.util.CommandUtilForUnix;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Test;
@@ -64,7 +64,7 @@ public class JmxTest {
     public void dirTest() throws IOException {
 
         String cmd = "lsof -p " + 5645;
-        CommandUtil.ExecuteResult executeResult = CommandUtil.execWithTimeOut(cmd,10, TimeUnit.SECONDS);
+        CommandUtilForUnix.ExecuteResult executeResult = CommandUtilForUnix.execWithTimeOut(cmd,10, TimeUnit.SECONDS);
         String msg = executeResult.msg;
         String[] ss = msg.split("\n");
         for (String s : ss) {

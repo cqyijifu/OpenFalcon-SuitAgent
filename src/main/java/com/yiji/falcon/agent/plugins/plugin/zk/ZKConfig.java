@@ -5,7 +5,7 @@
 package com.yiji.falcon.agent.plugins.plugin.zk;
 
 import com.yiji.falcon.agent.plugins.plugin.elasticSearch.ElasticSearchConfig;
-import com.yiji.falcon.agent.util.CommandUtil;
+import com.yiji.falcon.agent.util.CommandUtilForUnix;
 import com.yiji.falcon.agent.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,7 +52,7 @@ public class ZKConfig {
         }
 
         String cmd = "lsof -p " + pid + " | grep zookeeper";
-        CommandUtil.ExecuteResult executeResult = CommandUtil.execWithTimeOut(cmd,10, TimeUnit.SECONDS);
+        CommandUtilForUnix.ExecuteResult executeResult = CommandUtilForUnix.execWithTimeOut(cmd,10, TimeUnit.SECONDS);
 
         if(executeResult.isSuccess){
             String path = "";

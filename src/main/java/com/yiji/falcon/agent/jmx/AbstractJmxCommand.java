@@ -4,7 +4,7 @@
  */
 package com.yiji.falcon.agent.jmx;
 
-import com.yiji.falcon.agent.util.CommandUtil;
+import com.yiji.falcon.agent.util.CommandUtilForUnix;
 import com.yiji.falcon.agent.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,7 +63,7 @@ public class AbstractJmxCommand {
         try {
             JMXConnectUrlInfo remoteUrlInfo = new JMXConnectUrlInfo();
 
-            CommandUtil.ExecuteResult result = CommandUtil.execWithTimeOut(cmd,10, TimeUnit.SECONDS);
+            CommandUtilForUnix.ExecuteResult result = CommandUtilForUnix.execWithTimeOut(cmd,10, TimeUnit.SECONDS);
 
             if(result.isSuccess){
                 String msg = result.msg;
@@ -84,7 +84,7 @@ public class AbstractJmxCommand {
                     String suffix = ".YijiFalconAgent";
                     //寻找JMX的认证信息
                     if(accessFile == null || passwordFile == null){
-                        String javaHome = CommandUtil.getJavaHomeFromEtcProfile();
+                        String javaHome = CommandUtilForUnix.getJavaHomeFromEtcProfile();
 
                         if(StringUtils.isEmpty(javaHome)){
                             logger.error("JAVA_HOME 读取失败");
@@ -103,10 +103,10 @@ public class AbstractJmxCommand {
 
                     List<Boolean> results = new ArrayList<>();
                     //因java授权文件有严格的读取权限控制,为能够读到授权文件信息,创建临时文件
-                    results.add(CommandUtil.execWithTimeOut(String.format("cp %s %s",accessFile,accessFile + suffix),10,TimeUnit.SECONDS).isSuccess);
-                    results.add(CommandUtil.execWithTimeOut(String.format("chmod 777 %s",accessFile + suffix),10,TimeUnit.SECONDS).isSuccess);
-                    results.add(CommandUtil.execWithTimeOut(String.format("cp %s %s",passwordFile,passwordFile + suffix),10,TimeUnit.SECONDS).isSuccess);
-                    results.add(CommandUtil.execWithTimeOut(String.format("chmod 777 %s",passwordFile + suffix),10,TimeUnit.SECONDS).isSuccess);
+                    results.add(CommandUtilForUnix.execWithTimeOut(String.format("cp %s %s",accessFile,accessFile + suffix),10,TimeUnit.SECONDS).isSuccess);
+                    results.add(CommandUtilForUnix.execWithTimeOut(String.format("chmod 777 %s",accessFile + suffix),10,TimeUnit.SECONDS).isSuccess);
+                    results.add(CommandUtilForUnix.execWithTimeOut(String.format("cp %s %s",passwordFile,passwordFile + suffix),10,TimeUnit.SECONDS).isSuccess);
+                    results.add(CommandUtilForUnix.execWithTimeOut(String.format("chmod 777 %s",passwordFile + suffix),10,TimeUnit.SECONDS).isSuccess);
                     if(results.contains(Boolean.FALSE)){
                         logger.error("JMX的授权文件操作失败");
                         //删除临时文件
@@ -115,9 +115,9 @@ public class AbstractJmxCommand {
                         return null;
                     }
 
-                    String contentForAccess = CommandUtil.execWithTimeOut(String.format("cat %s",accessFile + suffix),10,TimeUnit.SECONDS).msg;
+                    String contentForAccess = CommandUtilForUnix.execWithTimeOut(String.format("cat %s",accessFile + suffix),10,TimeUnit.SECONDS).msg;
                     String user = getJmxUser(contentForAccess);
-                    String contentForPassword = CommandUtil.execWithTimeOut(String.format("cat %s",passwordFile + suffix),10,TimeUnit.SECONDS).msg;
+                    String contentForPassword = CommandUtilForUnix.execWithTimeOut(String.format("cat %s",passwordFile + suffix),10,TimeUnit.SECONDS).msg;
                     String password = getJmxPassword(contentForPassword,user);
 
                     //删除临时文件

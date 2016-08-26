@@ -15,7 +15,7 @@ import com.yiji.falcon.agent.falcon.MetricsType;
 import com.yiji.falcon.agent.plugins.SNMPV3Plugin;
 import com.yiji.falcon.agent.plugins.util.SNMPHelper;
 import com.yiji.falcon.agent.plugins.util.SNMPV3Session;
-import com.yiji.falcon.agent.util.CommandUtil;
+import com.yiji.falcon.agent.util.CommandUtilForUnix;
 import com.yiji.falcon.agent.util.StringUtils;
 import com.yiji.falcon.agent.vo.snmp.IfStatVO;
 import com.yiji.falcon.agent.vo.snmp.SNMPV3UserInfo;
@@ -217,7 +217,7 @@ public class SNMPV3MetricsValue extends MetricsCommon {
         String address = session.getUserInfo().getAddress();
 
         try {
-            CommandUtil.PingResult pingResult = CommandUtil.ping(address,count);
+            CommandUtilForUnix.PingResult pingResult = CommandUtilForUnix.ping(address,count);
             if(pingResult.resultCode == -2){
                 //命令执行失败
                 return null;

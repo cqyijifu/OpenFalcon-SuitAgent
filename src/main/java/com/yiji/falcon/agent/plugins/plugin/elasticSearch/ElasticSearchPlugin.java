@@ -16,7 +16,7 @@ import com.yiji.falcon.agent.jmx.vo.JMXMetricsValueInfo;
 import com.yiji.falcon.agent.plugins.JMXPlugin;
 import com.yiji.falcon.agent.plugins.metrics.MetricsCommon;
 import com.yiji.falcon.agent.plugins.util.PluginActivateType;
-import com.yiji.falcon.agent.util.CommandUtil;
+import com.yiji.falcon.agent.util.CommandUtilForUnix;
 import com.yiji.falcon.agent.util.HttpUtil;
 import com.yiji.falcon.agent.util.StringUtils;
 import org.ho.yaml.Yaml;
@@ -241,7 +241,7 @@ public class ElasticSearchPlugin implements JMXPlugin {
         String dirPath = serverDirPathCatch.get(key);
         if(dirPath == null){
             try {
-                dirPath = CommandUtil.getCmdDirByPid(pid);
+                dirPath = CommandUtilForUnix.getCmdDirByPid(pid);
                 if (dirPath != null) {
                     serverDirPathCatch.put(key,dirPath);
                 }

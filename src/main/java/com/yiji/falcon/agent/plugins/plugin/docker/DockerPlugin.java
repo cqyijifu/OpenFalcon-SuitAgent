@@ -11,7 +11,7 @@ package com.yiji.falcon.agent.plugins.plugin.docker;
 import com.yiji.falcon.agent.falcon.CounterType;
 import com.yiji.falcon.agent.plugins.DetectPlugin;
 import com.yiji.falcon.agent.plugins.Plugin;
-import com.yiji.falcon.agent.util.CommandUtil;
+import com.yiji.falcon.agent.util.CommandUtilForUnix;
 import com.yiji.falcon.agent.util.StringUtils;
 import com.yiji.falcon.agent.vo.detect.DetectResult;
 import org.slf4j.Logger;
@@ -47,7 +47,7 @@ public class DockerPlugin implements DetectPlugin {
             return addressesCache;
         }
         try {
-            CommandUtil.ExecuteResult executeResult = CommandUtil.execWithTimeOut("ps aux | grep docker",10, TimeUnit.SECONDS);
+            CommandUtilForUnix.ExecuteResult executeResult = CommandUtilForUnix.execWithTimeOut("ps aux | grep docker",10, TimeUnit.SECONDS);
             if(!executeResult.isSuccess){
                 return null;
             }
