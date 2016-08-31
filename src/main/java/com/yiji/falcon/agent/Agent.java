@@ -266,7 +266,7 @@ public class Agent extends Thread{
             Thread pluginWatcher = new PluginPropertiesWatcher(AgentConfiguration.INSTANCE.getPluginConfPath());
             pluginWatcher.setName("pluginDirWatcher");
             pluginWatcher.setDaemon(true);
-            Thread confWatcher = new ConfDirWatcher(AgentConfiguration.INSTANCE.getAgentConfPath().substring(0,AgentConfiguration.INSTANCE.getAgentConfPath().lastIndexOf("/")));
+            Thread confWatcher = new ConfDirWatcher(AgentConfiguration.INSTANCE.getAgentConfPath().substring(0,AgentConfiguration.INSTANCE.getAgentConfPath().lastIndexOf(File.separator)));
             confWatcher.setName("confDirWatcher");
             confWatcher.setDaemon(true);
             pluginWatcher.start();
