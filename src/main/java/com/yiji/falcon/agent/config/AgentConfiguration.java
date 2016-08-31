@@ -32,10 +32,6 @@ public enum  AgentConfiguration {
      */
     private String quartzConfPath = null;
     /**
-     * log4j配置文件路径
-     */
-    private String log4JConfPath = null;
-    /**
      * push到falcon的地址
      */
     private String agentPushUrl = null;
@@ -163,13 +159,6 @@ public enum  AgentConfiguration {
             this.quartzConfPath = System.getProperty("agent.quartz.conf.path");
         }
 
-        if(StringUtils.isEmpty(System.getProperty("agent.log4j.conf.path"))){
-            log.error("log4j 配置文件位置读取失败,请确定系统配置项:" + "agent.log4j.conf.path");
-            System.exit(0);
-        }else{
-            this.log4JConfPath = System.getProperty("agent.log4j.conf.path");
-        }
-
         agentConf = new Properties();
         try(FileInputStream in = new FileInputStream(this.agentConfPath)){
             agentConf.load(in);
@@ -256,10 +245,6 @@ public enum  AgentConfiguration {
 
     public String getQuartzConfPath() {
         return quartzConfPath;
-    }
-
-    public String getLog4JConfPath() {
-        return log4JConfPath;
     }
 
     public int getAgentPort() {

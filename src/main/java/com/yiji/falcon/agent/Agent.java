@@ -298,10 +298,17 @@ public class Agent extends Thread{
             return;
         }
 
+        if(StringUtils.isEmpty(System.getProperty("agent.log4j.conf.path"))){
+            log.error("log4j 配置文件位置读取失败,请确定系统配置项:" + "agent.log4j.conf.path");
+            System.exit(0);
+        }else{
+            //自定义日志配置文件
+            PropertyConfigurator.configure(System.getProperty("agent.log4j.conf.path"));
+        }
+
         switch (args[0]){
             case "start":
-                //自定义日志配置文件
-                PropertyConfigurator.configure(AgentConfiguration.INSTANCE.getLog4JConfPath());
+
                 Thread main = new Agent();
                 main.setName("FalconAgent");
                 main.start();
