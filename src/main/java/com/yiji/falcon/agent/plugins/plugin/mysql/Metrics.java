@@ -47,10 +47,19 @@ class Metrics {
         return reportObjectSet;
     }
 
-//    private Collection<? extends FalconReportObject> getSalveStatus() throws SQLException{
-//        Set<FalconReportObject> reportObjectSet = new HashSet<>();
-//        return reportObjectSet;
-//    }
+    private Collection<? extends FalconReportObject> getSalveStatus() throws SQLException, ClassNotFoundException {
+        Set<FalconReportObject> reportObjectSet = new HashSet<>();
+        String sql = "show slave status";
+        Collection<Connection> connections = plugin.getConnections();
+        for (Connection connection : connections) {
+            PreparedStatement pstmt = connection.prepareStatement(sql);
+            ResultSet rs = pstmt.executeQuery();
+            while (rs.next()){
+
+            }
+        }
+        return reportObjectSet;
+    }
 
     private Collection<? extends FalconReportObject> getGlobalVariables() throws SQLException, ClassNotFoundException {
         Set<FalconReportObject> reportObjectSet = new HashSet<>();

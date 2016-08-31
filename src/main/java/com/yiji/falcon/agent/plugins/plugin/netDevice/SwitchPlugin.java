@@ -134,20 +134,18 @@ public class SwitchPlugin implements SNMPV3Plugin{
      * 当设备链接可用时的插件内置报告,如该插件适配的不同设备和品牌的SNMP监控报告
      * Agent会自动采集一些公共的MIB数据,但是设备私有的MIB信息,将有不同的插件自己提供
      *
-     * @param sessions 连接设备的SNMP Session,插件可通过此对象进行设备间的SNMP通信,以获取监控数据
+     * @param session 连接设备的SNMP Session,插件可通过此对象进行设备间的SNMP通信,以获取监控数据
      * @return
      */
     @Override
-    public Collection<FalconReportObject> inbuiltReportObjectsForValid(List<SNMPV3Session> sessions) {
+    public Collection<FalconReportObject> inbuiltReportObjectsForValid(SNMPV3Session session) {
         List<CollectObject> collectObjects = new ArrayList<>();
 
-        for (SNMPV3Session session : sessions) {
-            try {
-                collectObjects.add(SwitchCPUStatCollect.getCPUStat(session));
-                collectObjects.add(SwitchMemoryStatCollect.getMemoryStat(session));
-            } catch (Exception e) {
-                logger.error("获取设备 {} 的CPU利用率数据失败",session.toString(),e);
-            }
+        try {
+            collectObjects.add(SwitchCPUStatCollect.getCPUStat(session));
+            collectObjects.add(SwitchMemoryStatCollect.getMemoryStat(session));
+        } catch (Exception e) {
+            logger.error("获取设备 {} 的CPU利用率数据失败",session.toString(),e);
         }
 
         final List<FalconReportObject> falconReportObjects = new ArrayList<>();
@@ -155,12 +153,6 @@ public class SwitchPlugin implements SNMPV3Plugin{
             if(collectObject != null){
                 FalconReportObject reportObject = new FalconReportObject();
                 MetricsCommon.setReportCommonValue(reportObject, this.step());
-                String endPoint = collectObject.getSession().getUserInfo().getEndPoint();
-                if(!StringUtils.isEmpty(endPoint)){
-                    //设置单独设置的endPoint
-                    reportObject.setEndpoint(endPoint);
-                    reportObject.appendTags("customerEndPoint=true");
-                }
                 reportObject.appendTags(MetricsCommon.getTags(collectObject.getSession().getEquipmentName(), this, this.serverName(), MetricsType.SNMP_Plugin_IN_BUILD));
                 reportObject.setCounterType(CounterType.GAUGE);
                 reportObject.setMetric(collectObject.getMetrics());

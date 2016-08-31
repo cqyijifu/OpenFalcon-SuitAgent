@@ -117,9 +117,10 @@ public class OraclePlugin implements JDBCPlugin {
                 MetricsCommon.setReportCommonValue(falconReportObject,step());
                 falconReportObject.setCounterType(CounterType.GAUGE);
                 falconReportObject.setTimestamp(System.currentTimeMillis() / 1000);
-                falconReportObject.setMetric(getMetricsName("TSUsedPercent-" + tsName.trim()));
+                falconReportObject.setMetric(getMetricsName("TSUsedPercent"));
                 falconReportObject.setValue(percent.trim());
-                falconReportObject.appendTags(MetricsCommon.getTags(agentSignName(),this,serverName(), MetricsType.SQL_IN_BUILD));
+                falconReportObject.appendTags(MetricsCommon.getTags(agentSignName(),this,serverName(), MetricsType.SQL_IN_BUILD))
+                .appendTags("TSName=" + tsName.trim());
                 result.add(falconReportObject);
             }
             rs.close();

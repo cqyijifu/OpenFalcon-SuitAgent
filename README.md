@@ -107,13 +107,16 @@ SuitAgent所有的监控服务都是插件式开发集成
 
 ### SuitAgent目前集成的监控服务
 
-#### 通过JMX监控的服务
+#### JMX监控服务
 
-- 特殊的metrics说明
+##### 特殊的metrics说明
 	- 若SuitAgent在启动时，需要进行监控的服务（对应的work配置为true的）未启动，则将会上报一个名为`allUnVariability`的metrics监控指标，值为`0`。tag中有metrics的详情（参考tag命名），代表为该服务全部不可用
 
-- JMX监控属性组成
-	- SuitAgent内置的JMX监控属性
+##### JMX监控属性组成
+
+JMX监控的属性，由以下三部分组成
+
+- SuitAgent内置的JMX监控属性
 	
 		- `HeapMemoryUsedRatio` - 堆内存使用比例
 		- `HeapMemoryCommitted` - 堆内存已提交的大小
@@ -122,27 +125,36 @@ SuitAgent所有的监控服务都是插件式开发集成
 		- `HeapMemoryMax` - 堆内存最大的空间大小
 		- `HeapMemoryUsed` - 堆内存已使用的空间大小
 		- `NonHeapMemoryUsed` - 非堆内存已使用的空间大小
+	
+- JMX 公共的监控属性自定义配置
+	- 定义于`conf/jmx/common.properties`文件
+- 自定义的监控属性
+	- 每个插件自定义的属于自身的监控属性
 		
-	- JMX 公共的监控属性自定义配置
-		- 定义于`conf/jmx/common.properties`文件
-	- 自定义的监控属性
-		- 每个插件自定义的属于自身的监控属性
-- 目前支持的监控组件
+##### Java应用的停机处理说明
 
-		- zookeeper
-		- tomcat
-		- elasticSearch
-		- logstash
-		- 单独Jar包运行的应用(如SpringBoot)
+正常情况下，若Java应用停机，则它的JMX连接将会不可用，此时，`SuitAgent`将会上报该应用不可用的监控报告，并且，在每一次重新获取监控值时，都会尝试重新连接此应用。
+
+若该应用是被下线了，就是废弃了，那么岂不是会永远上报不可用状态？所以，`SuitAgent`有一个处理机制，在`SuitAgent`启动时，它会记录每一个Java应用的应用路径，如果该应用被发现停机了，它会检查该路径还是否存在有效，如果路径无效，`SuitAgent`将会清除此下线应用的监控信息，就不会上报不可用了。
+	
+##### 目前支持的监控组件
+
+- zookeeper
+- tomcat
+- elasticSearch
+- logstash
+- standaloneJar（单独Jar包运行的应用，如SpringBoot)
 	
 #### JDBC监控的服务
-- 目前支持的监控组件
+
+##### 目前支持的监控组件
 
 		- Oracle
 		- Mysql
 
 #### SNMP监控服务
-- 公共的metrics列表
+
+##### 公共的metrics列表
 
 		- IfHCInOctets
 		- IfHCOutOctets
@@ -155,36 +167,36 @@ SuitAgent所有的监控服务都是插件式开发集成
 		- `IfOperStatus`(接口状态，1 up, 2 down, 3 testing, 4 unknown, 5 dormant, 6 notPresent, 7 lowerLayerDown)
 		- Ping延时（正常返回延时，超时返回 -1）
 		
-- 交换机（SNMP V3）
+##### 交换机（SNMP V3）
 
-	说明
+说明
+	
+监控的设备采集信息和采集逻辑主要参考了Falcon社区的swcollector项目，因swcollector不支持SNMP V3协议。  
+		[https://github.com/gaochao1/swcollector](https://github.com/gaochao1/swcollector)
 		
-	监控的设备采集信息和采集逻辑主要参考了Falcon社区的swcollector项目，因swcollector不支持SNMP V3协议。  
-			[https://github.com/gaochao1/swcollector](https://github.com/gaochao1/swcollector)
-			
-	采集的私有metric列表
+采集的私有metric列表
 	
-			- 公共的metrics数据
-			- CPU利用率
-			- 内存利用率
-			
-	内存和CPU的目前测试的支持设备
+		- 公共的metrics数据
+		- CPU利用率
+		- 内存利用率
+		
+内存和CPU的目前测试的支持设备
 	
-			- Cisco IOS(Version 12)
-			- Cisco NX-OS(Version 6)
-			- Cisco IOS XR(Version 5)
-			- Cisco IOS XE(Version 15)
-			- Cisco ASA (Version 9)
-			- Ruijie 10G Routing Switch
-			- Huawei VRP(Version 8)
-			- Huawei VRP(Version 5.20)
-			- Huawei VRP(Version 5.120)
-			- Huawei VRP(Version 5.130)
-			- Huawei VRP(Version 5.70)
-			- Juniper JUNOS(Version 10)
-			- H3C(Version 5)
-			- H3C(Version 5.20)
-			- H3C(Version 7)
+		- Cisco IOS(Version 12)
+		- Cisco NX-OS(Version 6)
+		- Cisco IOS XR(Version 5)
+		- Cisco IOS XE(Version 15)
+		- Cisco ASA (Version 9)
+		- Ruijie 10G Routing Switch
+		- Huawei VRP(Version 8)
+		- Huawei VRP(Version 5.20)
+		- Huawei VRP(Version 5.120)
+		- Huawei VRP(Version 5.130)
+		- Huawei VRP(Version 5.70)
+		- Juniper JUNOS(Version 10)
+		- H3C(Version 5)
+		- H3C(Version 5.20)
+		- H3C(Version 7)
 
 #### 探测监控服务
 
@@ -304,18 +316,18 @@ SuitAgent所有的监控服务都是插件式开发集成
 - Docker监控
 
 	若配置了探测地址，则直接启动，使用配置的探测地址  
-	  若配置文件没有配置探测地址，则SuitAgent会自动检测本机Docker服务，自动获取Remote 端口，获取成功便会自动启动
+	  若配置文件没有配置探测地址，则`SuitAgent`会自动检测本机`Docker`服务，自动获取Remote 端口，获取成功便会自动启动
 
 ### SuitAgent 动态配置
 
-SuitAgent支持部分配置的动态生效，支持的范围见如下说明
+`SuitAgent`支持部分配置的动态生效，支持的范围见如下说明
 
-authorization.properties文件的改动
+`authorization.properties`文件的改动
 
 - 若对应插件未启动，则文件修改后，将在SuitAgent下一次的自动服务发现时生效。
 - 若对应的插件已启动，因系统不会重复启动相同的监控服务，故虽然插件配置会生效，但是不会重新启动服务
 	
-plugin目录下的插件配置文件的改动
+`plugin`目录下的插件配置文件的改动
 
 - 若改动的是未启动的监控服务配置（如`YijiBoot`插件的`yijiBootPlugin.properties`文件，添加了一个服务名。或更改了插件启动类型等），将在`SuitAgent`下一次的自动服务发现时生效
 - 若改动的是插件的监控配置（如`Tomcat`插件的`tomcatPlugin.properties`文件的服务器监控参数配置），下一次监控扫描就能够生效。
@@ -344,14 +356,16 @@ plugin目录下的插件配置文件的改动
 - http://ip:port/mock/list
 
 	- 查看`SuitAgent`当前所有的mock配置，返回json格式的数据,示例:
-	
-		{
-          "jmx": {
-            "service": "tomcat",
-            "isTimeout": false,
-            "shutdownTime": 0
-          }
-        }
+		
+```
+{
+	"jmx": {
+	  "service": "tomcat",
+	  "isTimeout": false,
+	  "shutdownTime": 0
+	}
+}
+```
         
 	
 - http://ip:port/mock/add/`serviceType`/`service`

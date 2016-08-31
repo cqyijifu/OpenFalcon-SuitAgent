@@ -239,7 +239,7 @@ public class SNMPV3MetricsValue extends MetricsCommon {
     @Override
     public Collection<FalconReportObject> getReportObjects() {
         Set<FalconReportObject> result = new HashSet<>();
-        List<SNMPV3Session> sessionList = null;
+        List<SNMPV3Session> sessionList;
         try {
             sessionList = getSessions();
         } catch (IOException e) {
@@ -253,24 +253,37 @@ public class SNMPV3MetricsValue extends MetricsCommon {
         }
 
         for (SNMPV3Session session : sessionList) {
+            List<FalconReportObject> temp = new ArrayList<>();
             //ping报告
             FalconReportObject reportObject = ping(session,5);
             if(reportObject != null){
-                result.add(reportObject);
+                temp.add(reportObject);
             }
             try {
-                result.addAll(getIfStatReports(session));
+                temp.addAll(getIfStatReports(session));
                 //添加可用性报告
-                result.add(MetricsCommon.generatorVariabilityReport(true, session.getEquipmentName(), plugin.step(), plugin, plugin.serverName()));
+                temp.add(MetricsCommon.generatorVariabilityReport(true, session.getEquipmentName(), plugin.step(), plugin, plugin.serverName()));
                 //添加插件报告
-                Collection<FalconReportObject> inBuildReports = plugin.inbuiltReportObjectsForValid(sessionList);
+                Collection<FalconReportObject> inBuildReports = plugin.inbuiltReportObjectsForValid(session);
                 if(inBuildReports != null && !inBuildReports.isEmpty()){
-                    result.addAll(inBuildReports);
+                    temp.addAll(inBuildReports);
                 }
             } catch (IOException e) {
                 logger.error("设备 {} 通过SNMP获取监控数据发生异常,push 该设备不可用报告",session.toString(),e);
-                result.add(MetricsCommon.generatorVariabilityReport(false, "allUnVariability", plugin.step(), plugin, plugin.serverName()));
+                temp.add(MetricsCommon.generatorVariabilityReport(false, "allUnVariability", plugin.step(), plugin, plugin.serverName()));
             }
+
+            // EndPoint 单独设置
+            temp.forEach(report -> {
+                String endPoint = session.getUserInfo().getEndPoint();
+                if(!StringUtils.isEmpty(endPoint) && reportObject != null){
+                    //设置单独设置的endPoint
+                    report.setEndpoint(endPoint);
+                    report.appendTags("customerEndPoint=true");
+                }
+            });
+
+            result.addAll(temp);
         }
 
         return result;
