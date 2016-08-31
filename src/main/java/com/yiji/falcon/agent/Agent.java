@@ -92,41 +92,46 @@ public class Agent extends Thread{
      * @throws IOException
      */
     private void agentServerStart(int port) throws IOException {
-        log.info("开始启动 Falcon Agent服务");
-        String falconAgentConfFileName = "agent.cfg.json";
-        String falconAgentConfFile = AgentConfiguration.INSTANCE.getFalconConfDir() + File.separator + falconAgentConfFileName;
-        if(!FileUtil.isExist(falconAgentConfFile)){
-            log.error("Agent 启动失败 - Falcon Agent配置文件:{} 在目录:{} 下未找到,请确定配置文件是否正确配置",falconAgentConfFileName,AgentConfiguration.INSTANCE.getFalconConfDir());
-            System.exit(0);
-        }
-        String falconAgentConfContent = FileUtil.getTextFileContent(falconAgentConfFile);
-        if(StringUtils.isEmpty(falconAgentConfContent)){
-            log.error("Agent 启动失败 - Falcon Agent配置文件:{} 无配置内容",falconAgentConfFile);
-            System.exit(0);
-        }
-        String falconAgentDir = AgentConfiguration.INSTANCE.getFalconDir() + File.separator + "agent";
-        if(FileUtil.writeTextToTextFile(falconAgentConfContent,falconAgentDir,"cfg.json",false)){
-            String common = falconAgentDir + File.separator + "control start";
-            CommandUtilForUnix.ExecuteResult executeResult = CommandUtilForUnix.execWithTimeOut(common,10, TimeUnit.SECONDS);
-            log.info("正在启动 Falcon Agent : {}",executeResult.msg);
-            String msg = executeResult.msg.trim();
-            if(msg.contains("falcon-agent started")){
-                falconAgentPid = Integer.parseInt(msg.substring(
-                        msg.indexOf("pid=") + 4
-                ));
-                log.info("Falcon Agent 启动成功,进程ID为 : {}",falconAgentPid);
-            }else if(msg.contains("falcon-agent now is running already")){
-                falconAgentPid = Integer.parseInt(msg.substring(
-                        msg.indexOf("pid=") + 4
-                ));
-                log.info("Falcon Agent 已启动,无需重复启动,进程ID为 : {}",falconAgentPid);
-            }else{
-                log.error("Agent启动失败 - Falcon Agent 启动失败");
+        String agentPushUrl = AgentConfiguration.INSTANCE.getAgentPushUrl();
+        if(agentPushUrl.contains("127.0.0.1") ||
+                agentPushUrl.contains("localhost") ||
+                agentPushUrl.contains("0.0.0.0")){
+            log.info("开始启动 Falcon Agent服务");
+            String falconAgentConfFileName = "agent.cfg.json";
+            String falconAgentConfFile = AgentConfiguration.INSTANCE.getFalconConfDir() + File.separator + falconAgentConfFileName;
+            if(!FileUtil.isExist(falconAgentConfFile)){
+                log.error("Agent 启动失败 - Falcon Agent配置文件:{} 在目录:{} 下未找到,请确定配置文件是否正确配置",falconAgentConfFileName,AgentConfiguration.INSTANCE.getFalconConfDir());
                 System.exit(0);
             }
-        }else{
-            log.error("Agent启动失败 - Falcon Agent配置文件写入失败,请检查文件权限");
-            System.exit(0);
+            String falconAgentConfContent = FileUtil.getTextFileContent(falconAgentConfFile);
+            if(StringUtils.isEmpty(falconAgentConfContent)){
+                log.error("Agent 启动失败 - Falcon Agent配置文件:{} 无配置内容",falconAgentConfFile);
+                System.exit(0);
+            }
+            String falconAgentDir = AgentConfiguration.INSTANCE.getFalconDir() + File.separator + "agent";
+            if(FileUtil.writeTextToTextFile(falconAgentConfContent,falconAgentDir,"cfg.json",false)){
+                String common = falconAgentDir + File.separator + "control start";
+                CommandUtilForUnix.ExecuteResult executeResult = CommandUtilForUnix.execWithTimeOut(common,10, TimeUnit.SECONDS);
+                log.info("正在启动 Falcon Agent : {}",executeResult.msg);
+                String msg = executeResult.msg.trim();
+                if(msg.contains("falcon-agent started")){
+                    falconAgentPid = Integer.parseInt(msg.substring(
+                            msg.indexOf("pid=") + 4
+                    ));
+                    log.info("Falcon Agent 启动成功,进程ID为 : {}",falconAgentPid);
+                }else if(msg.contains("falcon-agent now is running already")){
+                    falconAgentPid = Integer.parseInt(msg.substring(
+                            msg.indexOf("pid=") + 4
+                    ));
+                    log.info("Falcon Agent 已启动,无需重复启动,进程ID为 : {}",falconAgentPid);
+                }else{
+                    log.error("Agent启动失败 - Falcon Agent 启动失败");
+                    System.exit(0);
+                }
+            }else{
+                log.error("Agent启动失败 - Falcon Agent配置文件写入失败,请检查文件权限");
+                System.exit(0);
+            }
         }
 
         if(serverSocketChannel == null){
@@ -220,20 +225,25 @@ public class Agent extends Thread{
         log.info("关闭SNMP连接");
         SNMPV3MetricsValue.closeAllSession();
 
-        try {
-            String falconAgentDir = AgentConfiguration.INSTANCE.getFalconDir() + File.separator + "agent";
-            String common = falconAgentDir + File.separator + "control stop";
-            CommandUtilForUnix.ExecuteResult executeResult = CommandUtilForUnix.execWithTimeOut(common,10,TimeUnit.SECONDS);
-            if(executeResult.isSuccess){
-                log.info("正在关闭 Falcon Agent : {}",executeResult.msg);
-                if(executeResult.msg.contains("falcon-agent stoped")){
-                    log.info("Falcon Agent 关闭成功");
+        String agentPushUrl = AgentConfiguration.INSTANCE.getAgentPushUrl();
+        if(agentPushUrl.contains("127.0.0.1") ||
+                agentPushUrl.contains("localhost") ||
+                agentPushUrl.contains("0.0.0.0")){
+            try {
+                String falconAgentDir = AgentConfiguration.INSTANCE.getFalconDir() + File.separator + "agent";
+                String common = falconAgentDir + File.separator + "control stop";
+                CommandUtilForUnix.ExecuteResult executeResult = CommandUtilForUnix.execWithTimeOut(common,10,TimeUnit.SECONDS);
+                if(executeResult.isSuccess){
+                    log.info("正在关闭 Falcon Agent : {}",executeResult.msg);
+                    if(executeResult.msg.contains("falcon-agent stoped")){
+                        log.info("Falcon Agent 关闭成功");
+                    }
+                }else{
+                    log.error("Falcon Agent 服务自动关闭失败,请手动关闭,Falcon Agent 进程ID为 : {}",falconAgentPid);
                 }
-            }else{
-                log.error("Falcon Agent 服务自动关闭失败,请手动关闭,Falcon Agent 进程ID为 : {}",falconAgentPid);
+            } catch (IOException e) {
+                log.error("Falcon Agent 自动关闭失败,请手动关闭,Falcon Agent 进程ID为 : {}",falconAgentPid,e);
             }
-        } catch (IOException e) {
-            log.error("Falcon Agent 自动关闭失败,请手动关闭,Falcon Agent 进程ID为 : {}",falconAgentPid,e);
         }
 
         log.info("关闭线程池");
