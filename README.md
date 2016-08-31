@@ -6,7 +6,7 @@
 
 ### 什么是SuitAgent
 
-这是一个监控Agent。其中内置了OpenFalcon的社区组件:`FalconAgent`,因所有的监控数据都必须要上报到`FalconAgent`，所以为了部署方便和管理，`SuitAgent`集成了`FalconAgent`，启动时会同时启动自带的`FalconAgent`，关闭时也会同时关闭`FalconAgent`。
+这是一个监控Agent。其中内置了OpenFalcon的社区组件:`FalconAgent`,因所有的监控数据都必须要上报到`FalconAgent`，所以为了部署方便和管理，`SuitAgent`集成了`FalconAgent`，若`agent.falcon.push.url`配置为本地地址,则启动时会同时启动自带的`FalconAgent`，关闭时也会同时关闭`FalconAgent`。
 
 ### SuitAgent特点
 
