@@ -29,7 +29,7 @@ public class CommandTest {
 
     @Test
     public void exec() throws IOException {
-        System.out.println(CommandUtilForUnix.getJavaHomeFromEtcProfile());
+        System.out.println(CommandUtilForUnix.execWithTimeOut(String.format("ping -c %d %s",20,"192.168.1.234"),2,TimeUnit.SECONDS));
     }
 
     @Test

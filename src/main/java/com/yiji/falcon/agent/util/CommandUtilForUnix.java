@@ -61,7 +61,8 @@ public class CommandUtilForUnix {
      */
     public static String getCmdDirByPid(int pid) throws IOException {
         String cmd = "lsof -p " + pid;
-        CommandUtilForUnix.ExecuteResult executeResult = CommandUtilForUnix.execWithTimeOut(cmd,60, TimeUnit.SECONDS);
+        //lsof -p pid 命令偶尔会出现很长时间才执行完成,所以设置超时10分钟
+        CommandUtilForUnix.ExecuteResult executeResult = CommandUtilForUnix.execWithTimeOut(cmd,10, TimeUnit.MINUTES);
         String msg = executeResult.msg;
         String[] ss = msg.split("\n");
         for (String s : ss) {
