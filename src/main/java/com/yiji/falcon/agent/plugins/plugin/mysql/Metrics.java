@@ -43,7 +43,7 @@ class Metrics {
         reportObjectSet.addAll(getGlobalStatus());
         reportObjectSet.addAll(getGlobalVariables());
 //        reportObjectSet.addAll(getInnodbStatus());
-//        reportObjectSet.addAll(getSalveStatus());
+        reportObjectSet.addAll(getSalveStatus());
         return reportObjectSet;
     }
 
@@ -55,6 +55,24 @@ class Metrics {
             PreparedStatement pstmt = connection.prepareStatement(sql);
             ResultSet rs = pstmt.executeQuery();
             while (rs.next()){
+                String value_Slave_IO_Running = rs.getString("Slave_IO_Running");
+                String value_Slave_SQL_Running = rs.getString("Slave_SQL_Running");
+
+                FalconReportObject falconReportObject = new FalconReportObject();
+                MetricsCommon.setReportCommonValue(falconReportObject,plugin.step());
+                falconReportObject.setCounterType(CounterType.GAUGE);
+                falconReportObject.setTimestamp(System.currentTimeMillis() / 1000);
+                falconReportObject.appendTags(MetricsCommon.getTags(plugin.agentSignName(),plugin,plugin.serverName(), MetricsType.SQL_IN_BUILD));
+
+                falconReportObject.setMetric("Slave_IO_Running");
+                falconReportObject.setValue("yes".equals(value_Slave_IO_Running.toLowerCase()) ? "1" : "0");
+
+                reportObjectSet.add(falconReportObject.clone());
+
+                falconReportObject.setMetric("Slave_SQL_Running");
+                falconReportObject.setValue("yes".equals(value_Slave_SQL_Running.toLowerCase()) ? "1" : "0");
+
+                reportObjectSet.add(falconReportObject.clone());
 
             }
         }
