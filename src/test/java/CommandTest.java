@@ -29,7 +29,9 @@ public class CommandTest {
 
     @Test
     public void exec() throws IOException {
-        System.out.println(CommandUtilForUnix.execWithTimeOut(String.format("ping -c %d %s",20,"192.168.1.234"),2,TimeUnit.SECONDS));
+        long start = System.currentTimeMillis();
+        System.out.println(CommandUtilForUnix.execWithReadTimeLimit(String.format("ping -c %d %s",2,"192.168.1.1"),5,TimeUnit.SECONDS));
+        System.out.println("执行时间: " + (System.currentTimeMillis() - start));
     }
 
     @Test
@@ -102,27 +104,27 @@ public class CommandTest {
         String passwordFile = javaHome + "/" + "jre/lib/management/jmxremote.password";
         String suffix = ".YijiFalconAgent";
         List<Boolean> results = new ArrayList<>();
-        results.add(CommandUtilForUnix.execWithTimeOut(String.format("cp %s %s",accessFile,accessFile + suffix),10,TimeUnit.SECONDS).isSuccess);
-        results.add(CommandUtilForUnix.execWithTimeOut(String.format("chmod 777 %s",accessFile + suffix),10,TimeUnit.SECONDS).isSuccess);
-        results.add(CommandUtilForUnix.execWithTimeOut(String.format("cp %s %s",passwordFile,passwordFile + suffix),10,TimeUnit.SECONDS).isSuccess);
-        results.add(CommandUtilForUnix.execWithTimeOut(String.format("chmod 777 %s",passwordFile + suffix),10,TimeUnit.SECONDS).isSuccess);
+        results.add(CommandUtilForUnix.execWithReadTimeLimit(String.format("cp %s %s",accessFile,accessFile + suffix),10,TimeUnit.SECONDS).isSuccess);
+        results.add(CommandUtilForUnix.execWithReadTimeLimit(String.format("chmod 777 %s",accessFile + suffix),10,TimeUnit.SECONDS).isSuccess);
+        results.add(CommandUtilForUnix.execWithReadTimeLimit(String.format("cp %s %s",passwordFile,passwordFile + suffix),10,TimeUnit.SECONDS).isSuccess);
+        results.add(CommandUtilForUnix.execWithReadTimeLimit(String.format("chmod 777 %s",passwordFile + suffix),10,TimeUnit.SECONDS).isSuccess);
         if(results.contains(Boolean.FALSE)){
             System.out.println("JMX的授权文件操作失败");
-            CommandUtilForUnix.execWithTimeOut(String.format("rm -rf %s",accessFile + suffix),10,TimeUnit.SECONDS);
-            CommandUtilForUnix.execWithTimeOut(String.format("rm -rf %s",passwordFile + suffix),10,TimeUnit.SECONDS);
+            CommandUtilForUnix.execWithReadTimeLimit(String.format("rm -rf %s",accessFile + suffix),10,TimeUnit.SECONDS);
+            CommandUtilForUnix.execWithReadTimeLimit(String.format("rm -rf %s",passwordFile + suffix),10,TimeUnit.SECONDS);
             return;
         }
 
-        String contentForAccess = CommandUtilForUnix.execWithTimeOut(String.format("cat %s",accessFile + suffix),10,TimeUnit.SECONDS).msg;
+        String contentForAccess = CommandUtilForUnix.execWithReadTimeLimit(String.format("cat %s",accessFile + suffix),10,TimeUnit.SECONDS).msg;
         String user = getJmxUser(contentForAccess);
         System.out.println("jmx user : " + user);
-        String contentForPassword = CommandUtilForUnix.execWithTimeOut(String.format("cat %s",passwordFile + suffix),10,TimeUnit.SECONDS).msg;
+        String contentForPassword = CommandUtilForUnix.execWithReadTimeLimit(String.format("cat %s",passwordFile + suffix),10,TimeUnit.SECONDS).msg;
         String password = getJmxPassword(contentForPassword,user);
         System.out.println("jmx password : " + password);
 
 
-        CommandUtilForUnix.execWithTimeOut(String.format("rm -rf %s",accessFile + suffix),10,TimeUnit.SECONDS);
-        CommandUtilForUnix.execWithTimeOut(String.format("rm -rf %s",passwordFile + suffix),10,TimeUnit.SECONDS);
+        CommandUtilForUnix.execWithReadTimeLimit(String.format("rm -rf %s",accessFile + suffix),10,TimeUnit.SECONDS);
+        CommandUtilForUnix.execWithReadTimeLimit(String.format("rm -rf %s",passwordFile + suffix),10,TimeUnit.SECONDS);
 
     }
 

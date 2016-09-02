@@ -47,7 +47,7 @@ public class DockerPlugin implements DetectPlugin {
             return addressesCache;
         }
         try {
-            CommandUtilForUnix.ExecuteResult executeResult = CommandUtilForUnix.execWithTimeOut("ps aux | grep docker",10, TimeUnit.SECONDS);
+            CommandUtilForUnix.ExecuteResult executeResult = CommandUtilForUnix.execWithReadTimeLimit("ps aux | grep docker",10, TimeUnit.SECONDS);
             if(!executeResult.isSuccess){
                 return null;
             }

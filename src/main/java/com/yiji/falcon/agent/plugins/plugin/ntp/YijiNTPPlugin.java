@@ -57,7 +57,7 @@ public class YijiNTPPlugin implements DetectPlugin {
         CommandUtilForUnix.ExecuteResult executeResult = null;
         DetectResult detectResult = new DetectResult();
         try {
-            executeResult = CommandUtilForUnix.execWithTimeOut(cmd,10, TimeUnit.SECONDS);
+            executeResult = CommandUtilForUnix.execWithReadTimeLimit(cmd,10, TimeUnit.SECONDS);
         } catch (IOException e) {
             logger.error("命令{}执行异常",cmd,e);
         }
