@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author guqiu@yiji.com
@@ -178,9 +179,20 @@ public class StandaloneJarPlugin implements JMXPlugin {
     public String serverPath(int pid, String serverName) {
         String key = StringUtils.getStringByInt(pid);
         String dirPath = serverDirPathCatch.get(key);
-        if(dirPath == null){
+        if(StringUtils.isEmpty(dirPath)){
             try {
-                dirPath = CommandUtilForUnix.getCmdDirByPid(pid);
+                String cmd = "lsof -p " + pid + " | grep " + serverName;
+                CommandUtilForUnix.ExecuteResult executeResult = CommandUtilForUnix.execWithReadTimeLimit(cmd,10, TimeUnit.SECONDS);
+                String msg = executeResult.msg;
+                String[] ss = msg.split("\n");
+                for (String s : ss) {
+                    if(!StringUtils.isEmpty(s)){
+                        String[] split = s.split("\\s+");
+                        dirPath = split[split.length - 1];
+                        break;
+                    }
+                }
+
                 if (dirPath != null) {
                     dirPath += File.separator + serverName;
                     serverDirPathCatch.put(key,dirPath);
