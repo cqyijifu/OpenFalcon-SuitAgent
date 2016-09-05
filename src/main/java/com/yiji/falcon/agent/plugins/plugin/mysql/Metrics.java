@@ -57,6 +57,8 @@ class Metrics {
             while (rs.next()){
                 String value_Slave_IO_Running = rs.getString("Slave_IO_Running");
                 String value_Slave_SQL_Running = rs.getString("Slave_SQL_Running");
+                String value_Seconds_Behind_Master = rs.getString("Seconds_Behind_Master");
+                String value_Connect_Retry = rs.getString("Connect_Retry");
 
                 FalconReportObject falconReportObject = new FalconReportObject();
                 MetricsCommon.setReportCommonValue(falconReportObject,plugin.step());
@@ -64,14 +66,28 @@ class Metrics {
                 falconReportObject.setTimestamp(System.currentTimeMillis() / 1000);
                 falconReportObject.appendTags(MetricsCommon.getTags(plugin.agentSignName(),plugin,plugin.serverName(), MetricsType.SQL_IN_BUILD));
 
+                //Slave_IO_Running
                 falconReportObject.setMetric("Slave_IO_Running");
-                falconReportObject.setValue("yes".equals(value_Slave_IO_Running.toLowerCase()) ? "1" : "0");
-
+                if(value_Slave_IO_Running.equals("No") || value_Slave_IO_Running.equals("Connecting")){
+                    falconReportObject.setValue("0");
+                }else{
+                    falconReportObject.setValue("1");
+                }
                 reportObjectSet.add(falconReportObject.clone());
 
+                //Slave_SQL_Running
                 falconReportObject.setMetric("Slave_SQL_Running");
                 falconReportObject.setValue("yes".equals(value_Slave_SQL_Running.toLowerCase()) ? "1" : "0");
+                reportObjectSet.add(falconReportObject.clone());
 
+                //Seconds_Behind_Master
+                falconReportObject.setMetric("Seconds_Behind_Master");
+                falconReportObject.setValue(value_Seconds_Behind_Master == null ? "0" : value_Seconds_Behind_Master);
+                reportObjectSet.add(falconReportObject.clone());
+
+                //Connect_Retry
+                falconReportObject.setMetric("Connect_Retry");
+                falconReportObject.setValue(value_Connect_Retry);
                 reportObjectSet.add(falconReportObject.clone());
 
             }
