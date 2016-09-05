@@ -123,11 +123,16 @@ public class JMXMetricsValue extends MetricsCommon{
     private Set<KitObjectNameMetrics> getKitObjectNameMetrics(Collection<JMXObjectNameInfo> jmxObjectNameInfos, JMXMetricsConfiguration metricsConfiguration){
         Set<KitObjectNameMetrics> kitObjectNameMetricsSet = new HashSet<>();
         for (JMXObjectNameInfo jmxObjectNameInfo : jmxObjectNameInfos) {
-            if(jmxObjectNameInfo.getObjectName().toString().contains(metricsConfiguration.getObjectName())){
-                KitObjectNameMetrics kitObjectNameMetrics = new KitObjectNameMetrics();
-                kitObjectNameMetrics.jmxObjectNameInfo = jmxObjectNameInfo;
-                kitObjectNameMetrics.jmxMetricsConfiguration = metricsConfiguration;
-                kitObjectNameMetricsSet.add(kitObjectNameMetrics);
+            String objectName = jmxObjectNameInfo.getObjectName().toString();
+            Map<String,String> metricsMap = jmxObjectNameInfo.getMetricsValue();
+            if(objectName.contains(metricsConfiguration.getObjectName())){
+                if(metricsMap.get(metricsConfiguration.getMetrics()) != null ||
+                        metricsMap.get(metricsConfiguration.getAlias()) != null){
+                    KitObjectNameMetrics kitObjectNameMetrics = new KitObjectNameMetrics();
+                    kitObjectNameMetrics.jmxObjectNameInfo = jmxObjectNameInfo;
+                    kitObjectNameMetrics.jmxMetricsConfiguration = metricsConfiguration;
+                    kitObjectNameMetricsSet.add(kitObjectNameMetrics);
+                }
             }
         }
         return kitObjectNameMetricsSet;
