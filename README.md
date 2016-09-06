@@ -2,7 +2,8 @@
 
 ### 使用之前
 
-此系统是和[OpenFalcon](http://book.open-falcon.org/zh/index.html)监控系统一起使用,是为了更方便的进行运维监控。若不了解,可以先点击链接去OpenFalcon的官方社区进行了解。
+- 此系统是和[OpenFalcon](http://book.open-falcon.org/zh/index.html)监控系统一起使用,是为了更方便的进行运维监控。若不了解,可以先点击链接去OpenFalcon的官方社区进行了解。
+- 目前此系统仅支持类Unix系统下使用，不支持Windows系统
 
 ### 什么是SuitAgent
 
