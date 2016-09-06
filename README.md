@@ -156,16 +156,21 @@ JMX监控的属性，由以下三部分组成
 
 ##### 公共的metrics列表
 
-		- IfHCInOctets
-		- IfHCOutOctets
-		- IfHCInUcastPkts
-		- IfHCOutUcastPkts
-		- IfHCInBroadcastPkts
-		- IfHCOutBroadcastPkts
-		- IfHCInMulticastPkts
-		- IfHCOutMulticastPkts
-		- `IfOperStatus`(接口状态，1 up, 2 down, 3 testing, 4 unknown, 5 dormant, 6 notPresent, 7 lowerLayerDown)
-		- Ping延时（正常返回延时，超时返回 -1）
+每个接口的Metrics：
+	
+	- {ifName}.if.HCInBroadcastPkts
+	- {ifName}.if.HCInMulticastPkts
+	- {ifName}.if.HCInOctets
+	- {ifName}.if.HCInUcastPkts
+	- {ifName}.if.HCOutBroadcastPkts
+	- {ifName}.if.HCOutMulticastPkts
+	- {ifName}.if.getIfHCOutUcastPkts
+	- {ifName}.if.HCOutOctets
+	- {ifName}.if.OperStatus : (接口状态，1 up, 2 down, 3 testing, 4 unknown, 5 dormant, 6 notPresent, 7 lowerLayerDown)
+
+`ping` Metrics：
+
+	- pingAvgTime : Ping延时（正常返回延时，超时返回 -1）
 		
 ##### 交换机（SNMP V3）
 
