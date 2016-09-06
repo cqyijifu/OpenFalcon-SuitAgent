@@ -32,10 +32,7 @@
 - osx-noJar : 苹果系统。需要安装java环境
 - linux64-noJar : linux-64位系统。需要目标系统安装个java环境
 
-### 使用说明
 
-	目前仅支持OSX和linux平台,暂不支持Windows平台
-	
 修改相关配置后,直接启动`SuitAgent`即可
 
 #### SuitAgent配置
