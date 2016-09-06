@@ -63,11 +63,11 @@ class SwitchCPUStatCollect {
             case Huawei_V5_130:
                 oid = "1.3.6.1.4.1.2011.5.25.31.1.1.1.1.5";
                 //算法与内存的获取一样
-                return SwitchMemoryStatCollect.getH3CHWcpumem(session,oid);
+                return SwitchMemoryStatCollect.getH3CHWcpumem(metricsName,session,oid);
             case Huawei_V3_10:
                 oid = "1.3.6.1.4.1.2011.6.1.1.1.3";
                 //算法与内存的获取一样
-                return SwitchMemoryStatCollect.getH3CHWcpumem(session,oid);
+                return SwitchMemoryStatCollect.getH3CHWcpumem(metricsName,session,oid);
             case Huawei_ME60:
                 oid = "1.3.6.1.4.1.2011.6.3.4.1.2";
                 return getHuawei_ME60cpu(session,oid);
@@ -76,19 +76,19 @@ class SwitchCPUStatCollect {
             case H3C_V7:
                 oid = "1.3.6.1.4.1.25506.2.6.1.1.1.1.6";
                 //算法与内存的获取一样
-                return SwitchMemoryStatCollect.getH3CHWcpumem(session,oid);
+                return SwitchMemoryStatCollect.getH3CHWcpumem(metricsName,session,oid);
             case H3C_S9500:
                 oid = "1.3.6.1.4.1.2011.10.2.6.1.1.1.1.6";
                 //算法与内存的获取一样
-                return SwitchMemoryStatCollect.getH3CHWcpumem(session,oid);
+                return SwitchMemoryStatCollect.getH3CHWcpumem(metricsName,session,oid);
             case Juniper:
                 oid = "1.3.6.1.4.1.2636.3.1.13.1.8";
                 //算法与内存的获取一样
-                return SwitchMemoryStatCollect.getH3CHWcpumem(session,oid);
+                return SwitchMemoryStatCollect.getH3CHWcpumem(metricsName,session,oid);
             case Ruijie:
                 oid = "1.3.6.1.4.1.4881.1.1.10.2.36.1.1.2.0";
                 //算法与内存的获取一样
-                return SwitchMemoryStatCollect.getRuijiecpumem(session,oid);
+                return SwitchMemoryStatCollect.getRuijiecpumem(metricsName,session,oid);
             default:
                 break;
         }

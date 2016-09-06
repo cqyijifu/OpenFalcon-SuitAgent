@@ -72,7 +72,7 @@ class SwitchMemoryStatCollect {
             case Huawei_V5_70:
             case Huawei_V5_130:
                 oid = "1.3.6.1.4.1.2011.5.25.31.1.1.1.1.7";
-                return getH3CHWcpumem(session, oid);
+                return getH3CHWcpumem(metricsName,session, oid);
             case Huawei_V3_10:
                 return getOldHuawei_Mem(session, oid);
             case Huawei_ME60:
@@ -81,16 +81,16 @@ class SwitchMemoryStatCollect {
             case H3C_V5:
             case H3C_V7:
                 oid = "1.3.6.1.4.1.25506.2.6.1.1.1.1.8";
-                return getH3CHWcpumem(session, oid);
+                return getH3CHWcpumem(metricsName,session, oid);
             case H3C_S9500:
                 oid = "1.3.6.1.4.1.2011.10.2.6.1.1.1.1.8";
-                return getH3CHWcpumem(session, oid);
+                return getH3CHWcpumem(metricsName,session, oid);
             case Juniper:
                 oid = "1.3.6.1.4.1.2636.3.1.13.1.11";
-                return getH3CHWcpumem(session, oid);
+                return getH3CHWcpumem(metricsName,session, oid);
             case Ruijie:
                 oid = "1.3.6.1.4.1.4881.1.1.10.2.35.1.1.1.3.0";
-                return getRuijiecpumem(session, oid);
+                return getRuijiecpumem(metricsName,session, oid);
             default:
                 break;
         }
@@ -104,7 +104,7 @@ class SwitchMemoryStatCollect {
         return collectObject;
     }
 
-    static CollectObject getRuijiecpumem(SNMPV3Session session, String oid) throws IOException {
+    static CollectObject getRuijiecpumem(String metricsName,SNMPV3Session session, String oid) throws IOException {
         CollectObject collectObject = new CollectObject();
         collectObject.setSession(session);
         collectObject.setMetrics(metricsName);
@@ -165,7 +165,7 @@ class SwitchMemoryStatCollect {
         return collectObject;
     }
 
-    static CollectObject getH3CHWcpumem(SNMPV3Session session, String oid) throws IOException {
+    static CollectObject getH3CHWcpumem(String metricsName,SNMPV3Session session, String oid) throws IOException {
         CollectObject collectObject = new CollectObject();
 
         List<PDU> pduList = session.walk(oid);
