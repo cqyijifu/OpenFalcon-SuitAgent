@@ -5,7 +5,7 @@
 #  _nodes/stats.1 :                                         [.符号前面的为访问es的url地址 .符号后面为保证配置的key唯一,只要不重复就可以]
 #    method : "GET"                                         [url访问的方法]
 #    metrics : "index_total"                                [监控值的名称]
-#    valueExpress : "if(value == 0){newValue = 1}"          [对监控值进行转换,可选.支持js代码,原值为变量value,新值赋值给变量newValue]
+#    valueExpress : "if(value == 0){newValue = 1}else{newValue = ''}"          [对监控值进行转换,可选.支持js代码,原值为变量value,新值赋值给变量newValue]
 #    valuePath : "nodes.indices.indexing.index_tota"l       [监控值的json路径]
 #    counterType : "GAUGE"                                  [数据采集项类型只能配置 GAUGE(上传什么样的值，就原封不动的存储) 或 COUNTER(存储和展现的时候，会被计算为speed，即（当前值 - 上次值）/ 时间间隔)]
 #    tag :                                                  [标签 (可选)]
