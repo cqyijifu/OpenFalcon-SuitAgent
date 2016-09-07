@@ -7,7 +7,14 @@
 
 ### 什么是SuitAgent
 
-这是一个监控Agent。其中内置了OpenFalcon的社区组件:`FalconAgent`,因所有的监控数据都必须要上报到`FalconAgent`，所以为了部署方便和管理，`SuitAgent`集成了`FalconAgent`，若`agent.falcon.push.url`配置为本地地址,则启动时会同时启动自带的`FalconAgent`，关闭时也会同时关闭`FalconAgent`。
+这是一个获取各种系统的监控数据的Agent。
+其中内置了OpenFalcon的社区组件:`FalconAgent`,因所有的监控数据都必须要上报到`FalconAgent`，所以为了部署方便和管理，`SuitAgent`集成了`FalconAgent`，若`agent.falcon.push.url`配置为本地地址,则启动时会同时启动自带的`FalconAgent`，关闭时也会同时关闭`FalconAgent`。
+
+### 为什么有这个项目
+
+OpenFalcon监控系统，是由一系列的组件构成。对于操作系统的监控，官方有FalconAgent，但是对于其他系统的监控，
+都是使用脚本或者其他方式进行单独采集，然后将数据上报给FalconAgent系统。
+公司为了运维监控的方便和自动化，便有了这个项目，将系统的采集，集中在一个系统中，并且尽可能的采集便捷。
 
 ### SuitAgent特点
 
@@ -15,6 +22,23 @@
 - 监控配置动态生效,无需重启
 - 能够动态发现部署机上新启动的服务
 - 支持`Mock`接口功能,有自动化运维的公司,可利用此特性进行监控自动化开发
+- 监控服务全部插件化实现，可自定义开发自己需求的监控服务的插件，只需要开发采集逻辑和插件运行配置。`SuitAgent`可自动发现插件，并根据配置自动运行，无需关心插件的启动。
+
+### 目前支持的监控服务
+
+- Docker（包括Docker内的应用存活情况监控）
+- ElasticSearch
+- Http
+- Logstash
+- Mysql
+- 交换机
+- Ntp
+- Oracle
+- Ping
+- Standalone Jar（Java通过java -jar xxx.jar运行的服务）
+- Tcp
+- Tomcat
+- Zookeeper
 
 ### SuitAgent编译
 
@@ -71,7 +95,7 @@
 #### 公有的Tag
 	
 	跟OpenFalcon官方社区的思想一致,FalconAgent采集的系统监控信息(如内存,CPU等等一百多种)没有任何tag信息
-	其他的业务系统的监控,都会打上tag
+	其他的业务系统的监控,都会打上tag。`SuitAgent`采集的系统，基本都是业务系统（非Linux操作系统监控信息），所以都会有对应的Tag
 	
 - tag来区分服务
 
@@ -98,12 +122,18 @@
 
 SuitAgent所有的监控服务都是插件式开发集成
 
-#### 插件开发
+#### 如何自定义插件开发
 
-- JDBC的监控服务，实现`JDBCPlugin`接口  
-- JMX的监控服务，实现`JMXPlugin`接口  
-- SNMP的监控服务，实现`SNMPV3Plugin`接口  
-- 探测监控服务，实现`DetectPlugin`接口
+`SuitAgent`支持的插件一共以下几种：
+
+- JDBC的监控服务，实现`com.yiji.falcon.agent.plugins.JDBCPlugin`接口  
+- JMX的监控服务，实现`com.yiji.falcon.agent.plugins.JMXPlugin`接口  
+- SNMP V3的监控服务，实现`com.yiji.falcon.agent.plugins.SNMPV3Plugin`接口  
+- 探测监控服务，实现`com.yiji.falcon.agent.plugins.DetectPlugin`接口
+
+若要开发自己的监控服务，想好自己的监控服务是哪种类型，参照`SuitAgent`目前已实现的插件结构，
+在包`com.yiji.falcon.agent.plugins.plugin`下建立自己的插件目录，将插件类放在该目录中，
+然后根据规则，在`src/main/resources_ext/conf/plugin/`目录下建立自己的插件配置文件即可。
 
 ### SuitAgent目前集成的监控服务
 
@@ -334,7 +364,7 @@ JMX监控的属性，由以下三部分组成
 	
 `plugin`目录下的插件配置文件的改动
 
-- 若改动的是未启动的监控服务配置（如`YijiBoot`插件的`yijiBootPlugin.properties`文件，添加了一个服务名。或更改了插件启动类型等），将在`SuitAgent`下一次的自动服务发现时生效
+- 若改动的是未启动的监控服务配置（如`StandaloneJarPlugin`插件的`standaloneJarPlugin.properties`文件，添加了一个服务名。或更改了插件启动类型等），将在`SuitAgent`下一次的自动服务发现时生效
 - 若改动的是插件的监控配置（如`Tomcat`插件的`tomcatPlugin.properties`文件的服务器监控参数配置），下一次监控扫描就能够生效。
 - 若改动的是插件的自定义配置文件，它的改动将不会触发插件的配置更新事件，不过可以利用改动它的插件配置文件，触发配置更新。
 	
