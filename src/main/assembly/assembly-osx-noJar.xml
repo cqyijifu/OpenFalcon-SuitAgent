@@ -12,7 +12,7 @@
 "dir" - Creates an exploded directory format
 "war" - Creates a WAR format-->
     <formats>
-        <format>dir</format>
+        <format>tar.gz</format>
     </formats>
 
     <fileSets>

@@ -23,8 +23,10 @@
 选择对应的版本进行编译:
 
 	- linux-64 : mvn clean package -Plinux-64 -Dmaven.test.skip=true
-	- osx-noJar : mvn clean package -Posx-noJar -Dmaven.test.skip=true
 	- linux64-noJar : mvn clean package -Plinux64-noJar -Dmaven.test.skip=true
+	- osx-noJar : mvn clean package -Posx-noJar -Dmaven.test.skip=true
+
+编译后，在target目录下可看到编译后的压缩包，解压缩，改改配置，即可使用
 
 版本说明:
 
