@@ -8,7 +8,10 @@ package com.yiji.falcon.agent.util;
  * guqiu@yiji.com 2016-07-15 13:42 创建
  */
 
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author guqiu@yiji.com
@@ -16,11 +19,9 @@ import java.util.concurrent.*;
 public class ExecuteThreadUtil {
     private static ExecutorService executorService;
     static {
-        final int cpuCore = Runtime.getRuntime().availableProcessors();
-        //线程数
-        final int poolSize = 200;
+        final int maxPoolSize = 200;
         //定义并发执行服务
-        executorService = new ThreadPoolExecutor(5,poolSize,0L,TimeUnit.MILLISECONDS,
+        executorService = new ThreadPoolExecutor(5,maxPoolSize,0L,TimeUnit.MILLISECONDS,
                 new SynchronousQueue<>(),
                 r -> {
                     Thread t=new Thread(r);
