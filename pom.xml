@@ -6,7 +6,7 @@
 
     <groupId>com.yiji.falcon.agent</groupId>
     <artifactId>falcon-agent</artifactId>
-    <version>1.0-alpha</version>
+    <version>1.0-beta</version>
 
     <profiles>
         <profile>
