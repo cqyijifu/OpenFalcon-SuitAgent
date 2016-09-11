@@ -1,5 +1,15 @@
 # OpenFalcon-SuitAgent
 
+### 版本说明
+
+本系统版本划分如下
+
+- alpha：内部测试版（不建议使用于生产环境）
+- beta：公开测试版（不建议使用于生产环境）
+- final：最终正式版（可用于生产环境）
+
+当前版本请查看pom.xml信息。
+
 ### 使用之前
 
 - 此系统是和[OpenFalcon](http://book.open-falcon.org/zh/index.html)监控系统一起使用,是为了更方便的进行运维监控。若不了解,可以先点击链接去OpenFalcon的官方社区进行了解。
@@ -43,6 +53,7 @@ OpenFalcon监控系统，是由一系列的组件构成。对于操作系统的�
 ### SuitAgent编译
 
 构建工具:maven
+Java版本：jdk 1.8
 
 选择对应的版本进行编译:
 
@@ -64,6 +75,8 @@ OpenFalcon监控系统，是由一系列的组件构成。对于操作系统的�
 
 
 修改相关配置后,直接启动`SuitAgent`即可
+
+*建议：推荐编译使用，因目前`SuitAgent`尚在完善中，代码和配置难免会有所变动。网盘中的文件不能保证随时都是最新的。*
 
 #### SuitAgent配置
 
