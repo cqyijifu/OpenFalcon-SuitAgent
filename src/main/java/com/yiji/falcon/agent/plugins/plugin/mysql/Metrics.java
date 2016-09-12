@@ -40,17 +40,20 @@ class Metrics {
      */
     Collection<FalconReportObject> getReports() throws SQLException, ClassNotFoundException {
         Set<FalconReportObject> reportObjectSet = new HashSet<>();
-        reportObjectSet.addAll(getGlobalStatus());
-        reportObjectSet.addAll(getGlobalVariables());
+        Collection<Connection> connections = plugin.getConnections();
+
+        reportObjectSet.addAll(getGlobalStatus(connections));
+        reportObjectSet.addAll(getGlobalVariables(connections));
 //        reportObjectSet.addAll(getInnodbStatus());
-        reportObjectSet.addAll(getSalveStatus());
+        reportObjectSet.addAll(getSalveStatus(connections));
+
+        plugin.helpCloseConnections(connections);
         return reportObjectSet;
     }
 
-    private Collection<? extends FalconReportObject> getSalveStatus() throws SQLException, ClassNotFoundException {
+    private Collection<? extends FalconReportObject> getSalveStatus(Collection<Connection> connections) throws SQLException, ClassNotFoundException {
         Set<FalconReportObject> reportObjectSet = new HashSet<>();
         String sql = "show slave status";
-        Collection<Connection> connections = plugin.getConnections();
         for (Connection connection : connections) {
             PreparedStatement pstmt = connection.prepareStatement(sql);
             ResultSet rs = pstmt.executeQuery();
@@ -95,10 +98,9 @@ class Metrics {
         return reportObjectSet;
     }
 
-    private Collection<? extends FalconReportObject> getGlobalVariables() throws SQLException, ClassNotFoundException {
+    private Collection<? extends FalconReportObject> getGlobalVariables(Collection<Connection> connections) throws SQLException, ClassNotFoundException {
         Set<FalconReportObject> reportObjectSet = new HashSet<>();
         String sql = "SHOW /*!50001 GLOBAL */ VARIABLES";
-        Collection<Connection> connections = plugin.getConnections();
         for (Connection connection : connections) {
             PreparedStatement pstmt = connection.prepareStatement(sql);
             ResultSet rs = pstmt.executeQuery();
@@ -123,7 +125,6 @@ class Metrics {
             rs.close();
             pstmt.close();
         }
-        plugin.helpCloseConnections(connections);
         return reportObjectSet;
     }
 
@@ -132,10 +133,9 @@ class Metrics {
 //        return reportObjectSet;
 //    }
 
-    private Collection<? extends FalconReportObject> getGlobalStatus() throws SQLException, ClassNotFoundException {
+    private Collection<? extends FalconReportObject> getGlobalStatus(Collection<Connection> connections) throws SQLException, ClassNotFoundException {
         Set<FalconReportObject> reportObjectSet = new HashSet<>();
         String sql = "SHOW /*!50001 GLOBAL */ STATUS";
-        Collection<Connection> connections = plugin.getConnections();
         for (Connection connection : connections) {
             PreparedStatement pstmt = connection.prepareStatement(sql);
             ResultSet rs = pstmt.executeQuery();
@@ -155,7 +155,6 @@ class Metrics {
             rs.close();
             pstmt.close();
         }
-        plugin.helpCloseConnections(connections);
         return reportObjectSet;
     }
 
