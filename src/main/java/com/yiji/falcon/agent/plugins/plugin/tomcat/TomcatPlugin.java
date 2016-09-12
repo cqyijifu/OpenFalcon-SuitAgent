@@ -124,7 +124,7 @@ public class TomcatPlugin implements JMXPlugin {
     @Override
     public String agentSignName(MBeanServerConnection mBeanServerConnection, int pid) {
         try {
-            String name = "";
+            StringBuilder name = new StringBuilder();
             Set<ObjectInstance> beanSet = mBeanServerConnection.queryMBeans(null, null);
             for (ObjectInstance mbean : beanSet) {
                 ObjectName objectName = mbean.getObjectName();
@@ -133,16 +133,16 @@ public class TomcatPlugin implements JMXPlugin {
                         String key = mBeanAttributeInfo.getName();
                         if("port".equals(key)){
                             String value = mBeanServerConnection.getAttribute(mbean.getObjectName(),key).toString();
-                            if("".equals(name)){
-                                name += value;
+                            if("".equals(name.toString())){
+                                name.append(value);
                             }else{
-                                name += "-" + value;
+                                name.append("-").append(value);
                             }
                         }
                     }
                 }
             }
-            return StringUtils.isEmpty(name) ? serverDirName(pid) : name + "-" +serverDirName(pid);
+            return StringUtils.isEmpty(name.toString()) ? serverDirName(pid) : name.toString() + "-" +serverDirName(pid);
         } catch (Exception e) {
             log.error("设置JMX name 失败",e);
             return "";

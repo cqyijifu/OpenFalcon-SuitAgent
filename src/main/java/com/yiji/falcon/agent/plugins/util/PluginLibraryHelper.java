@@ -31,7 +31,7 @@ public class PluginLibraryHelper {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    private ClassLoader classLoader = this.getClass().getClassLoader();
+    private ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
 
     /**
      * 获取拥有授权配置的插件
@@ -39,8 +39,6 @@ public class PluginLibraryHelper {
      */
     public static Set<Plugin> getPluginsAboutAuthorization(){
         Set<Plugin> targetPlugins = new HashSet<>();
-        Map<String,String> authorizationConf = PropertiesUtil.getAllPropertiesByFileName(AgentConfiguration.INSTANCE.getAuthorizationConfPath());
-        Collection<String> keys = authorizationConf.keySet();
         for (Plugin plugin : plugins) {
             if(hasAuthorizationConf(plugin.authorizationKeyPrefix())){
                 targetPlugins.add(plugin);
