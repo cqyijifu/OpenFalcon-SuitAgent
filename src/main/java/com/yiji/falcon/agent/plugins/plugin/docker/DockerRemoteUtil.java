@@ -33,6 +33,20 @@ class DockerRemoteUtil {
     }
 
     /**
+     * 获取Docker的版本信息
+     * @return
+     * @throws IOException
+     */
+    DockerVersion getDockerVersion() throws IOException {
+        String url = urlPrefix + "version";
+        JSONObject jsonObject = JSON.parseObject(HttpUtil.get(url,30000,30000).getResult());
+        DockerVersion dockerVersion = new DockerVersion();
+        dockerVersion.setApiVersion(jsonObject.getString("ApiVersion"));
+        dockerVersion.setDockerVersion(jsonObject.getString("Version"));
+        return dockerVersion;
+    }
+
+    /**
      * 获取所有的容器
      * @return
      * @throws IOException

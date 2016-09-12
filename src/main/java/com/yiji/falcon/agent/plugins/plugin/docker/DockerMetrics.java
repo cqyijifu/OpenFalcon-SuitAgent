@@ -30,6 +30,8 @@ public class DockerMetrics {
 
     private DockerRemoteUtil dockerRemoteUtil;
 
+    private DockerVersion dockerVersion;
+
     /**
      * 保存第一次监控到的Container的名称
      */
@@ -45,8 +47,9 @@ public class DockerMetrics {
      * @param address
      * Docker daemon 远程地址
      */
-    public DockerMetrics(String address) {
+    public DockerMetrics(String address) throws IOException {
         dockerRemoteUtil = new DockerRemoteUtil(address);
+        dockerVersion = dockerRemoteUtil.getDockerVersion();
     }
 
     /**
@@ -86,9 +89,9 @@ public class DockerMetrics {
         //容器可用性
         for (String containerName : containerNameCache) {
             if(containerNames.contains(containerName)){
-                collectObjectList.add(new CollectObject(containerName,"availability.container","1"));
+                collectObjectList.add(new CollectObject(containerName,"availability.container","1",""));
             }else{
-                collectObjectList.add(new CollectObject(containerName,"availability.container","0"));
+                collectObjectList.add(new CollectObject(containerName,"availability.container","0",""));
             }
         }
 
@@ -103,7 +106,7 @@ public class DockerMetrics {
      * @throws IOException
      */
     private CollectObject containerAppMetrics(String containerName,String idOrName) throws IOException {
-        CollectObject collectObject = new CollectObject(containerName,"availability.container.app","0");
+        CollectObject collectObject = new CollectObject(containerName,"availability.container.app","0","");
 
         String cmd = "/bin/ps aux";
         DockerExecResult execResult = dockerRemoteUtil.exec(cmd,idOrName);
@@ -183,27 +186,57 @@ public class DockerMetrics {
 
     private List<CollectObject> getNetMetrics(String containerName,JSONObject result){
         List<CollectObject> collectObjectList = new ArrayList<>();
-        JSONObject network = result.getJSONObject("network");
 
-        long rx_bytes = network.getLong("rx_bytes");
-        long rx_packets = network.getLong("rx_packets");
-        long rx_errors = network.getLong("rx_errors");
-        long rx_dropped = network.getLong("rx_dropped");
+        //1.18,1.19,1.20 API版本的网络数据
+        if(dockerVersion.getApiVersion().contains("1.1") || "1.20".equals(dockerVersion.getApiVersion())){
+            JSONObject network = result.getJSONObject("network");
 
-        long tx_bytes = network.getLong("tx_bytes");
-        long tx_packets = network.getLong("tx_packets");
-        long tx_errors = network.getLong("tx_errors");
-        long tx_dropped = network.getLong("tx_dropped");
+            long rx_bytes = network.getLong("rx_bytes");
+            long rx_packets = network.getLong("rx_packets");
+            long rx_errors = network.getLong("rx_errors");
+            long rx_dropped = network.getLong("rx_dropped");
 
-        collectObjectList.add(new CollectObject(containerName,"net.if.in.bytes",rx_bytes+""));
-        collectObjectList.add(new CollectObject(containerName,"net.if.in.packets",rx_packets+""));
-        collectObjectList.add(new CollectObject(containerName,"net.if.in.errors",rx_errors+""));
-        collectObjectList.add(new CollectObject(containerName,"net.if.in.dropped",rx_dropped+""));
+            long tx_bytes = network.getLong("tx_bytes");
+            long tx_packets = network.getLong("tx_packets");
+            long tx_errors = network.getLong("tx_errors");
+            long tx_dropped = network.getLong("tx_dropped");
 
-        collectObjectList.add(new CollectObject(containerName,"net.if.out.bytes",tx_bytes+""));
-        collectObjectList.add(new CollectObject(containerName,"net.if.out.packets",tx_packets+""));
-        collectObjectList.add(new CollectObject(containerName,"net.if.out.errors",tx_errors+""));
-        collectObjectList.add(new CollectObject(containerName,"net.if.out.dropped",tx_dropped+""));
+            collectObjectList.add(new CollectObject(containerName,"net.if.in.bytes",rx_bytes+"",""));
+            collectObjectList.add(new CollectObject(containerName,"net.if.in.packets",rx_packets+"",""));
+            collectObjectList.add(new CollectObject(containerName,"net.if.in.errors",rx_errors+"",""));
+            collectObjectList.add(new CollectObject(containerName,"net.if.in.dropped",rx_dropped+"",""));
+
+            collectObjectList.add(new CollectObject(containerName,"net.if.out.bytes",tx_bytes+"",""));
+            collectObjectList.add(new CollectObject(containerName,"net.if.out.packets",tx_packets+"",""));
+            collectObjectList.add(new CollectObject(containerName,"net.if.out.errors",tx_errors+"",""));
+            collectObjectList.add(new CollectObject(containerName,"net.if.out.dropped",tx_dropped+"",""));
+        }else{
+            //1.21以及1.21版本以上的网络数据
+            JSONObject networks = result.getJSONObject("networks");
+            for (String ifName : networks.keySet()) {
+                JSONObject ifJson = networks.getJSONObject(ifName);
+
+                String tag = "ifName=" + ifName;
+                long rx_bytes = ifJson.getLong("rx_bytes");
+                long rx_packets = ifJson.getLong("rx_packets");
+                long rx_errors = ifJson.getLong("rx_errors");
+                long rx_dropped = ifJson.getLong("rx_dropped");
+
+                long tx_bytes = ifJson.getLong("tx_bytes");
+                long tx_packets = ifJson.getLong("tx_packets");
+                long tx_errors = ifJson.getLong("tx_errors");
+                long tx_dropped = ifJson.getLong("tx_dropped");
+                collectObjectList.add(new CollectObject(containerName,"net.if.in.bytes",rx_bytes+"",tag));
+                collectObjectList.add(new CollectObject(containerName,"net.if.in.packets",rx_packets+"",tag));
+                collectObjectList.add(new CollectObject(containerName,"net.if.in.errors",rx_errors+"",tag));
+                collectObjectList.add(new CollectObject(containerName,"net.if.in.dropped",rx_dropped+"",tag));
+
+                collectObjectList.add(new CollectObject(containerName,"net.if.out.bytes",tx_bytes+"",tag));
+                collectObjectList.add(new CollectObject(containerName,"net.if.out.packets",tx_packets+"",tag));
+                collectObjectList.add(new CollectObject(containerName,"net.if.out.errors",tx_errors+"",tag));
+                collectObjectList.add(new CollectObject(containerName,"net.if.out.dropped",tx_dropped+"",tag));
+            }
+        }
 
         return collectObjectList;
     }
@@ -226,9 +259,9 @@ public class DockerMetrics {
         long limit = memory_stats.getLong("limit");
         //内存使用百分比
         double rate = Maths.div(usage,limit,5) * 100;
-        collectObjectList.add(new CollectObject(containerName,"mem.total.usage", "" + usage));
-        collectObjectList.add(new CollectObject(containerName,"mem.total.limit", "" + limit));
-        collectObjectList.add(new CollectObject(containerName,"mem.total.usage.rate", "" + rate));
+        collectObjectList.add(new CollectObject(containerName,"mem.total.usage", "" + usage,""));
+        collectObjectList.add(new CollectObject(containerName,"mem.total.limit", "" + limit,""));
+        collectObjectList.add(new CollectObject(containerName,"mem.total.usage.rate", "" + rate,""));
         return collectObjectList;
     }
 
@@ -290,9 +323,9 @@ public class DockerMetrics {
         //用户CPU使用率
         double userUsageRate = Maths.div(totalUserCpuTime,totalCpuTime,5) * 100;
 
-        collectObjectList.add(new CollectObject(containerName,"total.cpu.usage.rate",totalCpuUsageRate + ""));
-        collectObjectList.add(new CollectObject(containerName,"kernel.cpu.usage.rate",kernelUsageRate + ""));
-        collectObjectList.add(new CollectObject(containerName,"user.cpu.usage.rate",userUsageRate + ""));
+        collectObjectList.add(new CollectObject(containerName,"total.cpu.usage.rate",totalCpuUsageRate + "",""));
+        collectObjectList.add(new CollectObject(containerName,"kernel.cpu.usage.rate",kernelUsageRate + "",""));
+        collectObjectList.add(new CollectObject(containerName,"user.cpu.usage.rate",userUsageRate + "",""));
 
         return collectObjectList;
     }
@@ -310,11 +343,16 @@ public class DockerMetrics {
          * 指标值
          */
         private String value;
+        /**
+         * 标签
+         */
+        private String tags;
 
-        CollectObject(String containerName, String metric, String value) {
+        CollectObject(String containerName, String metric, String value,String tags) {
             this.containerName = containerName;
             this.metric = metric;
             this.value = value;
+            this.tags = tags;
         }
 
         @Override
@@ -323,7 +361,16 @@ public class DockerMetrics {
                     "containerName='" + containerName + '\'' +
                     ", metric='" + metric + '\'' +
                     ", value='" + value + '\'' +
+                    ", tags='" + tags + '\'' +
                     '}';
+        }
+
+        public String getTags() {
+            return tags == null ? "" : tags;
+        }
+
+        public void setTags(String tags) {
+            this.tags = tags;
         }
 
         public String getValue() {

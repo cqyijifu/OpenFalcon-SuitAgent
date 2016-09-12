@@ -96,8 +96,8 @@ public class DockerPlugin implements DetectPlugin {
     @Override
     public DetectResult detectResult(String address) {
         DetectResult detectResult = new DetectResult();
-        DockerMetrics dockerMetrics = new DockerMetrics(address);
         try {
+            DockerMetrics dockerMetrics = new DockerMetrics(address);
             List<DockerMetrics.CollectObject> collectObjectList = dockerMetrics.getMetrics(1000);
 
             List<DetectResult.Metric> metrics = new ArrayList<>();
@@ -105,7 +105,7 @@ public class DockerPlugin implements DetectPlugin {
                 DetectResult.Metric metric = new DetectResult.Metric(collectObject.getMetric(),
                         collectObject.getValue(),
                         CounterType.GAUGE,
-                        "containerName=" + collectObject.getContainerName());
+                        "containerName=" + collectObject.getContainerName() + collectObject.getTags());
                 metrics.add(metric);
             }
             detectResult.setMetricsList(metrics);
