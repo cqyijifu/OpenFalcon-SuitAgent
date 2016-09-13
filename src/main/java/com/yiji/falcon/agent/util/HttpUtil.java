@@ -51,6 +51,7 @@ public class HttpUtil {
         long start = System.currentTimeMillis();
         HttpRequest httpRequest = new HttpRequest(new URL(url),"POST")
                 .connectTimeout(connectTimeout).readTimeout(readTimeout)
+                .acceptJson()
                 .contentType("application/json","UTF-8")
                 .send(data.getBytes("UTF-8"));
 

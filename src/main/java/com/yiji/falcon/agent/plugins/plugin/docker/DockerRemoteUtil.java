@@ -77,7 +77,7 @@ class DockerRemoteUtil {
      * @return
      * @throws IOException
      */
-    DockerExecResult exec(String cmd,String containerIdOrName) throws IOException {
+    synchronized DockerExecResult exec(String cmd,String containerIdOrName) throws IOException {
         DockerExecResult execResult = new DockerExecResult();
 
         //创建exec
@@ -88,7 +88,7 @@ class DockerRemoteUtil {
         execCmdBody.put("AttachStderr",true);
         execCmdBody.put("DetachKeys","");
         JSONArray cmdArray = new JSONArray();
-        for (String s : cmd.split(" ")) {
+        for (String s : cmd.split("\\s")) {
             if(!StringUtils.isEmpty(s)){
                 cmdArray.add(s);
             }
@@ -105,7 +105,8 @@ class DockerRemoteUtil {
         //判断执行结果
         String execResultUrl = urlPrefix + "exec/" + execId + "/json";
         JSONObject execResultJSON = JSON.parseObject(HttpUtil.get(execResultUrl).getResult());
-        if(execResultJSON.getInteger("ExitCode") == 0){
+        Integer exitCode = execResultJSON.getInteger("ExitCode");
+        if(exitCode != null && exitCode == 0){
             execResult.setSuccess(true);
         }
 

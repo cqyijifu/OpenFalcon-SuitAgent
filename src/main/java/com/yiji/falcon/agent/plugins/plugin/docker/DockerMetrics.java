@@ -106,11 +106,12 @@ public class DockerMetrics {
      * @throws IOException
      */
     private CollectObject containerAppMetrics(String containerName,String idOrName) throws IOException {
-        CollectObject collectObject = new CollectObject(containerName,"availability.container.app","0","");
+        CollectObject collectObject = null;
 
         String cmd = "/bin/ps aux";
         DockerExecResult execResult = dockerRemoteUtil.exec(cmd,idOrName);
         if(execResult.isSuccess()){
+            collectObject = new CollectObject(containerName,"availability.container.app","0","");
             String parseMD5 = psCommandMD5(containerName,execResult.getResult());
             String cache = containerCmdParse.get(containerName);
             if(cache == null){
@@ -126,6 +127,7 @@ public class DockerMetrics {
                 }
             }
         }else {
+            collectObject = new CollectObject(containerName,"availability.container.app","-1","");
             logger.error("Docker container exec {} execute failed : {}",cmd,execResult.getResult());
         }
 
