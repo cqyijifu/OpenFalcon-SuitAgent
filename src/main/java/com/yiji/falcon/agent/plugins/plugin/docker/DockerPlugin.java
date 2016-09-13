@@ -70,7 +70,7 @@ public class DockerPlugin implements DetectPlugin {
                 }
             }
         } catch (Exception e) {
-            logger.error("自动地址探测异常");
+            logger.error("自动地址探测异常",e);
             return null;
         }
         return addressesCache;
