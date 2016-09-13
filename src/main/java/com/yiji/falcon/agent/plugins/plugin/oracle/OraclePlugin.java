@@ -34,6 +34,67 @@ public class OraclePlugin implements JDBCPlugin {
     private PluginActivateType pluginActivateType;
     private String jdbcConfig = null;
 
+    private final static String tbSql = "SELECT dtp.tablespace_name ts_name,\n" +
+            "       NVL(ts.bytes, 0) / 1024 / 1024 size_m,\n" +
+            "       NVL(m_bk.m_bt, 0) / 1024 / 1024 size_max_m,\n" +
+            "       NVL(ts.bytes - NVL(f.bytes, 0), 0) / 1024 / 1024 used_m,\n" +
+            "       ROUND((NVL(ts.bytes - NVL(f.bytes, 0), 0) / NVL(ts.bytes, 0) * 100),\n" +
+            "             2) used_percent,\n" +
+            "       ROUND((NVL(ts.bytes - NVL(f.bytes, 0), 0) / 1024 / 1024) /\n" +
+            "             (nvl(m_bk.m_bt, 0) / 1024 / 1024) * 100,\n" +
+            "             2) real_used_percent\n" +
+            "  FROM sys.DBA_TABLESPACES dtp,\n" +
+            "       (SELECT tablespace_name, SUM(bytes) bytes\n" +
+            "          FROM DBA_DATA_FILES\n" +
+            "         GROUP BY tablespace_name) ts,\n" +
+            "       (SELECT tablespace_name, SUM(bytes) bytes\n" +
+            "          FROM DBA_FREE_SPACE\n" +
+            "         GROUP BY tablespace_name) f,\n" +
+            "       (select sum(max_b) m_bt, tablespace_name\n" +
+            "          from (select case\n" +
+            "                         when MAXBYTES = 0 then\n" +
+            "                          bytes\n" +
+            "                         else\n" +
+            "                          MAXBYTES\n" +
+            "                       end MAX_B,\n" +
+            "                       tablespace_name\n" +
+            "                  from dba_data_files)\n" +
+            "         group by tablespace_name) m_bk\n" +
+            " WHERE dtp.tablespace_name = ts.tablespace_name(+)\n" +
+            "   AND dtp.tablespace_name = f.tablespace_name(+)\n" +
+            "   and dtp.tablespace_name = m_bk.tablespace_name(+)\n" +
+            "   AND NOT (dtp.CONTENTS LIKE 'TEMPORARY')\n" +
+            "union all\n" +
+            "SELECT dtp.tablespace_name ts_name,\n" +
+            "       NVL(a.bytes, 0) / 1024 / 1024 size_m,\n" +
+            "        NVL(m_bk.m_bt, 0) / 1024 / 1024 size_max_m,\n" +
+            "       NVL(t.bytes, 0) / 1024 / 1024 used_m,\n" +
+            "       ROUND(NVL(t.bytes, 0) / NVL(a.bytes, 0) * 100, 2) used_percent,\n" +
+            "       ROUND(NVL(t.bytes, 0) /(nvl(m_bk.m_bt, 0)) * 100,2) real_used_percent\n" +
+            "  FROM sys.DBA_TABLESPACES dtp,\n" +
+            "       (SELECT tablespace_name, SUM(bytes) bytes\n" +
+            "          FROM DBA_TEMP_FILES\n" +
+            "         GROUP BY tablespace_name) a,\n" +
+            "       (SELECT ss.tablespace_name,\n" +
+            "               SUM((ss.used_blocks * ts.blocksize)) bytes\n" +
+            "          FROM gv$sort_segment ss, sys.ts$ ts\n" +
+            "         WHERE ss.tablespace_name = ts.name\n" +
+            "         GROUP BY ss.tablespace_name) t,\n" +
+            "        (select sum(max_b) m_bt, tablespace_name\n" +
+            "          from (select case\n" +
+            "                         when MAXBYTES = 0 then\n" +
+            "                          bytes\n" +
+            "                         else\n" +
+            "                          MAXBYTES\n" +
+            "                       end MAX_B,\n" +
+            "                       tablespace_name\n" +
+            "                  from dba_temp_files)\n" +
+            "         group by tablespace_name) m_bk\n" +
+            " WHERE dtp.tablespace_name = a.tablespace_name(+)\n" +
+            "   AND dtp.tablespace_name = t.tablespace_name(+)\n" +
+            "   and dtp.tablespace_name = m_bk.tablespace_name(+)\n" +
+            "   AND dtp.CONTENTS LIKE 'TEMPORARY'";
+
     @Override
     public String authorizationKeyPrefix() {
         return "Oracle";
@@ -87,41 +148,47 @@ public class OraclePlugin implements JDBCPlugin {
     @Override
     public Collection<FalconReportObject> inbuiltReportObjectsForValid() throws SQLException, ClassNotFoundException {
         List<FalconReportObject> result = new ArrayList<>();
-        String sql = "SELECT\n" +
-                "  Upper(F.TABLESPACE_NAME) \"TSNAME\",\n" +
-                "  To_char(Round((D.TOT_GROOTTE_MB - F.TOTAL_BYTES) / D.TOT_GROOTTE_MB * 100, 2), '990.99') \"PERCENT\"\n" +
-                "FROM (SELECT\n" +
-                "        TABLESPACE_NAME,\n" +
-                "        Round(Sum(BYTES) / (1024 * 1024), 2) TOTAL_BYTES,\n" +
-                "        Round(Max(BYTES) / (1024 * 1024), 2) MAX_BYTES\n" +
-                "      FROM SYS.DBA_FREE_SPACE\n" +
-                "      GROUP BY TABLESPACE_NAME) F,\n" +
-                "  (SELECT\n" +
-                "     DD.TABLESPACE_NAME,\n" +
-                "     Round(Sum(DD.BYTES) / (1024 * 1024), 2) TOT_GROOTTE_MB\n" +
-                "   FROM SYS.DBA_DATA_FILES DD\n" +
-                "   GROUP BY DD.TABLESPACE_NAME) D\n" +
-                "WHERE D.TABLESPACE_NAME = F.TABLESPACE_NAME";
         Collection<Connection> connections = getConnections();
         for (Connection connection : connections) {
             //创建该连接下的PreparedStatement对象
-            PreparedStatement pstmt = connection.prepareStatement(sql);
+            PreparedStatement pstmt = connection.prepareStatement(tbSql);
             //执行查询语句，将数据保存到ResultSet对象中
             ResultSet rs = pstmt.executeQuery();
             //将指针移到下一行，判断rs中是否有数据
             while (rs.next()){
-                String tsName = rs.getString(1);
-                String percent = rs.getString(2);
+                String tsName = rs.getString("TS_NAME");
+                String size = rs.getString("SIZE_M");
+                String sizeMax = rs.getString("SIZE_MAX_M");
+                String used = rs.getString("USED_M");
+                String usedPercent = rs.getString("USED_PERCENT");
+                String realUsedPercent = rs.getString("REAL_USED_PERCENT");
 
                 FalconReportObject falconReportObject = new FalconReportObject();
                 MetricsCommon.setReportCommonValue(falconReportObject,step());
                 falconReportObject.setCounterType(CounterType.GAUGE);
                 falconReportObject.setTimestamp(System.currentTimeMillis() / 1000);
-                falconReportObject.setMetric(getMetricsName("TSUsedPercent"));
-                falconReportObject.setValue(percent.trim());
                 falconReportObject.appendTags(MetricsCommon.getTags(agentSignName(),this,serverName(), MetricsType.SQL_IN_BUILD))
                 .appendTags("TSName=" + tsName.trim());
-                result.add(falconReportObject);
+
+                falconReportObject.setMetric(getMetricsName("ts.size"));
+                falconReportObject.setValue(size);
+                result.add(falconReportObject.clone());
+
+                falconReportObject.setMetric(getMetricsName("ts.size.max"));
+                falconReportObject.setValue(sizeMax);
+                result.add(falconReportObject.clone());
+
+                falconReportObject.setMetric(getMetricsName("ts.used"));
+                falconReportObject.setValue(used);
+                result.add(falconReportObject.clone());
+
+                falconReportObject.setMetric(getMetricsName("ts.used.percent"));
+                falconReportObject.setValue(usedPercent);
+                result.add(falconReportObject.clone());
+
+                falconReportObject.setMetric(getMetricsName("ts.used.real.percent"));
+                falconReportObject.setValue(realUsedPercent);
+                result.add(falconReportObject.clone());
             }
             rs.close();
             pstmt.close();
