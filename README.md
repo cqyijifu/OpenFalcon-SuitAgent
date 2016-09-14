@@ -1,5 +1,9 @@
 # OpenFalcon-SuitAgent
 
+### 改进说明
+
+鉴于目前`Docker`监控用Remote API方式比较占用资源，而且不稳定。故准备开发让`SuitAgent`集成`cAdvisor`进行`Docker`监控，不再使用Remote API方式（注：`cAdvisor`只支持`Linux`系统）。
+
 ### 版本说明
 
 本系统版本划分如下
