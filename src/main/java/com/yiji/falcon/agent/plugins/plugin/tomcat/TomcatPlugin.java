@@ -113,6 +113,15 @@ public class TomcatPlugin implements JMXPlugin {
     }
 
     /**
+     * Agent关闭时的调用钩子
+     * 如，可用于插件的资源释放等操作
+     */
+    @Override
+    public void agentShutdownHook() {
+
+    }
+
+    /**
      * 该插件监控的服务标记名称,目的是为能够在操作系统中准确定位该插件监控的是哪个具体服务
      * 如该服务运行的端口号等
      * 若不需要指定则可返回null

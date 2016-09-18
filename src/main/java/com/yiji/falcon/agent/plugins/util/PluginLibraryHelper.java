@@ -85,6 +85,13 @@ public class PluginLibraryHelper {
     }
 
     /**
+     * 调用所有注册的Plugin的agentShutdownHook方法
+     */
+    public static void invokeAgentShutdownHook(){
+        plugins.forEach(Plugin::agentShutdownHook);
+    }
+
+    /**
      * 获取JMX监控服务插件
      * @return
      */

@@ -246,6 +246,9 @@ public class Agent extends Thread{
             }
         }
 
+        log.info("Invoke Plugin Shutdown Hook");
+        PluginLibraryHelper.invokeAgentShutdownHook();
+
         log.info("关闭线程池");
         ExecuteThreadUtil.shutdown();
 

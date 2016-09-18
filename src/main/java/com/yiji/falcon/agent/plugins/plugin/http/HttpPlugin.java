@@ -69,6 +69,15 @@ public class HttpPlugin implements DetectPlugin {
         return this.step;
     }
 
+    /**
+     * Agent关闭时的调用钩子
+     * 如，可用于插件的资源释放等操作
+     */
+    @Override
+    public void agentShutdownHook() {
+
+    }
+
 
     /**
      * 监控的具体服务的agentSignName tag值

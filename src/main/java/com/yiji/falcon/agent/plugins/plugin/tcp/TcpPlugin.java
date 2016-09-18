@@ -146,4 +146,13 @@ public class TcpPlugin implements DetectPlugin {
     public int step() {
         return this.step;
     }
+
+    /**
+     * Agent关闭时的调用钩子
+     * 如，可用于插件的资源释放等操作
+     */
+    @Override
+    public void agentShutdownHook() {
+
+    }
 }

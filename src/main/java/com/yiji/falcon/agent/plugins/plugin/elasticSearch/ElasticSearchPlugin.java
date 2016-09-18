@@ -228,6 +228,15 @@ public class ElasticSearchPlugin implements JMXPlugin {
     }
 
     /**
+     * Agent关闭时的调用钩子
+     * 如，可用于插件的资源释放等操作
+     */
+    @Override
+    public void agentShutdownHook() {
+
+    }
+
+    /**
      * 能够代表该JMX服务的绝对路径
      * 若实现此方法,则若该JMX连接不可用时,将会检查该JMX服务的目录是否存在,若不存在,将会清除此连接,并不再监控此JMX。
      * 否则,若JMX连接不可用,将会上报不可用的报告,且不会清除

@@ -85,4 +85,10 @@ public interface Plugin {
      */
     PluginActivateType activateType();
 
+    /**
+     * Agent关闭时的调用钩子
+     * 如，可用于插件的资源释放等操作
+     */
+    void agentShutdownHook();
+
 }

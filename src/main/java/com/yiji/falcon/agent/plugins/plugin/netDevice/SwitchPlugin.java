@@ -91,6 +91,15 @@ public class SwitchPlugin implements SNMPV3Plugin{
     }
 
     /**
+     * Agent关闭时的调用钩子
+     * 如，可用于插件的资源释放等操作
+     */
+    @Override
+    public void agentShutdownHook() {
+
+    }
+
+    /**
      * 通过SNMPV3协议获取设备监控信息的登陆用户信息
      *
      * @return list

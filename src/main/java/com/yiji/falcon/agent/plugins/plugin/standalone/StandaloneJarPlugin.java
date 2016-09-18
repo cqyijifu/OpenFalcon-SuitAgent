@@ -175,6 +175,15 @@ public class StandaloneJarPlugin implements JMXPlugin {
         return pluginActivateType;
     }
 
+    /**
+     * Agent关闭时的调用钩子
+     * 如，可用于插件的资源释放等操作
+     */
+    @Override
+    public void agentShutdownHook() {
+
+    }
+
     @Override
     public String serverPath(int pid, String serverName) {
         String key = StringUtils.getStringByInt(pid);
