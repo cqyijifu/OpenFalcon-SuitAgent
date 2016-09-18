@@ -57,7 +57,7 @@ public class ElasticSearchConfig {
         }
 
         String cmd = "lsof -p " + pid + " | grep elasticsearch";
-        CommandUtilForUnix.ExecuteResult executeResult = CommandUtilForUnix.execWithReadTimeLimit(cmd,10, TimeUnit.SECONDS);
+        CommandUtilForUnix.ExecuteResult executeResult = CommandUtilForUnix.execWithReadTimeLimit(cmd,false,10, TimeUnit.SECONDS);
 
         if(executeResult.isSuccess){
             String path = "";

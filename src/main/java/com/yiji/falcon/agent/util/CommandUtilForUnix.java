@@ -62,7 +62,7 @@ public class CommandUtilForUnix {
      */
     public static String getCmdDirByPid(int pid) throws IOException {
         String cmd = "lsof -p " + pid;
-        CommandUtilForUnix.ExecuteResult executeResult = CommandUtilForUnix.execWithReadTimeLimit(cmd,10, TimeUnit.SECONDS);
+        CommandUtilForUnix.ExecuteResult executeResult = CommandUtilForUnix.execWithReadTimeLimit(cmd,false,10, TimeUnit.SECONDS);
         String msg = executeResult.msg;
         String[] ss = msg.split("\n");
         for (String s : ss) {
@@ -80,25 +80,29 @@ public class CommandUtilForUnix {
      * 执行命令,给定最大的命令结果读取时间
      * @param execTarget
      * @param cmd
+     * @param cmdSep
+     * 是否对cmd进行空格分隔
      * @param maxReadTime
      * @param unit
      * @return
      * @throws IOException
      */
-    public static ExecuteResult execWithReadTimeLimit(String execTarget,String cmd, long maxReadTime, TimeUnit unit) throws IOException {
-        return exec(execTarget,cmd,unit.toMillis(maxReadTime));
+    public static ExecuteResult execWithReadTimeLimit(String execTarget,String cmd,boolean cmdSep, long maxReadTime, TimeUnit unit) throws IOException {
+        return exec(execTarget,cmd,cmdSep,unit.toMillis(maxReadTime));
     }
 
     /**
      * 执行命令,给定最大的命令结果读取时间
      * @param cmd
+     * @param cmdSep
+     * 是否对cmd进行空格分隔
      * @param maxReadTime
      * @param unit
      * @return
      * @throws IOException
      */
-    public static ExecuteResult execWithReadTimeLimit(String cmd, long maxReadTime, TimeUnit unit) throws IOException {
-        return execWithReadTimeLimit(null,cmd,maxReadTime,unit);
+    public static ExecuteResult execWithReadTimeLimit(String cmd,boolean cmdSep, long maxReadTime, TimeUnit unit) throws IOException {
+        return execWithReadTimeLimit(null,cmd,cmdSep,maxReadTime,unit);
     }
 
     /**
@@ -106,17 +110,19 @@ public class CommandUtilForUnix {
      * @param execTarget
      * 指定执行体,null则使用默认执行体(/bin/sh)
      * @param cmd
+     * @param cmdSep
+     * 是否对cmd进行空格分隔
      * @param timeout
      * @param unit
      * @return
      * @throws IOException
      */
-    public static ExecuteResult execWithTimeOut(String execTarget,String cmd, long timeout, TimeUnit unit) throws IOException {
+    public static ExecuteResult execWithTimeOut(String execTarget,String cmd,boolean cmdSep, long timeout, TimeUnit unit) throws IOException {
         final ExecuteResult[] executeResult = {new ExecuteResult()};
         final BlockingQueue<Object> blockingQueue = new ArrayBlockingQueue<>(1);
         ExecuteThreadUtil.execute(() -> {
             try {
-                executeResult[0] = exec(execTarget,cmd,0);
+                executeResult[0] = exec(execTarget,cmd,cmdSep,0);
                 if (!blockingQueue.offer(executeResult[0]))
                     logger.error("阻塞队列插入失败");
             } catch (Throwable t) {
@@ -142,13 +148,15 @@ public class CommandUtilForUnix {
     /**
      * 执行命令,使用默认执行体(/bin/sh)
      * @param cmd
+     * @param cmdSep
+     * 是否对cmd进行空格分隔
      * @param timeout
      * @param unit
      * @return
      * @throws IOException
      */
-    public static ExecuteResult execWithTimeOut(String cmd, long timeout, TimeUnit unit) throws IOException {
-        return execWithTimeOut(null,cmd,timeout,unit);
+    public static ExecuteResult execWithTimeOut(String cmd,boolean cmdSep, long timeout, TimeUnit unit) throws IOException {
+        return execWithTimeOut(null,cmd,cmdSep,timeout,unit);
     }
 
     /**
@@ -158,12 +166,14 @@ public class CommandUtilForUnix {
      * 默认 /bin/sh
      * @param cmd
      * 待执行的命令
+     * @param cmdSep
+     * 是否对cmd进行空格分隔
      * @param waitTime
      * 若大于0,则代表开启等待命令结果输出的最大等待时间(毫秒)
      * @return
      * @throws IOException
      */
-    private static ExecuteResult exec(String execTarget,String cmd,long waitTime) throws IOException {
+    private static ExecuteResult exec(String execTarget,String cmd,boolean cmdSep,long waitTime) throws IOException {
         ExecuteResult result = new ExecuteResult();
 
         List<String> shList = new ArrayList<>();
@@ -171,10 +181,13 @@ public class CommandUtilForUnix {
             execTarget = "/bin/sh";
             shList.add(execTarget);
             shList.add("-c");
-            Collections.addAll(shList, cmd.split("\\s"));
         }else{
             shList.add(execTarget);
+        }
+        if(cmdSep){
             Collections.addAll(shList, cmd.split("\\s"));
+        }else{
+            shList.add(cmd);
         }
 
         logger.info("执行命令 : {} {}",execTarget,cmd);
@@ -245,7 +258,7 @@ public class CommandUtilForUnix {
     public static PingResult ping(String address,int count) throws IOException {
         PingResult pingResult = new PingResult();
         String commend = String.format("ping -c %d %s",count,address);
-        CommandUtilForUnix.ExecuteResult executeResult = CommandUtilForUnix.execWithReadTimeLimit(commend,30,TimeUnit.SECONDS);
+        CommandUtilForUnix.ExecuteResult executeResult = CommandUtilForUnix.execWithReadTimeLimit(commend,false,30,TimeUnit.SECONDS);
 
         if(executeResult.isSuccess){
             List<Float> times = new ArrayList<>();
@@ -287,7 +300,7 @@ public class CommandUtilForUnix {
      * @throws IOException
      */
     public static String getJavaHomeFromEtcProfile() throws IOException {
-        ExecuteResult executeResult = execWithReadTimeLimit("cat /etc/profile",10,TimeUnit.SECONDS);
+        ExecuteResult executeResult = execWithReadTimeLimit("cat /etc/profile",false,10,TimeUnit.SECONDS);
         if(!executeResult.isSuccess){
             return null;
         }
@@ -328,6 +341,15 @@ public class CommandUtilForUnix {
          * ping的平均延迟值
          */
         public double avgTime;
+
+        @Override
+        public String toString() {
+            return "PingResult{" +
+                    "resultCode=" + resultCode +
+                    ", successCount=" + successCount +
+                    ", avgTime=" + avgTime +
+                    '}';
+        }
     }
 
 }

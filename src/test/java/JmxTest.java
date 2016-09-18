@@ -64,7 +64,7 @@ public class JmxTest {
     public void dirTest() throws IOException {
 
         String cmd = "lsof -p " + 5645;
-        CommandUtilForUnix.ExecuteResult executeResult = CommandUtilForUnix.execWithTimeOut(cmd,10, TimeUnit.SECONDS);
+        CommandUtilForUnix.ExecuteResult executeResult = CommandUtilForUnix.execWithTimeOut(cmd,false,10, TimeUnit.SECONDS);
         String msg = executeResult.msg;
         String[] ss = msg.split("\n");
         for (String s : ss) {

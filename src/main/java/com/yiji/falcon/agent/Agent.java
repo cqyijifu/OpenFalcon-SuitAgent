@@ -111,7 +111,7 @@ public class Agent extends Thread{
             String falconAgentDir = AgentConfiguration.INSTANCE.getFalconDir() + File.separator + "agent";
             if(FileUtil.writeTextToTextFile(falconAgentConfContent,falconAgentDir,"cfg.json",false)){
                 String falconTarget = falconAgentDir + File.separator + "control";
-                CommandUtilForUnix.ExecuteResult executeResult = CommandUtilForUnix.execWithReadTimeLimit(falconTarget,"start",10, TimeUnit.SECONDS);
+                CommandUtilForUnix.ExecuteResult executeResult = CommandUtilForUnix.execWithReadTimeLimit(falconTarget,"start",true,10, TimeUnit.SECONDS);
                 log.info("正在启动 Falcon Agent : {}",executeResult.msg);
                 String msg = executeResult.msg.trim();
                 if(msg.contains("falcon-agent started")){
@@ -232,7 +232,7 @@ public class Agent extends Thread{
             try {
                 String falconAgentDir = AgentConfiguration.INSTANCE.getFalconDir() + File.separator + "agent";
                 String falconTarget = falconAgentDir + File.separator + "control";
-                CommandUtilForUnix.ExecuteResult executeResult = CommandUtilForUnix.execWithReadTimeLimit(falconTarget,"stop",10,TimeUnit.SECONDS);
+                CommandUtilForUnix.ExecuteResult executeResult = CommandUtilForUnix.execWithReadTimeLimit(falconTarget,"stop",true,10,TimeUnit.SECONDS);
                 if(executeResult.isSuccess){
                     log.info("正在关闭 Falcon Agent : {}",executeResult.msg);
                     if(executeResult.msg.contains("falcon-agent stoped")){

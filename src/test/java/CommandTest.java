@@ -24,46 +24,19 @@ import java.util.concurrent.TimeUnit;
 public class CommandTest {
 
     static {
-        PropertyConfigurator.configure("/Users/QianL/Documents/develop/falcon-agent/falcon-agent/src/main/resources_ext/conf/log4j.properties");
+        PropertyConfigurator.configure("/Users/QianL/Documents/develop/falcon-agent/Falcon-SuitAgent/src/main/resources_ext/conf/log4j.properties");
     }
 
     @Test
     public void exec() throws IOException {
         long start = System.currentTimeMillis();
-        System.out.println(CommandUtilForUnix.execWithReadTimeLimit(String.format("ping -c %d %s",2,"192.168.1.1"),5,TimeUnit.SECONDS));
+        System.out.println(CommandUtilForUnix.execWithReadTimeLimit(String.format("ping -c %d %s",2,"192.168.1.1"),false,5,TimeUnit.SECONDS));
         System.out.println("执行时间: " + (System.currentTimeMillis() - start));
     }
 
     @Test
     public void ping() throws IOException {
-        int count = 5;
-        String address = "www.deh4.com";
-
-        CommandUtilForUnix.ExecuteResult executeResult = CommandUtilForUnix.execWithTimeOut(String.format("ping -c %d %s",count,address),
-                5, TimeUnit.SECONDS);
-        if(executeResult.isSuccess){
-            List<Float> times = new ArrayList<>();
-            String msg = executeResult.msg;
-            for (String line : msg.split("\n")) {
-                for (String ele : line.split(" ")) {
-                    if(ele.toLowerCase().contains("time=")){
-                        float time = Float.parseFloat(ele.replace("time=",""));
-                        times.add(time);
-                    }
-                }
-            }
-
-            if(times.isEmpty()){
-                System.out.println(String.format("ping 地址 %s 无法连通",address));
-            }else{
-                float sum = 0;
-                for (Float time : times) {
-                    sum += time;
-                }
-                System.out.println(String.format("地址 %s 的%s次ping平均延迟 %s",address,count,sum / times.size()));
-            }
-
-        }
+        System.out.println(CommandUtilForUnix.ping("www.baidu.com",5));
     }
 
     @Test
@@ -72,7 +45,7 @@ public class CommandTest {
         String cmd = "ps aux | grep " + 6346;
         String keyStr = "-Dcom.sun.management.jmxremote.port";
 
-        CommandUtilForUnix.ExecuteResult result = CommandUtilForUnix.execWithTimeOut(cmd,10,TimeUnit.SECONDS);
+        CommandUtilForUnix.ExecuteResult result = CommandUtilForUnix.execWithTimeOut(cmd,false,10,TimeUnit.SECONDS);
         if(result.isSuccess){
             String msg = result.msg;
             StringTokenizer st = new StringTokenizer(msg," ",false);
@@ -94,7 +67,7 @@ public class CommandTest {
     @Test
     public void jmxAuth() throws IOException, InterruptedException {
         String cmdJavaHome = "echo $JAVA_HOME";
-        CommandUtilForUnix.ExecuteResult javaHomeExe = CommandUtilForUnix.execWithTimeOut("/bin/echo",cmdJavaHome,10,TimeUnit.SECONDS);
+        CommandUtilForUnix.ExecuteResult javaHomeExe = CommandUtilForUnix.execWithTimeOut("/bin/echo",cmdJavaHome,false,10,TimeUnit.SECONDS);
         if(!javaHomeExe.isSuccess){
             System.out.println("请配置 JAVA_HOME 的系统变量");
             return;
@@ -104,27 +77,27 @@ public class CommandTest {
         String passwordFile = javaHome + "/" + "jre/lib/management/jmxremote.password";
         String suffix = ".YijiFalconAgent";
         List<Boolean> results = new ArrayList<>();
-        results.add(CommandUtilForUnix.execWithReadTimeLimit(String.format("cp %s %s",accessFile,accessFile + suffix),10,TimeUnit.SECONDS).isSuccess);
-        results.add(CommandUtilForUnix.execWithReadTimeLimit(String.format("chmod 777 %s",accessFile + suffix),10,TimeUnit.SECONDS).isSuccess);
-        results.add(CommandUtilForUnix.execWithReadTimeLimit(String.format("cp %s %s",passwordFile,passwordFile + suffix),10,TimeUnit.SECONDS).isSuccess);
-        results.add(CommandUtilForUnix.execWithReadTimeLimit(String.format("chmod 777 %s",passwordFile + suffix),10,TimeUnit.SECONDS).isSuccess);
+        results.add(CommandUtilForUnix.execWithReadTimeLimit(String.format("cp %s %s",accessFile,accessFile + suffix),false,10,TimeUnit.SECONDS).isSuccess);
+        results.add(CommandUtilForUnix.execWithReadTimeLimit(String.format("chmod 777 %s",accessFile + suffix),false,10,TimeUnit.SECONDS).isSuccess);
+        results.add(CommandUtilForUnix.execWithReadTimeLimit(String.format("cp %s %s",passwordFile,passwordFile + suffix),false,10,TimeUnit.SECONDS).isSuccess);
+        results.add(CommandUtilForUnix.execWithReadTimeLimit(String.format("chmod 777 %s",passwordFile + suffix),false,10,TimeUnit.SECONDS).isSuccess);
         if(results.contains(Boolean.FALSE)){
             System.out.println("JMX的授权文件操作失败");
-            CommandUtilForUnix.execWithReadTimeLimit(String.format("rm -rf %s",accessFile + suffix),10,TimeUnit.SECONDS);
-            CommandUtilForUnix.execWithReadTimeLimit(String.format("rm -rf %s",passwordFile + suffix),10,TimeUnit.SECONDS);
+            CommandUtilForUnix.execWithReadTimeLimit(String.format("rm -rf %s",accessFile + suffix),false,10,TimeUnit.SECONDS);
+            CommandUtilForUnix.execWithReadTimeLimit(String.format("rm -rf %s",passwordFile + suffix),false,10,TimeUnit.SECONDS);
             return;
         }
 
-        String contentForAccess = CommandUtilForUnix.execWithReadTimeLimit(String.format("cat %s",accessFile + suffix),10,TimeUnit.SECONDS).msg;
+        String contentForAccess = CommandUtilForUnix.execWithReadTimeLimit(String.format("cat %s",accessFile + suffix),false,10,TimeUnit.SECONDS).msg;
         String user = getJmxUser(contentForAccess);
         System.out.println("jmx user : " + user);
-        String contentForPassword = CommandUtilForUnix.execWithReadTimeLimit(String.format("cat %s",passwordFile + suffix),10,TimeUnit.SECONDS).msg;
+        String contentForPassword = CommandUtilForUnix.execWithReadTimeLimit(String.format("cat %s",passwordFile + suffix),false,10,TimeUnit.SECONDS).msg;
         String password = getJmxPassword(contentForPassword,user);
         System.out.println("jmx password : " + password);
 
 
-        CommandUtilForUnix.execWithReadTimeLimit(String.format("rm -rf %s",accessFile + suffix),10,TimeUnit.SECONDS);
-        CommandUtilForUnix.execWithReadTimeLimit(String.format("rm -rf %s",passwordFile + suffix),10,TimeUnit.SECONDS);
+        CommandUtilForUnix.execWithReadTimeLimit(String.format("rm -rf %s",accessFile + suffix),false,10,TimeUnit.SECONDS);
+        CommandUtilForUnix.execWithReadTimeLimit(String.format("rm -rf %s",passwordFile + suffix),false,10,TimeUnit.SECONDS);
 
     }
 
