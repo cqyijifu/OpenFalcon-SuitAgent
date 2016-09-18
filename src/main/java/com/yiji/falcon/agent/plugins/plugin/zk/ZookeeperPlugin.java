@@ -181,7 +181,7 @@ public class ZookeeperPlugin implements JMXPlugin {
      */
     @Override
     public void agentShutdownHook() {
-        log.info("zk shutdown hook");
+
     }
 
     @Override
