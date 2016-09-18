@@ -37,7 +37,7 @@ public class DockerTest{
      */
     @Test
     public void statistic() throws IOException, InterruptedException {
-        DockerMetrics dockerMetrics = new DockerMetrics("192.168.46.22:4232");
+        DockerMetrics dockerMetrics = new DockerMetrics("192.168.46.22",8080);
         while (true){
             for (DockerMetrics.CollectObject collectObject : dockerMetrics.getMetrics(1000)) {
                 System.out.println(collectObject);

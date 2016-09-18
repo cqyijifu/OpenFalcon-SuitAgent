@@ -293,8 +293,8 @@ JMX监控的属性，由以下三部分组成
 	监控Metrics
 	
 		- availability
-			- `0`：Docker失败
-			- `1`：Docker监控成功
+			- `0`：Docker daemon 探测失败
+			- `1`：Docker daemon 探测成功
 		- availability-container
 			- 说明：在SuitAgent第一次运行Docker插件时，会将第一次检测到的容器名称保存到内存缓存中，在以后的每一次监控时，会上报内存缓存中的容器的可用性状态
 			- `0`：容器已停止运行
@@ -303,7 +303,7 @@ JMX监控的属性，由以下三部分组成
 			- 说明：在SuitAgent第一次运行Docker插件时，会将第一次检测到的容器内的进程情况进行缓存到内存中，在以后的每一次监控时，会重新获取容器内的进程情况，若与第一次一致，则为可用
 			- `0`：容器内应用运行不正常
 			- `1`：容器内应用正常运行
-			- `-1`：容器内的应用状态数据获取失败（因Docker版本不同，执行exec的http api时可能会有此情况产生）
+			- `-1`：容器内的应用状态数据获取失败
 		- total.cpu.usage.rate : CPU使用率百分比
 		- kernel.cpu.usage.rate : 内核态的CPU使用率百分比
 		- user.cpu.usage.rate : 用户态的CPU使用率百分比

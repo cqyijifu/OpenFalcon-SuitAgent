@@ -7,6 +7,7 @@
  * guqiu@yiji.com 2016-07-15 10:59 创建
  */
 
+import com.yiji.falcon.agent.plugins.plugin.docker.CAdvisorRunner;
 import com.yiji.falcon.agent.util.CommandUtilForUnix;
 import com.yiji.falcon.agent.util.StringUtils;
 import org.apache.log4j.PropertyConfigurator;
@@ -24,14 +25,12 @@ import java.util.concurrent.TimeUnit;
 public class CommandTest {
 
     static {
-        PropertyConfigurator.configure("/Users/QianL/Documents/develop/falcon-agent/Falcon-SuitAgent/src/main/resources_ext/conf/log4j.properties");
+        PropertyConfigurator.configure("/home/qianlong/ProjectIDEA/falcon-agent/Falcon-SuitAgent/src/main/resources_ext/conf/log4j.properties");
     }
 
     @Test
     public void exec() throws IOException {
-        long start = System.currentTimeMillis();
-        System.out.println(CommandUtilForUnix.execWithReadTimeLimit(String.format("ping -c %d %s",2,"192.168.1.1"),false,5,TimeUnit.SECONDS));
-        System.out.println("执行时间: " + (System.currentTimeMillis() - start));
+        System.out.println(CommandUtilForUnix.execWithReadTimeLimit("docker ps",false,10,TimeUnit.SECONDS));
     }
 
     @Test
@@ -147,6 +146,19 @@ public class CommandTest {
             }
         }
         return sb.toString();
+    }
+
+    @Test
+    public void cadvisor() throws IOException, InterruptedException {
+
+        CAdvisorRunner cadvisorRunner = new CAdvisorRunner("/home/qianlong/ProjectIDEA/falcon-agent/Falcon-SuitAgent/src/main/resources_ext/conf/plugin/cadvisor",8089);
+        cadvisorRunner.start();
+
+        Thread.sleep(10000);
+
+        cadvisorRunner.shutdownCadvisor();
+
+        Thread.sleep(5000);
     }
 
 }

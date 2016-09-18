@@ -12,15 +12,17 @@ import com.yiji.falcon.agent.falcon.CounterType;
 import com.yiji.falcon.agent.plugins.DetectPlugin;
 import com.yiji.falcon.agent.plugins.Plugin;
 import com.yiji.falcon.agent.util.CommandUtilForUnix;
-import com.yiji.falcon.agent.util.StringUtils;
 import com.yiji.falcon.agent.vo.detect.DetectResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Docker的监控插件
@@ -30,9 +32,11 @@ public class DockerPlugin implements DetectPlugin {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
+    private String cadvisorPath;
+    private int cadvisorPort = 0;
     private int step;
-    private String address;
     private static final List<String> addressesCache = new ArrayList<>();
+    private CAdvisorRunner cadvisorRunner;
 
     /**
      * 自动探测地址的实现
@@ -46,33 +50,28 @@ public class DockerPlugin implements DetectPlugin {
         if(!addressesCache.isEmpty()){
             return addressesCache;
         }
-        try {
-            CommandUtilForUnix.ExecuteResult executeResult = CommandUtilForUnix.execWithReadTimeLimit("ps aux | grep docker",false,10, TimeUnit.SECONDS);
-            if(!executeResult.isSuccess){
-                return null;
+
+        String dockerBinPath = "/usr/bin/docker";
+
+        File docker = new File(dockerBinPath);
+        if(docker.exists()){
+            if(this.cadvisorPort == 0){
+                logger.error("请配置cAdvisor的端口地址");
+                return new ArrayList<>();
             }
-            String msg = executeResult.msg;
-            StringTokenizer st = new StringTokenizer(msg,"\n",false);
-            while( st.hasMoreElements() ){
-                String split = st.nextToken();
-                if(split.contains("-H")){
-                    String[] ss = split.split("\\s");
-                    for (String s : ss) {
-                        s = s.trim();
-                        if(!StringUtils.isEmpty(s)){
-                            Matcher matcher = Pattern.compile("^\\d.\\d.\\d.\\d:\\d+$").matcher(s);
-                            if(matcher.find()){
-                                addressesCache.add(s);
-                                logger.info("Docker 自动探测连接地址: {}",s);
-                            }
-                        }
-                    }
-                }
+
+            if(!new File(this.cadvisorPath).exists()){
+                logger.error("{} 不存在，Docker 插件启动失败",cadvisorPath);
+                return new ArrayList<>();
             }
-        } catch (Exception e) {
-            logger.error("自动地址探测异常",e);
-            return null;
+
+            cadvisorRunner = new CAdvisorRunner(cadvisorPath,cadvisorPort);
+            cadvisorRunner.start();
+
+            //传递docker二进制文件的路径作为探测地址,标志启动Docker监控
+            addressesCache.add(dockerBinPath);
         }
+
         return addressesCache;
     }
 
@@ -97,20 +96,27 @@ public class DockerPlugin implements DetectPlugin {
     public DetectResult detectResult(String address) {
         DetectResult detectResult = new DetectResult();
         try {
-            DockerMetrics dockerMetrics = new DockerMetrics(address);
-            List<DockerMetrics.CollectObject> collectObjectList = dockerMetrics.getMetrics(1000);
+            CommandUtilForUnix.ExecuteResult executeResult = CommandUtilForUnix.execWithReadTimeLimit("docker ps",false,10, TimeUnit.SECONDS);
+            if(executeResult.isSuccess){
+                DockerMetrics dockerMetrics = new DockerMetrics("0.0.0.0",cadvisorPort);
+                List<DockerMetrics.CollectObject> collectObjectList = dockerMetrics.getMetrics(1000);
 
-            List<DetectResult.Metric> metrics = new ArrayList<>();
-            for (DockerMetrics.CollectObject collectObject : collectObjectList) {
-                DetectResult.Metric metric = new DetectResult.Metric(collectObject.getMetric(),
-                        collectObject.getValue(),
-                        CounterType.GAUGE,
-                        "containerName=" + collectObject.getContainerName() + collectObject.getTags());
-                metrics.add(metric);
+                List<DetectResult.Metric> metrics = new ArrayList<>();
+                for (DockerMetrics.CollectObject collectObject : collectObjectList) {
+                    DetectResult.Metric metric = new DetectResult.Metric(collectObject.getMetric(),
+                            collectObject.getValue(),
+                            CounterType.GAUGE,
+                            "containerName=" + collectObject.getContainerName() + collectObject.getTags());
+                    metrics.add(metric);
+                }
+                detectResult.setMetricsList(metrics);
+
+                detectResult.setSuccess(true);
+            }else{
+                logger.error("Docker daemon failed : {}",executeResult.msg);
+                detectResult.setSuccess(false);
             }
-            detectResult.setMetricsList(metrics);
 
-            detectResult.setSuccess(true);
         } catch (Exception e) {
             logger.error("Docker数据采集异常",e);
             detectResult.setSuccess(false);
@@ -127,7 +133,7 @@ public class DockerPlugin implements DetectPlugin {
      */
     @Override
     public Collection<String> detectAddressCollection() {
-        return helpTransformAddressCollection(this.address,",");
+        return new ArrayList<>();
     }
 
     /**
@@ -142,7 +148,8 @@ public class DockerPlugin implements DetectPlugin {
     @Override
     public void init(Map<String, String> properties) {
         this.step = Integer.parseInt(properties.get("step"));
-        this.address = properties.get("address");
+        this.cadvisorPath = properties.get("pluginDir") + File.separator + "cadvisor";
+        this.cadvisorPort = Integer.parseInt(properties.get("cadvisor.port"));
     }
 
     /**
@@ -172,6 +179,12 @@ public class DockerPlugin implements DetectPlugin {
      */
     @Override
     public void agentShutdownHook() {
-
+        if(cadvisorRunner != null){
+            try {
+                cadvisorRunner.shutdownCadvisor();
+            } catch (IOException e) {
+                logger.error("",e);
+            }
+        }
     }
 }
