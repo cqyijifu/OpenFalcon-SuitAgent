@@ -198,6 +198,7 @@ public class CommandUtilForUnix {
         long startTime = System.currentTimeMillis();
         boolean readTimeout = false;
 
+        StringBuilder sb = new StringBuilder();
         try(ByteArrayOutputStream resultOutStream = new ByteArrayOutputStream();
             InputStream errorInStream = new BufferedInputStream(process.getErrorStream());
             InputStream processInStream = new BufferedInputStream(process.getInputStream())){
@@ -207,6 +208,7 @@ public class CommandUtilForUnix {
 
             while ((num = errorInStream.read(bs)) != -1) {
                 resultOutStream.write(bs, 0, num);
+                sb.append(new String(resultOutStream.toByteArray(),"utf-8"));
                 if(waitTime > 0 && System.currentTimeMillis() - startTime >= waitTime){
                     readTimeout = true;
                     break;
@@ -214,13 +216,14 @@ public class CommandUtilForUnix {
             }
             while ((num = processInStream.read(bs)) != -1) {
                 resultOutStream.write(bs, 0, num);
+                sb.append(new String(resultOutStream.toByteArray(),"utf-8"));
                 if(readTimeout || (waitTime > 0 && System.currentTimeMillis() - startTime >= waitTime)){
                     readTimeout = true;
                     break;
                 }
             }
 
-            result.msg = new String(resultOutStream.toByteArray(),"utf-8");
+            result.msg = sb.toString();
         }
 
         try {
