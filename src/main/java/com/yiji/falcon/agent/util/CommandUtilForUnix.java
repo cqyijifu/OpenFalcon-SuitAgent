@@ -205,22 +205,20 @@ public class CommandUtilForUnix {
             int num;
             byte[] bs = new byte[1024];
 
-            while ((num = processInStream.read(bs)) != -1) {
+            while ((num = errorInStream.read(bs)) != -1) {
                 resultOutStream.write(bs, 0, num);
                 if(waitTime > 0 && System.currentTimeMillis() - startTime >= waitTime){
                     readTimeout = true;
                     break;
                 }
             }
-
-            while ((num = errorInStream.read(bs)) != -1) {
+            while ((num = processInStream.read(bs)) != -1) {
                 resultOutStream.write(bs, 0, num);
                 if(readTimeout || (waitTime > 0 && System.currentTimeMillis() - startTime >= waitTime)){
                     readTimeout = true;
                     break;
                 }
             }
-
 
             result.msg = new String(resultOutStream.toByteArray(),"utf-8");
         }
