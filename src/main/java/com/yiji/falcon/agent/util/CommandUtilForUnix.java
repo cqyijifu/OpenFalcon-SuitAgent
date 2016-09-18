@@ -12,6 +12,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.StringTokenizer;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -165,17 +166,20 @@ public class CommandUtilForUnix {
     private static ExecuteResult exec(String execTarget,String cmd,long waitTime) throws IOException {
         ExecuteResult result = new ExecuteResult();
 
-        String[] sh;
+        List<String> shList = new ArrayList<>();
         if(execTarget == null){
             execTarget = "/bin/sh";
-            sh = new String[]{execTarget, "-c", cmd};
+            shList.add(execTarget);
+            shList.add("-c");
+            Collections.addAll(shList, cmd.split("\\s"));
         }else{
-            sh = new String[]{execTarget, cmd};
+            shList.add(execTarget);
+            Collections.addAll(shList, cmd.split("\\s"));
         }
 
         logger.info("执行命令 : {} {}",execTarget,cmd);
 
-        ProcessBuilder pb = new ProcessBuilder(sh);
+        ProcessBuilder pb = new ProcessBuilder(shList);
         Process process = pb.start();
 
         long startTime = System.currentTimeMillis();
