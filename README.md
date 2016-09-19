@@ -388,10 +388,7 @@ JMX监控的属性，由以下三部分组成
 	
 - Docker监控
 
-	若配置了探测地址，则直接启动，使用配置的探测地址  
-	
-	若配置文件没有配置探测地址，则`SuitAgent`会自动检测本机`Docker`服务（**需要Docker开启Remote API功能**），自动获取`Remote API` 端口，获取成功便会自动启动。
-	因linux系统不同发行版本都有所区别，若自动检测本机的`Docker`失败，可直接使用配置地址方式启动插件
+	无需配置地址，自动探测本机的`Docker`服务：若发现有命令`/usr/bin/docker`存在，就会启动`Docker`监控插件。并自动连接本机的`cAdvisor`服务或启动内置的`vAdvisor`服务
 
 ### SuitAgent 动态配置
 
