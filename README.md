@@ -12,7 +12,7 @@
     - 优化自动发现`Docker`服务逻辑
     - 只支持本机`Docker`服务监控，配置文件无须配置地址
     - 摒弃`Remote API`的方式，采用`cAdvisor` + `docker command`方式，资源占用率更小，更加稳定。（只支持Linux系统，配置`cAdvisor`启动的监听端口在`dockerPlugin.properties`）
-    - 自动探测监控本机的`cAdvisor`服务（`cAdvisor`以`Docker`容器的方式启动，[详情点击](https://github.com/google/cadvisor)），若本机已启动`cAdvisor`服务，则直接连接已启动的`cAdvisor`服务
+    - 自动探测监控本机的`cAdvisor`服务（`cAdvisor`以`Docker`容器的方式启动，[详情点击](https://github.com/google/cadvisor)），若本机已启动`cAdvisor`服务，则直接连接已启动的`cAdvisor`服务，否则会启动内置的`cAdvisor`服务
     - 不再要求被监控的`Docker`开启`Remote API`功能
 - 其他细节优化
 
