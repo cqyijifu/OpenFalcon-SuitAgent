@@ -100,6 +100,7 @@ public class DockerPlugin implements DetectPlugin {
                     }
                 }
             }
+            logger.info("未检测到本机有cAdvisor服务");
         } catch (IOException e) {
             logger.error("{}",warnMsg,e);
             return 0;

@@ -49,7 +49,7 @@ public class CAdvisorRunner extends Thread{
     @Override
     public void run() {
         String cmd = String.format("%s -logtostderr -port=%d", cAdvisorPath, cAdvisorPort);
-        logger.debug("exec : {}","/bin/sh -c " + cmd);
+        logger.debug("启动内置cAdvisor服务 : {}","/bin/sh -c " + cmd);
         ProcessBuilder pb = new ProcessBuilder("/bin/sh","-c",cmd);
         try {
             Process process = pb.start();
