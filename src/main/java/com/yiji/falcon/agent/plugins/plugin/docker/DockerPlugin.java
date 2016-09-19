@@ -44,27 +44,33 @@ public class DockerPlugin implements DetectPlugin {
      */
     @Override
     public Collection<String> autoDetectAddress() {
-        if(!addressesCache.isEmpty()){
-            return addressesCache;
-        }
+        //只在linux下启动
+        if("linux".equals(System.getProperty("os.name").toLowerCase().trim())){
+            if(!addressesCache.isEmpty()){
+                return addressesCache;
+            }
 
-        String dockerBinPath = "/usr/bin/docker";
+            String dockerBinPath = "/usr/bin/docker";
 
-        File docker = new File(dockerBinPath);
-        if(docker.exists()){
-            int cAdvisorPort = getNativeCAdvisorPort();
-            if(cAdvisorPort == 0){
-                if(startCAdvisor()){
-                    cAdvisorPort = this.cAdvisorPort;
+            File docker = new File(dockerBinPath);
+            if(docker.exists()){
+                int cAdvisorPort = getNativeCAdvisorPort();
+                if(cAdvisorPort == 0){
+                    if(startCAdvisor()){
+                        cAdvisorPort = this.cAdvisorPort;
+                    }
+                }
+                if(cAdvisorPort != 0){
+                    //传递cAdvisor监听端口为启动地址
+                    addressesCache.add(String.valueOf(cAdvisorPort));
                 }
             }
-            if(cAdvisorPort != 0){
-                //传递cAdvisor监听端口为启动地址
-                addressesCache.add(String.valueOf(cAdvisorPort));
-            }
-        }
 
-        return addressesCache;
+            return addressesCache;
+        }else {
+            logger.warn("Docker插件只在Linux环境下有效");
+            return new ArrayList<>();
+        }
     }
 
     /**
