@@ -23,33 +23,33 @@ public class CAdvisorRunner extends Thread{
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    private String cadvisorPath;
-    private int cadvisorPort;
+    private String cAdvisorPath;
+    private int cAdvisorPort;
     private String pid;
 
-    public CAdvisorRunner(String cadvisorPath, int cadvisorPort) {
-        this.cadvisorPath = cadvisorPath;
-        this.cadvisorPort = cadvisorPort;
+    public CAdvisorRunner(String cAdvisorPath, int cAdvisorPort) {
+        this.cAdvisorPath = cAdvisorPath;
+        this.cAdvisorPort = cAdvisorPort;
     }
 
     /**
      * 关闭cadvisor
      * @throws IOException
      */
-    public void shutdownCadvisor() throws IOException {
+    public void shutdownCAdvisor() throws IOException {
         String cmd = "kill " + pid;
         CommandUtilForUnix.ExecuteResult executeResult = CommandUtilForUnix.execWithReadTimeLimit(cmd,false,5, TimeUnit.SECONDS);
         if(executeResult.isSuccess){
-            logger.info("关闭cadvisor成功");
+            logger.info("关闭cAdvisor成功({})",cmd);
         }else{
-            logger.info("关闭cadvisor失败：{}",executeResult.msg);
+            logger.info("关闭cAdvisor失败({})：{}",cmd,executeResult.msg);
         }
     }
 
     @Override
     public void run() {
-        String cmd = String.format("%s -logtostderr -port=%d",cadvisorPath,cadvisorPort);
-        logger.info("exec : {}","/bin/sh -c " + cmd);
+        String cmd = String.format("%s -logtostderr -port=%d", cAdvisorPath, cAdvisorPort);
+        logger.debug("exec : {}","/bin/sh -c " + cmd);
         ProcessBuilder pb = new ProcessBuilder("/bin/sh","-c",cmd);
         try {
             Process process = pb.start();
@@ -82,7 +82,7 @@ public class CAdvisorRunner extends Thread{
         String msg = new String(resultOutStream.toByteArray(),"utf-8");
         if(StringUtils.isEmpty(pid)){
             pid = msg.split("\\s+")[2];
-            logger.info("cadvisor 进程id : {}",pid);
+            logger.info("cAdvisor 进程id : {}",pid);
         }
         logger.debug("cAdvisor output : {}",msg);
     }

@@ -9,7 +9,6 @@ package com.yiji.falcon.agent.plugins.plugin.docker;
  */
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.yiji.falcon.agent.util.CommandUtilForUnix;
 import com.yiji.falcon.agent.util.HttpUtil;
@@ -26,11 +25,11 @@ class DockerMetricsUtil {
 
     /**
      * 创建实例
-     * @param cadvisorIp
-     * @param cadvisorPort
+     * @param cAdvisorIp
+     * @param cAdvisorPort
      */
-    DockerMetricsUtil(String cadvisorIp, int cadvisorPort) {
-        this.urlPrefix = "http://" + cadvisorIp + ":" + cadvisorPort + "/";
+    DockerMetricsUtil(String cAdvisorIp, int cAdvisorPort) {
+        this.urlPrefix = "http://" + cAdvisorIp + ":" + cAdvisorPort + "/";
     }
 
     /**
@@ -38,20 +37,18 @@ class DockerMetricsUtil {
      * @return
      * @throws IOException
      */
-    JSONArray getContainersJSON() throws IOException {
+    JSONObject getContainersJSON() throws IOException {
         String url = urlPrefix + "api/v1.2/docker/";
-        return JSON.parseArray(HttpUtil.get(url,30000,30000).getResult());
+        return JSON.parseObject(HttpUtil.get(url,30000,30000).getResult());
     }
 
     /**
-     * 获取指定容器的状态
-     * @param containerIdOrName
-     * 容器ID或容器名
+     * 获取机器信息
      * @return
      * @throws IOException
      */
-    JSONObject getStatsJSON(String containerIdOrName) throws IOException {
-        String url = urlPrefix + "containers/" + containerIdOrName + "/stats?stream=0";
+    JSONObject getMachineInfo() throws IOException {
+        String url = urlPrefix + "api/v2.0/machine";
         return JSON.parseObject(HttpUtil.get(url,30000,30000).getResult());
     }
 

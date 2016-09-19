@@ -156,7 +156,7 @@ public class CommandTest {
 
         Thread.sleep(10000);
 
-        cadvisorRunner.shutdownCadvisor();
+        cadvisorRunner.shutdownCAdvisor();
 
         Thread.sleep(5000);
     }

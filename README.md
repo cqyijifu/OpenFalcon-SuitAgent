@@ -1,8 +1,22 @@
 # OpenFalcon-SuitAgent
 
-### 改进说明
 
-鉴于目前`Docker`监控用Remote API方式比较占用资源，而且不稳定。故准备开发让`SuitAgent`集成`cAdvisor`进行`Docker`监控，不再使用Remote API方式（注：`cAdvisor`只支持`Linux`系统）。
+### 升级日志
+
+---
+
+**BY：2016年09月19日**
+
+- Oracle监控：改进优化Oracle的表空间统计
+- Docker监控：
+    - 优化自动发现`Docker`服务逻辑
+    - 只支持本机`Docker`服务监控，配置文件无须配置地址
+    - 摒弃`Remote API`的方式，采用`cAdvisor` + `docker command`方式，资源占用率更小，更加稳定。（只支持Linux系统，配置`cAdvisor`启动的监听端口在`dockerPlugin.properties`）
+    - 自动探测监控本机的`cAdvisor`服务（`cAdvisor`以`Docker`容器的方式启动，[详情点击](https://github.com/google/cadvisor)），若本机已启动`cAdvisor`服务，则直接连接已启动的`cAdvisor`服务
+    - 不再要求被监控的`Docker`开启`Remote API`功能
+- 其他细节优化
+
+---
 
 ### 版本说明
 
@@ -304,12 +318,14 @@ JMX监控的属性，由以下三部分组成
 			- `0`：容器内应用运行不正常
 			- `1`：容器内应用正常运行
 			- `-1`：容器内的应用状态数据获取失败
+		- has_cpu : 是否有CPU使用权限
 		- total.cpu.usage.rate : CPU使用率百分比
-		- kernel.cpu.usage.rate : 内核态的CPU使用率百分比
-		- user.cpu.usage.rate : 用户态的CPU使用率百分比
-		- mem.total.usage : 当前已使用的内存
-		- mem.total.limit : 一共可用的内存
-		- mem.total.usage.rate : 内存使用率百分比
+		- has_memory : 是否有内存使用权限
+		- mem.size.usage : 当前已使用的内存大小（单位兆）
+		- mem.size.cache : 当前已缓存的内存大小（单位兆）
+		- mem.usage.rate : 内存已使用与容器总内存百分比
+		- mem.cache.rate : 内存缓存与容器总内存的百分比
+		- has_network : 是否有网络使用权限
 		- net.if.in.bytes : 网络IO流入字节数
 		- net.if.in.packets : 网络IO流入包数
 		- net.if.in.dropped : 网络IO流入丢弃数

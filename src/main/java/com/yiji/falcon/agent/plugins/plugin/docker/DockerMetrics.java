@@ -11,6 +11,7 @@ package com.yiji.falcon.agent.plugins.plugin.docker;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.yiji.falcon.agent.util.MD5Util;
+import com.yiji.falcon.agent.util.Maths;
 import com.yiji.falcon.agent.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,57 +42,84 @@ public class DockerMetrics {
 
     /**
      * Docker Metrics 采集
-     * @param cadvisorIp
-     * @param cadvisorPort
+     * @param cAdvisorIp
+     * @param cAdvisorPort
      * @throws IOException
      */
-    public DockerMetrics(String cadvisorIp,int cadvisorPort) throws IOException {
-        dockerRemoteUtil = new DockerMetricsUtil(cadvisorIp,cadvisorPort);
+    public DockerMetrics(String cAdvisorIp,int cAdvisorPort) throws IOException {
+        dockerRemoteUtil = new DockerMetricsUtil(cAdvisorIp,cAdvisorPort);
+        logger.info("cAdvisor服务连接数据采集：{}:{}",cAdvisorIp,cAdvisorPort);
     }
 
     /**
      * 数据采集
-     * @param interval
-     * CPU 采集时间间隔
      * @return
      */
-    public List<CollectObject> getMetrics(long interval) throws IOException, InterruptedException {
+    public List<CollectObject> getMetrics() throws IOException, InterruptedException {
         List<CollectObject> collectObjectList = new ArrayList<>();
-        collectObjectList.add(containerAppMetrics("tomcat","tomcat"));
-//        JSONArray containers = dockerRemoteUtil.getContainersJSON();
-//        Set<String> containerNames = new HashSet<>();
-//        //只保存第一次运行时的容器名称
-//        boolean saveContainerName = containerNameCache.isEmpty();
-//        for (int i = 0;i<containers.size();i++){
-//            JSONObject container = containers.getJSONObject(i);
-//            String id = container.getString("Id");
-//            JSONArray names = container.getJSONArray("Names");
-//            String containerName = getContainerName(names);
-//
-//            containerNames.add(containerName);
-//            if(saveContainerName){
-//                containerNameCache.add(containerName);
-//            }
-//
-//            JSONObject result = dockerRemoteUtil.getStatsJSON(id);
-//            Thread.sleep(interval);
-//            JSONObject result2 = dockerRemoteUtil.getStatsJSON(id);
-//
-//            collectObjectList.addAll(getCpuMetrics(containerName,result,result2));
-//
-//            collectObjectList.addAll(getMemMetrics(containerName,result2));
-//            collectObjectList.addAll(getNetMetrics(containerName,result2));
-//            collectObjectList.add(containerAppMetrics(containerName,id));
-//        }
-//
-//        //容器可用性
-//        for (String containerName : containerNameCache) {
-//            if(containerNames.contains(containerName)){
-//                collectObjectList.add(new CollectObject(containerName,"availability.container","1",""));
-//            }else{
-//                collectObjectList.add(new CollectObject(containerName,"availability.container","0",""));
-//            }
-//        }
+        JSONObject containers = dockerRemoteUtil.getContainersJSON();
+        JSONObject machineInfo = dockerRemoteUtil.getMachineInfo();
+        Set<String> containerNames = new HashSet<>();
+        Set<String> keys = containers.keySet();
+        //只保存第一次运行时的容器名称
+        boolean saveContainerName = containerNameCache.isEmpty();
+        for (String key : keys) {
+            JSONObject container = containers.getJSONObject(key);
+            String containerId = key.replace("/docker/","");
+            JSONArray aliases = container.getJSONArray("aliases");
+            String containerName = "";
+            for (Object aliase : aliases) {
+                if(!containerId.equals(aliase)){
+                    containerName = String.valueOf(aliase);
+                    break;
+                }
+            }
+
+            containerNames.add(containerName);
+            if(saveContainerName){
+                containerNameCache.add(containerName);
+            }
+
+            collectObjectList.addAll(getCpuMetrics(containerName,container));
+            collectObjectList.addAll(getMemMetrics(containerName,container,machineInfo));
+            collectObjectList.addAll(getNetMetrics(containerName,container));
+            collectObjectList.add(containerAppMetrics(containerName,containerId));
+        }
+
+        //容器可用性
+        for (String containerName : containerNameCache) {
+            if(containerNames.contains(containerName)){
+                collectObjectList.add(new CollectObject(containerName,"availability.container","1",""));
+            }else{
+                collectObjectList.add(new CollectObject(containerName,"availability.container","0",""));
+            }
+        }
+
+        return collectObjectList;
+    }
+
+    private List<CollectObject> getCpuMetrics(String containerName, JSONObject container) throws IOException, InterruptedException {
+        List<CollectObject> collectObjectList = new ArrayList<>();
+
+        boolean hasCpu = container.getJSONObject("spec").getBoolean("has_cpu");
+        collectObjectList.add(new CollectObject(containerName,"has_cpu",hasCpu ? "1" : "0",""));
+        if(hasCpu){
+            JSONArray stats = container.getJSONArray("stats");
+            int count = stats.size();
+            JSONObject stat = stats.getJSONObject(count - 1);
+//            String timestamp = stat.getString("timestamp");
+    //        Date date = DateUtil.getParrtenDate(timestamp.substring(0,10) + " " + timestamp.substring(11,19),"yyyy-MM-dd HH:mm:ss");
+
+            JSONObject cpu = stat.getJSONObject("cpu");
+            JSONObject usage = cpu.getJSONObject("usage");
+
+            long total = usage.getLong("total");
+            long user = usage.getLong("user");
+
+            double userRate =  Maths.div(user,total,5) * 100;
+
+            collectObjectList.add(new CollectObject(containerName,"total.cpu.usage.rate",String.valueOf(userRate),""));
+        }
 
         return collectObjectList;
     }
@@ -130,6 +158,83 @@ public class DockerMetrics {
         }
 
         return collectObject;
+    }
+
+    private List<CollectObject> getNetMetrics(String containerName,JSONObject container){
+        List<CollectObject> collectObjectList = new ArrayList<>();
+
+        boolean hasNetwork = container.getJSONObject("spec").getBoolean("has_network");
+        collectObjectList.add(new CollectObject(containerName,"has_network",hasNetwork ? "1" : "0",""));
+
+        if(hasNetwork){
+            JSONArray stats = container.getJSONArray("stats");
+            int count = stats.size();
+            JSONObject stat = stats.getJSONObject(count - 1);
+            JSONObject network = stat.getJSONObject("network");
+            JSONArray interfaces = network.getJSONArray("interfaces");
+            for (Object ifObj : interfaces) {
+                JSONObject ifJson = (JSONObject) ifObj;
+                String ifName = ifJson.getString("name");
+                String tag = "ifName=" + ifName;
+                long rxBytes = ifJson.getLong("rx_bytes");
+                long rxPackets = ifJson.getLong("rx_packets");
+                long rxErrors = ifJson.getLong("rx_errors");
+                long rxDropped = ifJson.getLong("rx_dropped");
+                long txBytes = ifJson.getLong("tx_bytes");
+                long txPackets = ifJson.getLong("tx_packets");
+                long txErrors = ifJson.getLong("tx_errors");
+                long txDropped = ifJson.getLong("tx_dropped");
+
+                collectObjectList.add(new CollectObject(containerName,"net.if.in.bytes",String.valueOf(rxBytes),tag));
+                collectObjectList.add(new CollectObject(containerName,"net.if.in.packets",String.valueOf(rxPackets),tag));
+                collectObjectList.add(new CollectObject(containerName,"net.if.in.errors",String.valueOf(rxErrors),tag));
+                collectObjectList.add(new CollectObject(containerName,"net.if.in.dropped",String.valueOf(rxDropped),tag));
+
+                collectObjectList.add(new CollectObject(containerName,"net.if.out.bytes",String.valueOf(txBytes),tag));
+                collectObjectList.add(new CollectObject(containerName,"net.if.out.packets",String.valueOf(txPackets),tag));
+                collectObjectList.add(new CollectObject(containerName,"net.if.out.errors",String.valueOf(txErrors),tag));
+                collectObjectList.add(new CollectObject(containerName,"net.if.out.dropped",String.valueOf(txDropped),tag));
+            }
+        }
+
+        return collectObjectList;
+    }
+
+    /**
+     * 内存
+     * @param containerName
+     * @param container
+     * @return
+     * @throws IOException
+     */
+    private List<CollectObject> getMemMetrics(String containerName,JSONObject container,JSONObject machineInfo) throws IOException {
+        List<CollectObject> collectObjectList = new ArrayList<>();
+
+        boolean hasMemory = container.getJSONObject("spec").getBoolean("has_memory");
+        collectObjectList.add(new CollectObject(containerName,"has_memory",hasMemory ? "1" : "0",""));
+
+        if(hasMemory){
+            long machineMemory = machineInfo.getLong("memory_capacity");//机器总内存
+            long limitMemory = container.getJSONObject("spec").getJSONObject("memory").getLong("limit");//容器的内存限制大小
+            if(limitMemory > machineMemory || limitMemory < 0){
+                //若内存限制大于机器总内存或小于0，使用机器总内存为总内存大小
+                limitMemory = machineMemory;
+            }
+            JSONArray stats = container.getJSONArray("stats");
+            int count = stats.size();
+            JSONObject stat = stats.getJSONObject(count - 1);
+            JSONObject memory = stat.getJSONObject("memory");
+
+            long usage = memory.getLong("usage");
+            long cache = memory.getLong("cache");
+
+            collectObjectList.add(new CollectObject(containerName,"mem.size.usage", String.valueOf(Maths.div(usage,1024 * 1024)),""));
+            collectObjectList.add(new CollectObject(containerName,"mem.size.cache", String.valueOf(Maths.div(cache,1024 * 1024)),""));
+            collectObjectList.add(new CollectObject(containerName,"mem.usage.rate", String.valueOf(Maths.div(usage,limitMemory,5) * 100),""));
+            collectObjectList.add(new CollectObject(containerName,"mem.cache.rate", String.valueOf(Maths.div(cache,limitMemory,5) * 100),""));
+
+        }
+        return collectObjectList;
     }
 
     /**
@@ -182,135 +287,6 @@ public class DockerMetrics {
 
 
         return MD5Util.getMD5(result);
-    }
-
-    private List<CollectObject> getNetMetrics(String containerName,JSONObject result){
-        List<CollectObject> collectObjectList = new ArrayList<>();
-
-//        //1.18,1.19,1.20 API版本的网络数据
-//        if(dockerVersion.getApiVersion().contains("1.1") || "1.20".equals(dockerVersion.getApiVersion())){
-//            JSONObject network = result.getJSONObject("network");
-//
-//            long rx_bytes = network.getLong("rx_bytes");
-//            long rx_packets = network.getLong("rx_packets");
-//            long rx_errors = network.getLong("rx_errors");
-//            long rx_dropped = network.getLong("rx_dropped");
-//
-//            long tx_bytes = network.getLong("tx_bytes");
-//            long tx_packets = network.getLong("tx_packets");
-//            long tx_errors = network.getLong("tx_errors");
-//            long tx_dropped = network.getLong("tx_dropped");
-//
-//            collectObjectList.add(new CollectObject(containerName,"net.if.in.bytes",rx_bytes+"",""));
-//            collectObjectList.add(new CollectObject(containerName,"net.if.in.packets",rx_packets+"",""));
-//            collectObjectList.add(new CollectObject(containerName,"net.if.in.errors",rx_errors+"",""));
-//            collectObjectList.add(new CollectObject(containerName,"net.if.in.dropped",rx_dropped+"",""));
-//
-//            collectObjectList.add(new CollectObject(containerName,"net.if.out.bytes",tx_bytes+"",""));
-//            collectObjectList.add(new CollectObject(containerName,"net.if.out.packets",tx_packets+"",""));
-//            collectObjectList.add(new CollectObject(containerName,"net.if.out.errors",tx_errors+"",""));
-//            collectObjectList.add(new CollectObject(containerName,"net.if.out.dropped",tx_dropped+"",""));
-//        }else{
-//            //1.21以及1.21版本以上的网络数据
-//            JSONObject networks = result.getJSONObject("networks");
-//            for (String ifName : networks.keySet()) {
-//                JSONObject ifJson = networks.getJSONObject(ifName);
-//
-//                String tag = "ifName=" + ifName;
-//                long rx_bytes = ifJson.getLong("rx_bytes");
-//                long rx_packets = ifJson.getLong("rx_packets");
-//                long rx_errors = ifJson.getLong("rx_errors");
-//                long rx_dropped = ifJson.getLong("rx_dropped");
-//
-//                long tx_bytes = ifJson.getLong("tx_bytes");
-//                long tx_packets = ifJson.getLong("tx_packets");
-//                long tx_errors = ifJson.getLong("tx_errors");
-//                long tx_dropped = ifJson.getLong("tx_dropped");
-//                collectObjectList.add(new CollectObject(containerName,"net.if.in.bytes",rx_bytes+"",tag));
-//                collectObjectList.add(new CollectObject(containerName,"net.if.in.packets",rx_packets+"",tag));
-//                collectObjectList.add(new CollectObject(containerName,"net.if.in.errors",rx_errors+"",tag));
-//                collectObjectList.add(new CollectObject(containerName,"net.if.in.dropped",rx_dropped+"",tag));
-//
-//                collectObjectList.add(new CollectObject(containerName,"net.if.out.bytes",tx_bytes+"",tag));
-//                collectObjectList.add(new CollectObject(containerName,"net.if.out.packets",tx_packets+"",tag));
-//                collectObjectList.add(new CollectObject(containerName,"net.if.out.errors",tx_errors+"",tag));
-//                collectObjectList.add(new CollectObject(containerName,"net.if.out.dropped",tx_dropped+"",tag));
-//            }
-//        }
-
-        return collectObjectList;
-    }
-
-    /**
-     * 内存
-     * @param containerName
-     * @param result
-     * @return
-     * @throws IOException
-     */
-    private List<CollectObject> getMemMetrics(String containerName,JSONObject result) throws IOException {
-        List<CollectObject> collectObjectList = new ArrayList<>();
-//        JSONObject memory_stats = result.getJSONObject("memory_stats");
-//        //热内存使用
-////        long total_active_anon = stats.getLong("total_active_anon");
-//        //内存已使用原值
-//        long usage = memory_stats.getLong("usage");
-//        //内存使用最大大小
-//        long limit = memory_stats.getLong("limit");
-//        //内存使用百分比
-//        double rate = Maths.div(usage,limit,5) * 100;
-//        collectObjectList.add(new CollectObject(containerName,"mem.total.usage", "" + usage,""));
-//        collectObjectList.add(new CollectObject(containerName,"mem.total.limit", "" + limit,""));
-//        collectObjectList.add(new CollectObject(containerName,"mem.total.usage.rate", "" + rate,""));
-        return collectObjectList;
-    }
-
-    /**
-     * CPU
-     * @param containerName
-     * @throws IOException
-     * @throws InterruptedException
-     */
-    private List<CollectObject> getCpuMetrics(String containerName, JSONObject result,JSONObject result2) throws IOException, InterruptedException {
-        List<CollectObject> collectObjectList = new ArrayList<>();
-
-//        JSONObject precpu_stats = result.getJSONObject("precpu_stats");
-//        JSONObject cpu_usage = precpu_stats.getJSONObject("cpu_usage");
-//        long total_usage = cpu_usage.getLong("total_usage");
-//        long usage_in_kernelmode = cpu_usage.getLong("usage_in_kernelmode");
-//        long usage_in_usermode = cpu_usage.getLong("usage_in_usermode");
-//        long system_cpu_usage = precpu_stats.getLong("system_cpu_usage");
-//
-//        JSONObject precpu_stats2 = result2.getJSONObject("precpu_stats");
-//        JSONObject cpu_usage2 = precpu_stats2.getJSONObject("cpu_usage");
-//        long total_usage2 = cpu_usage2.getLong("total_usage");
-//        long usage_in_kernelmode2 = cpu_usage2.getLong("usage_in_kernelmode");
-//        long usage_in_usermode2 = cpu_usage2.getLong("usage_in_usermode");
-//        long system_cpu_usage2 = precpu_stats2.getLong("system_cpu_usage");
-//
-//        //系统占用的CPU总时间
-//        long totalSystemUsageCpuTime = system_cpu_usage2 - system_cpu_usage;
-//        //Docker CPU总时间
-//        long totalDockerUsageCpuTime = total_usage2 - total_usage;
-//        //内核CPU总时间
-//        long totalKernelCpuTime = usage_in_kernelmode2 - usage_in_kernelmode;
-//        //用户CPU总时间
-//        long totalUserCpuTime = usage_in_usermode2 - usage_in_usermode;
-//        //CPU总时间
-//        long totalCpuTime = totalDockerUsageCpuTime + totalSystemUsageCpuTime + totalKernelCpuTime + totalUserCpuTime;
-//
-//        //总CPU使用率
-//        double totalCpuUsageRate = Maths.div(totalDockerUsageCpuTime,totalCpuTime,5) * 100;
-//        //内核CPU使用率
-//        double kernelUsageRate = Maths.div(totalKernelCpuTime,totalCpuTime,5) * 100;
-//        //用户CPU使用率
-//        double userUsageRate = Maths.div(totalUserCpuTime,totalCpuTime,5) * 100;
-//
-//        collectObjectList.add(new CollectObject(containerName,"total.cpu.usage.rate",totalCpuUsageRate + "",""));
-//        collectObjectList.add(new CollectObject(containerName,"kernel.cpu.usage.rate",kernelUsageRate + "",""));
-//        collectObjectList.add(new CollectObject(containerName,"user.cpu.usage.rate",userUsageRate + "",""));
-
-        return collectObjectList;
     }
 
     public class CollectObject{

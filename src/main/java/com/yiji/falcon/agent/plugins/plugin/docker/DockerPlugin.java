@@ -18,10 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -32,8 +29,8 @@ public class DockerPlugin implements DetectPlugin {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    private String cadvisorPath;
-    private int cadvisorPort = 0;
+    private String cAdvisorPath;
+    private int cAdvisorPort = 0;
     private int step;
     private static final List<String> addressesCache = new ArrayList<>();
     private CAdvisorRunner cadvisorRunner;
@@ -55,24 +52,80 @@ public class DockerPlugin implements DetectPlugin {
 
         File docker = new File(dockerBinPath);
         if(docker.exists()){
-            if(this.cadvisorPort == 0){
-                logger.error("请配置cAdvisor的端口地址");
-                return new ArrayList<>();
+            int cAdvisorPort = getNativeCAdvisorPort();
+            if(cAdvisorPort == 0){
+                if(startCAdvisor()){
+                    cAdvisorPort = this.cAdvisorPort;
+                }
             }
-
-            if(!new File(this.cadvisorPath).exists()){
-                logger.error("{} 不存在，Docker 插件启动失败",cadvisorPath);
-                return new ArrayList<>();
+            if(cAdvisorPort != 0){
+                //传递cAdvisor监听端口为启动地址
+                addressesCache.add(String.valueOf(cAdvisorPort));
             }
-
-            cadvisorRunner = new CAdvisorRunner(cadvisorPath,cadvisorPort);
-            cadvisorRunner.start();
-
-            //传递docker二进制文件的路径作为探测地址,标志启动Docker监控
-            addressesCache.add(dockerBinPath);
         }
 
         return addressesCache;
+    }
+
+    /**
+     * 获取本机启动的cAdvisor连接端口
+     * @return
+     * 0 ：获取失败（本地未启动cAdvisor服务或获取失败）
+     */
+    private int getNativeCAdvisorPort(){
+        String warnMsg = "尝试获取本机启动的cAdvisor连接端口时失败，这将使SuitAgent尝试启动内置的cAdvisor服务";
+        try {
+            CommandUtilForUnix.ExecuteResult executeResult = CommandUtilForUnix.execWithReadTimeLimit("docker ps",false,10, TimeUnit.SECONDS);
+            if(!executeResult.isSuccess){
+                logger.error("{} : {}",warnMsg,executeResult.msg);
+                return 0;
+            }
+            String msg = executeResult.msg;
+            StringTokenizer st = new StringTokenizer(msg,"\n",false);
+            while( st.hasMoreElements() ){
+                String split = st.nextToken();
+                if(split.contains("google/cadvisor")){
+                    String[] ss = split.split("\\s+");
+                    for (String s : ss) {
+                        if(s.contains("->")){
+                            String[] ss2 = s.trim().split("->");
+                            for (String s1 : ss2[0].split(":")) {
+                                if(s1.matches("\\d+")){
+                                    int port = Integer.parseInt(s1);
+                                    logger.info("检测到本地启动的cAdvisor服务端口：{}",port);
+                                    return port;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (IOException e) {
+            logger.error("{}",warnMsg,e);
+            return 0;
+        }
+        return 0;
+    }
+
+    /**
+     * 启动cAdvisor
+     * @return
+     */
+    private boolean startCAdvisor(){
+        if(this.cAdvisorPort == 0){
+            logger.error("请配置cAdvisor的端口地址");
+            return false;
+        }
+
+        if(!new File(this.cAdvisorPath).exists()){
+            logger.error("{} 不存在，Docker 插件启动失败", cAdvisorPath);
+            return false;
+        }
+
+        cadvisorRunner = new CAdvisorRunner(cAdvisorPath, cAdvisorPort);
+        cadvisorRunner.start();
+
+        return true;
     }
 
     /**
@@ -98,8 +151,8 @@ public class DockerPlugin implements DetectPlugin {
         try {
             CommandUtilForUnix.ExecuteResult executeResult = CommandUtilForUnix.execWithReadTimeLimit("docker ps",false,10, TimeUnit.SECONDS);
             if(executeResult.isSuccess){
-                DockerMetrics dockerMetrics = new DockerMetrics("0.0.0.0",cadvisorPort);
-                List<DockerMetrics.CollectObject> collectObjectList = dockerMetrics.getMetrics(1000);
+                DockerMetrics dockerMetrics = new DockerMetrics("0.0.0.0",Integer.parseInt(address));
+                List<DockerMetrics.CollectObject> collectObjectList = dockerMetrics.getMetrics();
 
                 List<DetectResult.Metric> metrics = new ArrayList<>();
                 for (DockerMetrics.CollectObject collectObject : collectObjectList) {
@@ -148,8 +201,8 @@ public class DockerPlugin implements DetectPlugin {
     @Override
     public void init(Map<String, String> properties) {
         this.step = Integer.parseInt(properties.get("step"));
-        this.cadvisorPath = properties.get("pluginDir") + File.separator + "cadvisor";
-        this.cadvisorPort = Integer.parseInt(properties.get("cadvisor.port"));
+        this.cAdvisorPath = properties.get("pluginDir") + File.separator + "cadvisor";
+        this.cAdvisorPort = Integer.parseInt(properties.get("cadvisor.port"));
     }
 
     /**
@@ -181,7 +234,7 @@ public class DockerPlugin implements DetectPlugin {
     public void agentShutdownHook() {
         if(cadvisorRunner != null){
             try {
-                cadvisorRunner.shutdownCadvisor();
+                cadvisorRunner.shutdownCAdvisor();
             } catch (IOException e) {
                 logger.error("",e);
             }
