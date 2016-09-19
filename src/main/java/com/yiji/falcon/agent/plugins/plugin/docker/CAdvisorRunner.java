@@ -30,6 +30,7 @@ public class CAdvisorRunner extends Thread{
     public CAdvisorRunner(String cAdvisorPath, int cAdvisorPort) {
         this.cAdvisorPath = cAdvisorPath;
         this.cAdvisorPort = cAdvisorPort;
+        this.setDaemon(true);
     }
 
     /**
