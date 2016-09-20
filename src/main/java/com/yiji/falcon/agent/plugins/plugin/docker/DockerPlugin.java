@@ -50,9 +50,7 @@ public class DockerPlugin implements DetectPlugin {
                 return addressesCache;
             }
 
-            String dockerBinPath = "/usr/bin/docker";
-
-            File docker = new File(dockerBinPath);
+            File docker = new File("/usr/bin/docker");
             if(docker.exists()){
                 int cAdvisorPort = getNativeCAdvisorPort();
                 if(cAdvisorPort == 0){
