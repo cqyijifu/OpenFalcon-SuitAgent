@@ -9,6 +9,7 @@
 
 import com.alibaba.fastjson.JSONObject;
 import com.yiji.falcon.agent.plugins.plugin.docker.DockerMetrics;
+import com.yiji.falcon.agent.util.DateUtil;
 import com.yiji.falcon.agent.util.StringUtils;
 import org.apache.log4j.PropertyConfigurator;
 import org.junit.Test;
@@ -16,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -38,7 +40,7 @@ public class DockerTest{
      */
     @Test
     public void statistic() throws IOException, InterruptedException {
-        DockerMetrics dockerMetrics = new DockerMetrics("192.168.56.71",8080);
+        DockerMetrics dockerMetrics = new DockerMetrics("192.168.46.22",8080);
         dockerMetrics.getMetrics().forEach(System.out::println);
     }
 
@@ -67,6 +69,26 @@ public class DockerTest{
             }
         }
 
+    }
+
+    @Test
+    public void time(){
+        String timestamp ="2016-09-20T03:12:33.10444672Z";
+        if(timestamp.matches("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{6,}Z")){
+            String picoseconds = timestamp.substring(20, timestamp.length() - 1);
+            System.out.println(picoseconds);
+            String dateTime = timestamp.substring(0,10) + " " + timestamp.substring(11,19);
+
+            Date date = DateUtil.getParrtenDate(dateTime,"yyyy-MM-dd HH:mm:ss");
+
+            assert date != null;
+            long microseconds = date.getTime();
+            System.out.println("原Date转换纳秒 " + microseconds * 1000);
+
+            String trans = String.valueOf(microseconds / 1000) + picoseconds.substring(0,6);
+
+            System.out.println("转换后的纳秒   " + trans);
+        }
     }
 
 }

@@ -10,6 +10,7 @@ package com.yiji.falcon.agent.plugins.plugin.docker;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.yiji.falcon.agent.util.DateUtil;
 import com.yiji.falcon.agent.util.MD5Util;
 import com.yiji.falcon.agent.util.Maths;
 import com.yiji.falcon.agent.util.StringUtils;
@@ -106,22 +107,66 @@ public class DockerMetrics {
         if(hasCpu){
             JSONArray stats = container.getJSONArray("stats");
             int count = stats.size();
-            JSONObject stat = stats.getJSONObject(count - 1);
-//            String timestamp = stat.getString("timestamp");
-    //        Date date = DateUtil.getParrtenDate(timestamp.substring(0,10) + " " + timestamp.substring(11,19),"yyyy-MM-dd HH:mm:ss");
+            JSONObject stat = stats.getJSONObject(count - 2);
+            String timestamp = stat.getString("timestamp");
+            long time = transNanoseconds(timestamp);
+
+            JSONObject stat2 = stats.getJSONObject(count - 1);
+            String timestamp2 = stat2.getString("timestamp");
+            long time2 = transNanoseconds(timestamp2);
+
+            if(time == 0 || time2 == 0){
+                logger.error("CPU利用率采集失败，时间钟转换失败");
+                return new ArrayList<>();
+            }
 
             JSONObject cpu = stat.getJSONObject("cpu");
             JSONObject usage = cpu.getJSONObject("usage");
 
+            JSONObject cpu2 = stat2.getJSONObject("cpu");
+            JSONObject usage2 = cpu2.getJSONObject("usage");
+
+            long totalTime = time2 - time;
+
             long total = usage.getLong("total");
             long user = usage.getLong("user");
+            long system = usage.getLong("system");
 
-            double userRate =  Maths.div(user,total,5) * 100;
+            long total2 = usage2.getLong("total");
+            long user2 = usage2.getLong("user");
+            long system2 = usage2.getLong("system");
 
-            collectObjectList.add(new CollectObject(containerName,"total.cpu.usage.rate",String.valueOf(userRate),""));
+            // 皮秒级别进行计算
+            collectObjectList.add(new CollectObject(containerName,"total.cpu.usage.rate",String.valueOf(Maths.div(total2 - total,totalTime * 1000,5) * 100),""));
+            collectObjectList.add(new CollectObject(containerName,"user.cpu.usage.rate",String.valueOf(Maths.div(user2 - user,totalTime * 1000,5) * 100),""));
+            collectObjectList.add(new CollectObject(containerName,"system.cpu.usage.rate",String.valueOf(Maths.div(system2 - system,totalTime * 1000,5) * 100),""));
         }
 
         return collectObjectList;
+    }
+
+    /**
+     * 将形如2016-09-20T03:12:33.104446722Z的时间转换为纳秒
+     * @param timestamp
+     * @return
+     * 0 ：转换失败
+     */
+    private long transNanoseconds(String timestamp){
+        if(timestamp.matches("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{6,}Z")){
+            String picoseconds = timestamp.substring(20, timestamp.length() - 1);
+            String dateTime = timestamp.substring(0,10) + " " + timestamp.substring(11,19);
+            Date date = DateUtil.getParrtenDate(dateTime,"yyyy-MM-dd HH:mm:ss");
+
+            if(date != null){
+                long microseconds = date.getTime();
+                // 转换为纳秒：取日期精确到秒 + UTC时间秒后面的前6位
+                return Long.parseLong(String.valueOf(microseconds / 1000) + picoseconds.substring(0,6));
+            }
+        }else {
+            logger.error("转换的时间不符合格式 \\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{6,}Z : {}",timestamp);
+        }
+
+        return 0;
     }
 
     /**

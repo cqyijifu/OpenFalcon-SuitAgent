@@ -319,7 +319,9 @@ JMX监控的属性，由以下三部分组成
 			- `1`：容器内应用正常运行
 			- `-1`：容器内的应用状态数据获取失败
 		- has_cpu : 是否有CPU使用权限
-		- total.cpu.usage.rate : CPU使用率百分比
+		- total.cpu.usage.rate : CPU总使用率百分比
+		- user.cpu.usage.rate : CPU用户级别使用率百分比
+		- system.cpu.usage.rate : CPU系统级别使用率百分比
 		- has_memory : 是否有内存使用权限
 		- mem.size.usage : 当前已使用的内存大小（单位兆）
 		- mem.size.cache : 当前已缓存的内存大小（单位兆）
