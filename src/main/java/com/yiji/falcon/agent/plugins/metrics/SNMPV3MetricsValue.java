@@ -149,48 +149,49 @@ public class SNMPV3MetricsValue extends MetricsCommon {
 
             String ifName = statVO.getIfName();
             long time = statVO.getTime().getTime() / 1000;
+            reportObject.appendTags("ifName=" + ifName);
 
-            reportObject.setMetric(String.format("%s.if.HCInBroadcastPkts", ifName));
+            reportObject.setMetric("if.HCInBroadcastPkts");
             reportObject.setValue(statVO.getIfHCInBroadcastPkts());
             reportObject.setTimestamp(time);
             reportObjects.add(reportObject.clone());
 
-            reportObject.setMetric(String.format("%s.if.HCInMulticastPkts", ifName));
+            reportObject.setMetric("if.HCInMulticastPkts");
             reportObject.setValue(statVO.getIfHCInMulticastPkts());
             reportObject.setTimestamp(time);
             reportObjects.add(reportObject.clone());
 
-            reportObject.setMetric(String.format("%s.if.HCInOctets", ifName));
+            reportObject.setMetric("if.HCInOctets");
             reportObject.setValue(statVO.getIfHCInOctets());
             reportObject.setTimestamp(time);
             reportObjects.add(reportObject.clone());
 
-            reportObject.setMetric(String.format("%s.if.HCInUcastPkts", ifName));
+            reportObject.setMetric("if.HCInUcastPkts");
             reportObject.setValue(statVO.getIfHCInUcastPkts());
             reportObject.setTimestamp(time);
             reportObjects.add(reportObject.clone());
 
-            reportObject.setMetric(String.format("%s.if.HCOutBroadcastPkts", ifName));
+            reportObject.setMetric("if.HCOutBroadcastPkts");
             reportObject.setValue(statVO.getIfHCOutBroadcastPkts());
             reportObject.setTimestamp(time);
             reportObjects.add(reportObject.clone());
 
-            reportObject.setMetric(String.format("%s.if.HCOutMulticastPkts", ifName));
+            reportObject.setMetric("if.HCOutMulticastPkts");
             reportObject.setValue(statVO.getIfHCOutMulticastPkts());
             reportObject.setTimestamp(time);
             reportObjects.add(reportObject.clone());
 
-            reportObject.setMetric(String.format("%s.if.getIfHCOutUcastPkts", ifName));
+            reportObject.setMetric("if.getIfHCOutUcastPkts");
             reportObject.setValue(statVO.getIfHCOutUcastPkts());
             reportObject.setTimestamp(time);
             reportObjects.add(reportObject.clone());
 
-            reportObject.setMetric(String.format("%s.if.OperStatus", ifName));
+            reportObject.setMetric("if.OperStatus");
             reportObject.setValue(statVO.getIfOperStatus());
             reportObject.setTimestamp(time);
             reportObjects.add(reportObject.clone());
 
-            reportObject.setMetric(String.format("%s.if.HCOutOctets", ifName));
+            reportObject.setMetric("if.HCOutOctets");
             reportObject.setValue(statVO.getIfHCOutOctets());
             reportObject.setTimestamp(time);
             reportObjects.add(reportObject.clone());
