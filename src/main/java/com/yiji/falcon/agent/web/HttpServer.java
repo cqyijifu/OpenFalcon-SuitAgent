@@ -68,7 +68,7 @@ public class HttpServer extends Thread{
                 request.parse();
                 Response response = new Response(output);
                 response.setRequest(request);
-                shutdown = request.getUri().equals(SHUTDOWN_COMMAND);
+                shutdown = SHUTDOWN_COMMAND.equals(request.getUri());
                 if(shutdown){
                     status = -1;
                     response.send("Shutdown OK");
