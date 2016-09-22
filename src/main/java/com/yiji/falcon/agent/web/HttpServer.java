@@ -52,7 +52,7 @@ public class HttpServer extends Thread{
     }
 
     public void startServer() throws IOException {
-        serverSocket = new ServerSocket(port, 10, InetAddress.getByName("127.0.0.1"));
+        serverSocket = new ServerSocket(port, 10, InetAddress.getLocalHost());
         logger.info("Web服务启动地址:http://{}:{}",serverSocket.getInetAddress().getHostName(),serverSocket.getLocalPort());
         status = 1;
         while (!shutdown) {
