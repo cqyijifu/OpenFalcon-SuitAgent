@@ -27,6 +27,7 @@ import org.snmp4j.smi.VariableBinding;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import static com.yiji.falcon.agent.plugins.util.SNMPHelper.ignoreIfName;
 
@@ -37,7 +38,7 @@ public class SNMPV3MetricsValue extends MetricsCommon {
 
     private static final Logger logger = LoggerFactory.getLogger(SNMPV3MetricsValue.class);
 
-    private static final ConcurrentHashMap<String, List<SNMPV3Session>> sessionCache = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, List<SNMPV3Session>> pluginSessionsMem = new ConcurrentHashMap<>();
 
     private SNMPV3Plugin plugin;
 
@@ -49,7 +50,7 @@ public class SNMPV3MetricsValue extends MetricsCommon {
      * 关闭所有的SNMP连接
      */
     public static void closeAllSession() {
-        for (List<SNMPV3Session> sessions : sessionCache.values()) {
+        for (List<SNMPV3Session> sessions : pluginSessionsMem.values()) {
             for (SNMPV3Session session : sessions) {
                 try {
                     session.close();
@@ -69,145 +70,185 @@ public class SNMPV3MetricsValue extends MetricsCommon {
      * @throws AgentArgumentException
      */
     public List<SNMPV3Session> getSessions() throws IOException, AgentArgumentException {
-        List<SNMPV3Session> sessions = sessionCache.get(plugin.pluginName());
-        if (sessions == null || sessions.isEmpty()) {
-            sessions = new ArrayList<>();
-            Collection<SNMPV3UserInfo> userInfoCollection = plugin.userInfo();
-            if(userInfoCollection != null){
-                for (SNMPV3UserInfo userInfo : userInfoCollection) {
-                    SNMPV3Session session = new SNMPV3Session(userInfo);
-                    sessions.add(session);
-                }
-                sessionCache.put(plugin.pluginName(), sessions);
+        List<SNMPV3Session> pluginSessions = new ArrayList<>();
+
+        Collection<SNMPV3UserInfo> userInfoCollection = plugin.userInfo();
+        if (userInfoCollection != null) {
+            for (SNMPV3UserInfo userInfo : userInfoCollection) {
+                SNMPV3Session session = new SNMPV3Session(userInfo);
+                pluginSessions.add(session);
             }
         }
-        return sessions;
+
+        pluginSessionsMem.put(plugin.pluginName(), pluginSessions);
+        return pluginSessions;
+    }
+
+    /**
+     * 判断传入的接口是否被采集
+     *
+     * @param metricsKey
+     * @return
+     */
+    private boolean hasIfCollection(String metricsKey) {
+        Map<String, Boolean> ifCollectMetricsEnable = plugin.ifCollectMetricsEnable();
+        return ifCollectMetricsEnable.get(metricsKey) != null && ifCollectMetricsEnable.get(metricsKey);
     }
 
     /**
      * 设备的接口监控数据
+     *
      * @param session
      * @return
      * @throws IOException
      */
     public Collection<FalconReportObject> getIfStatReports(SNMPV3Session session) throws IOException {
-        Set<FalconReportObject> reportObjects = new HashSet<>();
+        List<FalconReportObject> reportObjects = new ArrayList<>();
+        SNMPV3UserInfo userInfo = session.getUserInfo();
+        List<String> ifNameEnables = userInfo.getIfCollectNameEnables();
+        if(ifNameEnables == null){
+            ifNameEnables = new ArrayList<>();
+        }
 
-        List<PDU> ifNameList = session.walk(SNMPHelper.ifNameOid);
-        List<PDU> ifInList = session.walk(SNMPHelper.ifHCInOid);
-        List<PDU> ifOutList = session.walk(SNMPHelper.ifHCOutOid);
-        List<PDU> ifHCInPktsList = session.walk(SNMPHelper.ifHCInPktsOid);
-        List<PDU> ifHCOutPktsList = session.walk(SNMPHelper.ifHCOutPktsOid);
-        List<PDU> ifOperStatusList = session.walk(SNMPHelper.ifOperStatusOid);
-        List<PDU> ifHCInBroadcastPktsList = session.walk(SNMPHelper.ifHCInBroadcastPktsOid);
-        List<PDU> ifHCOutBroadcastPktsList = session.walk(SNMPHelper.ifHCOutBroadcastPktsOid);
-        List<PDU> ifHCInMulticastPktsList = session.walk(SNMPHelper.ifHCInMulticastPktsOid);
-        List<PDU> ifHCOutMulticastPktsList = session.walk(SNMPHelper.ifHCOutMulticastPktsOid);
+        //允许采集接口数据且允许采集的接口名称不为空
+        if (plugin.hasIfCollect() && !ifNameEnables.isEmpty()) {
+            List<PDU> ifNameList = session.walk(SNMPHelper.ifNameOid);
 
-        List<IfStatVO> statVOs = new ArrayList<>();
+            List<IfStatVO> statVOs = new ArrayList<>();
 
-        for (PDU pdu : ifNameList) {
-            VariableBinding ifName = pdu.get(0);
-            boolean check = true;
-            for (String ignore : ignoreIfName) {
-                if (ifName.getVariable().toString().contains(ignore)) {
-                    check = false;
-                    break;
+            for (PDU pdu : ifNameList) {
+                VariableBinding ifName = pdu.get(0);
+                boolean check = ifNameEnables.contains(ifName.getVariable().toString());
+                if (check) {
+                    for (String ignore : ignoreIfName) {
+                        if (ifName.getVariable().toString().contains(ignore)) {
+                            check = false;
+                            break;
+                        }
+                    }
+                }
+                if (check) {
+                    int index = Integer.parseInt(ifName.getOid().toString().replace(SNMPHelper.ifNameOid, "").replace(".", ""));
+                    IfStatVO statVO = new IfStatVO();
+                    statVO.setIfName(ifName.getVariable().toString());
+                    statVO.setIfIndex(index);
+                    if (hasIfCollection("if.HCInBroadcastPkts")) {
+                        List<PDU> ifHCInBroadcastPktsList = session.walk(SNMPHelper.ifHCInBroadcastPktsOid);
+                        statVO.setIfHCInBroadcastPkts(SNMPHelper.getValueFromPDU(ifHCInBroadcastPktsList.get(index)));
+                    }
+                    if (hasIfCollection("if.HCInMulticastPkts")) {
+                        List<PDU> ifHCInMulticastPktsList = session.walk(SNMPHelper.ifHCInMulticastPktsOid);
+                        statVO.setIfHCInMulticastPkts(SNMPHelper.getValueFromPDU(ifHCInMulticastPktsList.get(index)));
+                    }
+                    if (hasIfCollection("if.HCInOctets")) {
+                        List<PDU> ifInList = session.walk(SNMPHelper.ifHCInOid);
+                        statVO.setIfHCInOctets(SNMPHelper.getValueFromPDU(ifInList.get(index)));
+                    }
+                    if (hasIfCollection("if.HCOutOctets")) {
+                        List<PDU> ifOutList = session.walk(SNMPHelper.ifHCOutOid);
+                        statVO.setIfHCOutOctets(SNMPHelper.getValueFromPDU(ifOutList.get(index)));
+                    }
+                    if (hasIfCollection("if.HCInUcastPkts")) {
+                        List<PDU> ifHCInPktsList = session.walk(SNMPHelper.ifHCInPktsOid);
+                        statVO.setIfHCInUcastPkts(SNMPHelper.getValueFromPDU(ifHCInPktsList.get(index)));
+                    }
+                    if (hasIfCollection("if.getIfHCOutUcastPkts")) {
+                        List<PDU> ifHCOutPktsList = session.walk(SNMPHelper.ifHCOutPktsOid);
+                        statVO.setIfHCOutUcastPkts(SNMPHelper.getValueFromPDU(ifHCOutPktsList.get(index)));
+                    }
+                    if (hasIfCollection("if.OperStatus")) {
+                        List<PDU> ifOperStatusList = session.walk(SNMPHelper.ifOperStatusOid);
+                        statVO.setIfOperStatus(SNMPHelper.getValueFromPDU(ifOperStatusList.get(index)));
+                    }
+                    if (hasIfCollection("if.HCOutBroadcastPkts")) {
+                        List<PDU> ifHCOutBroadcastPktsList = session.walk(SNMPHelper.ifHCOutBroadcastPktsOid);
+                        statVO.setIfHCOutBroadcastPkts(SNMPHelper.getValueFromPDU(ifHCOutBroadcastPktsList.get(index)));
+                    }
+                    if (hasIfCollection("if.HCOutMulticastPkts")) {
+                        List<PDU> ifHCOutMulticastPktsList = session.walk(SNMPHelper.ifHCOutMulticastPktsOid);
+                        statVO.setIfHCOutMulticastPkts(SNMPHelper.getValueFromPDU(ifHCOutMulticastPktsList.get(index)));
+                    }
+                    statVO.setTime(new Date());
+
+                    statVOs.add(statVO);
                 }
             }
-            if (check) {
-                int index = Integer.parseInt(ifName.getOid().toString().replace(SNMPHelper.ifNameOid, "").replace(".", ""));
-                IfStatVO statVO = new IfStatVO();
-                statVO.setIfName(ifName.getVariable().toString());
-                statVO.setIfIndex(index);
-                statVO.setIfHCInBroadcastPkts(SNMPHelper.getValueFromPDU(ifHCInBroadcastPktsList.get(index)));
-                statVO.setIfHCInMulticastPkts(SNMPHelper.getValueFromPDU(ifHCInMulticastPktsList.get(index)));
-                statVO.setIfHCInOctets(SNMPHelper.getValueFromPDU(ifInList.get(index)));
-                statVO.setIfHCOutOctets(SNMPHelper.getValueFromPDU(ifOutList.get(index)));
-                statVO.setIfHCInUcastPkts(SNMPHelper.getValueFromPDU(ifHCInPktsList.get(index)));
-                statVO.setIfHCOutUcastPkts(SNMPHelper.getValueFromPDU(ifHCOutPktsList.get(index)));
-                statVO.setIfOperStatus(SNMPHelper.getValueFromPDU(ifOperStatusList.get(index)));
-                statVO.setIfHCOutBroadcastPkts(SNMPHelper.getValueFromPDU(ifHCOutBroadcastPktsList.get(index)));
-                statVO.setIfHCOutMulticastPkts(SNMPHelper.getValueFromPDU(ifHCOutMulticastPktsList.get(index)));
-                statVO.setTime(new Date());
 
-                statVOs.add(statVO);
+            for (IfStatVO statVO : statVOs) {
+                FalconReportObject reportObject = new FalconReportObject();
+                MetricsCommon.setReportCommonValue(reportObject, plugin.step());
+                reportObject.appendTags(MetricsCommon.getTags(session.getEquipmentName(), plugin, plugin.serverName(), MetricsType.SNMP_COMMON_IN_BUILD));
+                reportObject.setCounterType(CounterType.COUNTER);
+                String endPoint = userInfo.getEndPoint();
+                if (!StringUtils.isEmpty(endPoint)) {
+                    //设置单独设置的endPoint
+                    reportObject.setEndpoint(endPoint);
+                    reportObject.appendTags("customerEndPoint=true");
+                }
+
+                String ifName = statVO.getIfName();
+                long time = statVO.getTime().getTime() / 1000;
+                reportObject.appendTags("ifName=" + ifName);
+
+                reportObject.setMetric("if.HCInBroadcastPkts");
+                reportObject.setValue(statVO.getIfHCInBroadcastPkts());
+                reportObject.setTimestamp(time);
+                reportObjects.add(reportObject.clone());
+
+                reportObject.setMetric("if.HCInMulticastPkts");
+                reportObject.setValue(statVO.getIfHCInMulticastPkts());
+                reportObject.setTimestamp(time);
+                reportObjects.add(reportObject.clone());
+
+                reportObject.setMetric("if.HCInOctets");
+                reportObject.setValue(statVO.getIfHCInOctets());
+                reportObject.setTimestamp(time);
+                reportObjects.add(reportObject.clone());
+
+                reportObject.setMetric("if.HCInUcastPkts");
+                reportObject.setValue(statVO.getIfHCInUcastPkts());
+                reportObject.setTimestamp(time);
+                reportObjects.add(reportObject.clone());
+
+                reportObject.setMetric("if.HCOutBroadcastPkts");
+                reportObject.setValue(statVO.getIfHCOutBroadcastPkts());
+                reportObject.setTimestamp(time);
+                reportObjects.add(reportObject.clone());
+
+                reportObject.setMetric("if.HCOutMulticastPkts");
+                reportObject.setValue(statVO.getIfHCOutMulticastPkts());
+                reportObject.setTimestamp(time);
+                reportObjects.add(reportObject.clone());
+
+                reportObject.setMetric("if.getIfHCOutUcastPkts");
+                reportObject.setValue(statVO.getIfHCOutUcastPkts());
+                reportObject.setTimestamp(time);
+                reportObjects.add(reportObject.clone());
+
+                reportObject.setMetric("if.OperStatus");
+                reportObject.setValue(statVO.getIfOperStatus());
+                reportObject.setTimestamp(time);
+                reportObjects.add(reportObject.clone());
+
+                reportObject.setMetric("if.HCOutOctets");
+                reportObject.setValue(statVO.getIfHCOutOctets());
+                reportObject.setTimestamp(time);
+                reportObjects.add(reportObject.clone());
             }
         }
 
-        for (IfStatVO statVO : statVOs) {
-            FalconReportObject reportObject = new FalconReportObject();
-            MetricsCommon.setReportCommonValue(reportObject, plugin.step());
-            reportObject.appendTags(MetricsCommon.getTags(session.getEquipmentName(), plugin, plugin.serverName(), MetricsType.SNMP_COMMON_IN_BUILD));
-            reportObject.setCounterType(CounterType.GAUGE);
-            String endPoint = session.getUserInfo().getEndPoint();
-            if(!StringUtils.isEmpty(endPoint)){
-                //设置单独设置的endPoint
-                reportObject.setEndpoint(endPoint);
-                reportObject.appendTags("customerEndPoint=true");
-            }
+        return reportObjects.stream().filter(falconReportObject -> falconReportObject.getValue() != null).collect(Collectors.toList());
 
-            String ifName = statVO.getIfName();
-            long time = statVO.getTime().getTime() / 1000;
-            reportObject.appendTags("ifName=" + ifName);
-
-            reportObject.setMetric("if.HCInBroadcastPkts");
-            reportObject.setValue(statVO.getIfHCInBroadcastPkts());
-            reportObject.setTimestamp(time);
-            reportObjects.add(reportObject.clone());
-
-            reportObject.setMetric("if.HCInMulticastPkts");
-            reportObject.setValue(statVO.getIfHCInMulticastPkts());
-            reportObject.setTimestamp(time);
-            reportObjects.add(reportObject.clone());
-
-            reportObject.setMetric("if.HCInOctets");
-            reportObject.setValue(statVO.getIfHCInOctets());
-            reportObject.setTimestamp(time);
-            reportObjects.add(reportObject.clone());
-
-            reportObject.setMetric("if.HCInUcastPkts");
-            reportObject.setValue(statVO.getIfHCInUcastPkts());
-            reportObject.setTimestamp(time);
-            reportObjects.add(reportObject.clone());
-
-            reportObject.setMetric("if.HCOutBroadcastPkts");
-            reportObject.setValue(statVO.getIfHCOutBroadcastPkts());
-            reportObject.setTimestamp(time);
-            reportObjects.add(reportObject.clone());
-
-            reportObject.setMetric("if.HCOutMulticastPkts");
-            reportObject.setValue(statVO.getIfHCOutMulticastPkts());
-            reportObject.setTimestamp(time);
-            reportObjects.add(reportObject.clone());
-
-            reportObject.setMetric("if.getIfHCOutUcastPkts");
-            reportObject.setValue(statVO.getIfHCOutUcastPkts());
-            reportObject.setTimestamp(time);
-            reportObjects.add(reportObject.clone());
-
-            reportObject.setMetric("if.OperStatus");
-            reportObject.setValue(statVO.getIfOperStatus());
-            reportObject.setTimestamp(time);
-            reportObjects.add(reportObject.clone());
-
-            reportObject.setMetric("if.HCOutOctets");
-            reportObject.setValue(statVO.getIfHCOutOctets());
-            reportObject.setTimestamp(time);
-            reportObjects.add(reportObject.clone());
-
-        }
-
-        return reportObjects;
     }
 
     /**
      * ping操作
+     *
      * @param session
      * @param count
      * @return
      */
-    public FalconReportObject ping(SNMPV3Session session,int count) {
+    public FalconReportObject ping(SNMPV3Session session, int count) {
         FalconReportObject reportObject = new FalconReportObject();
         MetricsCommon.setReportCommonValue(reportObject, plugin.step());
         reportObject.appendTags(MetricsCommon.getTags(session.getEquipmentName(), plugin, plugin.serverName(), MetricsType.SNMP_COMMON_IN_BUILD));
@@ -218,14 +259,14 @@ public class SNMPV3MetricsValue extends MetricsCommon {
         String address = session.getUserInfo().getAddress();
 
         try {
-            CommandUtilForUnix.PingResult pingResult = CommandUtilForUnix.ping(address,count);
-            if(pingResult.resultCode == -2){
+            CommandUtilForUnix.PingResult pingResult = CommandUtilForUnix.ping(address, count);
+            if (pingResult.resultCode == -2) {
                 //命令执行失败
                 return null;
             }
             reportObject.setValue(pingResult.avgTime + "");
         } catch (IOException e) {
-            logger.error("Ping {} 命令执行异常",address,e);
+            logger.error("Ping {} 命令执行异常", address, e);
             return null;
         }
         return reportObject;
@@ -249,15 +290,15 @@ public class SNMPV3MetricsValue extends MetricsCommon {
             return result;
 
         } catch (AgentArgumentException e) {
-            logger.error("监控参数异常:{},忽略此监控上报",e.getErr(), e);
+            logger.error("监控参数异常:{},忽略此监控上报", e.getErr(), e);
             return result;
         }
 
         for (SNMPV3Session session : sessionList) {
             List<FalconReportObject> temp = new ArrayList<>();
             //ping报告
-            FalconReportObject reportObject = ping(session,5);
-            if(reportObject != null){
+            FalconReportObject reportObject = ping(session, 5);
+            if (reportObject != null) {
                 temp.add(reportObject);
             }
             try {
@@ -266,18 +307,18 @@ public class SNMPV3MetricsValue extends MetricsCommon {
                 temp.add(MetricsCommon.generatorVariabilityReport(true, session.getEquipmentName(), plugin.step(), plugin, plugin.serverName()));
                 //添加插件报告
                 Collection<FalconReportObject> inBuildReports = plugin.inbuiltReportObjectsForValid(session);
-                if(inBuildReports != null && !inBuildReports.isEmpty()){
+                if (inBuildReports != null && !inBuildReports.isEmpty()) {
                     temp.addAll(inBuildReports);
                 }
-            } catch (IOException e) {
-                logger.error("设备 {} 通过SNMP获取监控数据发生异常,push 该设备不可用报告",session.toString(),e);
+            } catch (Exception e) {
+                logger.error("设备 {} 通过SNMP获取监控数据发生异常,push 该设备不可用报告", session.toString(), e);
                 temp.add(MetricsCommon.generatorVariabilityReport(false, "allUnVariability", plugin.step(), plugin, plugin.serverName()));
             }
 
             // EndPoint 单独设置
             temp.forEach(report -> {
                 String endPoint = session.getUserInfo().getEndPoint();
-                if(!StringUtils.isEmpty(endPoint) && reportObject != null){
+                if (!StringUtils.isEmpty(endPoint) && reportObject != null) {
                     //设置单独设置的endPoint
                     report.setEndpoint(endPoint);
                     report.appendTags("customerEndPoint=true");
@@ -289,4 +330,5 @@ public class SNMPV3MetricsValue extends MetricsCommon {
 
         return result;
     }
+
 }

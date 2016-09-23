@@ -5,6 +5,15 @@
 
 ---
 
+**BY：2016年09月23日**
+
+- 交换机监控：
+	- 交换机监控添加接口采集配置，防止出现因接口采集数据量过大出现的采集时间过长，导致数据上报问题
+    - 接口数据上报类型改为COUNTER	
+    - 优化交换机采集的配置格式
+
+---
+
 **BY：2016年09月19日**
 
 - Oracle监控：改进优化Oracle的表空间统计
@@ -223,15 +232,15 @@ JMX监控的属性，由以下三部分组成
 
 每个接口的Metrics：
 	
-	- {ifName}.if.HCInBroadcastPkts
-	- {ifName}.if.HCInMulticastPkts
-	- {ifName}.if.HCInOctets
-	- {ifName}.if.HCInUcastPkts
-	- {ifName}.if.HCOutBroadcastPkts
-	- {ifName}.if.HCOutMulticastPkts
-	- {ifName}.if.getIfHCOutUcastPkts
-	- {ifName}.if.HCOutOctets
-	- {ifName}.if.OperStatus : (接口状态，1 up, 2 down, 3 testing, 4 unknown, 5 dormant, 6 notPresent, 7 lowerLayerDown)
+	- if.HCInBroadcastPkts
+	- if.HCInMulticastPkts
+	- if.HCInOctets
+	- if.HCInUcastPkts
+	- if.HCOutBroadcastPkts
+	- if.HCOutMulticastPkts
+	- if.getIfHCOutUcastPkts
+	- if.HCOutOctets
+	- if.OperStatus : (接口状态，1 up, 2 down, 3 testing, 4 unknown, 5 dormant, 6 notPresent, 7 lowerLayerDown)
 
 `ping` Metrics：
 

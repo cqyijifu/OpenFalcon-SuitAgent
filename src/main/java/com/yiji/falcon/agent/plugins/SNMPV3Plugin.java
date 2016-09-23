@@ -13,6 +13,7 @@ import com.yiji.falcon.agent.plugins.util.SNMPV3Session;
 import com.yiji.falcon.agent.vo.snmp.SNMPV3UserInfo;
 
 import java.util.Collection;
+import java.util.Map;
 
 /**
  * SNMP V3协议的监控插件
@@ -36,4 +37,29 @@ public interface SNMPV3Plugin extends Plugin{
      * @return
      */
     Collection<FalconReportObject> inbuiltReportObjectsForValid(SNMPV3Session session);
+
+    /**
+     * 是否需要进行接口数据采集
+     * @return
+     */
+    boolean hasIfCollect();
+
+    /**
+     * 允许采集哪些接口数据，用map的形式返回，key为接口metrics名称，value为是否允许。
+     * 若对应key的metrics获取为null或false，均不采集。key的集合为：
+     *
+     * if.HCInBroadcastPkts
+     * if.HCInMulticastPkts
+     * if.HCInOctets
+     * if.HCInUcastPkts
+     * if.HCOutBroadcastPkts
+     * if.HCOutMulticastPkts
+     * if.getIfHCOutUcastPkts
+     * if.OperStatus
+     * if.HCOutOctets
+     *
+     * @return
+     */
+    Map<String,Boolean> ifCollectMetricsEnable();
+
 }

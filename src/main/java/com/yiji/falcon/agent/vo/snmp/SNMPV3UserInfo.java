@@ -8,6 +8,8 @@ package com.yiji.falcon.agent.vo.snmp;
  * guqiu@yiji.com 2016-07-11 14:51 创建
  */
 
+import java.util.List;
+
 /**
  * SNMPV3协议访问的授权用户信息
  * @author guqiu@yiji.com
@@ -51,6 +53,12 @@ public class SNMPV3UserInfo {
      */
     private String endPoint = "";
 
+    /**
+     * 允许采集哪些名称的接口数据
+     * 注：只采集集合中的接口名称的数据。若为空，则不会采集接口数据
+     */
+    private List<String> ifCollectNameEnables;
+
     @Override
     public String toString() {
         return "SNMPV3UserInfo{" +
@@ -63,6 +71,7 @@ public class SNMPV3UserInfo {
                 ", privType='" + privType + '\'' +
                 ", privPswd='" + privPswd + '\'' +
                 ", endPoint='" + endPoint + '\'' +
+                ", ifCollectNameEnables='" + ifCollectNameEnables + '\'' +
                 '}';
     }
 
@@ -136,5 +145,13 @@ public class SNMPV3UserInfo {
 
     public void setEndPoint(String endPoint) {
         this.endPoint = endPoint;
+    }
+
+    public List<String> getIfCollectNameEnables() {
+        return ifCollectNameEnables;
+    }
+
+    public void setIfCollectNameEnables(List<String> ifCollectNameEnables) {
+        this.ifCollectNameEnables = ifCollectNameEnables;
     }
 }

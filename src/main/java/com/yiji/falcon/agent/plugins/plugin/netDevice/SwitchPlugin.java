@@ -20,10 +20,8 @@ import com.yiji.falcon.agent.vo.snmp.SNMPV3UserInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 交换机设备监控插件
@@ -35,7 +33,9 @@ public class SwitchPlugin implements SNMPV3Plugin{
 
     private int step;
     private PluginActivateType pluginActivateType;
-    private String switchUrl;
+    private List<String> switchUrlList;
+    private String ifCollect;
+    private Map<String,Boolean> ifCollectMetricsEnable;
 
     @Override
     public String authorizationKeyPrefix() {
@@ -53,9 +53,19 @@ public class SwitchPlugin implements SNMPV3Plugin{
      */
     @Override
     public void init(Map<String, String> properties) {
+        this.ifCollect = properties.get("enable.if.Collect");
         step = Integer.parseInt(properties.get("step"));
         pluginActivateType = PluginActivateType.valueOf(properties.get("pluginActivateType"));
-        switchUrl = properties.get("switch.url");
+        switchUrlList = new ArrayList<>();
+        ifCollectMetricsEnable = new HashMap<>();
+        properties.keySet().forEach(key -> {
+            if (key.startsWith("switch.url")) {
+                switchUrlList.add(properties.get(key));
+            }
+            if (key.startsWith("if.")) {
+                ifCollectMetricsEnable.put(key, "true".equals(properties.get(key)));
+            }
+        });
     }
 
     /**
@@ -108,31 +118,39 @@ public class SwitchPlugin implements SNMPV3Plugin{
     @Override
     public Collection<SNMPV3UserInfo> userInfo() {
         List<SNMPV3UserInfo> userInfoList = new ArrayList<>();
-        if(!StringUtils.isEmpty(switchUrl)){
-            String[] urls = this.switchUrl.split(",");
-            for (String url : urls) {
-                if(!StringUtils.isEmpty(url) && url.contains("snmpv3://")){
-                    //snmpv3://protocol:address:port:username:authType:authPswd:privType:privPswd
-                    url = url.replace("snmpv3://","");
-                    String[] props = url.split(":");
-                    if(props.length < 8){
-                        logger.error("snmp v3 的连接URL格式错误,请检查URL:{} 是否符合格式:snmpv3://protocol:address:port:username:authType:authPswd:privType:privPswd:endPoint(option)",url);
-                        continue;
-                    }
-                    SNMPV3UserInfo userInfo = new SNMPV3UserInfo();
-                    userInfo.setProtocol(props[0]);
-                    userInfo.setAddress(props[1]);
-                    userInfo.setPort(props[2]);
-                    userInfo.setUsername(props[3]);
-                    userInfo.setAythType(props[4]);
-                    userInfo.setAuthPswd(props[5]);
-                    userInfo.setPrivType(props[6]);
-                    userInfo.setPrivPswd(props[7]);
-                    if(props.length >= 9){
-                        userInfo.setEndPoint(props[8]);
-                    }
+        for (String switchUrl : switchUrlList) {
+            if(!StringUtils.isEmpty(switchUrl)){
+                String[] urls = switchUrl.split(",");
+                for (String url : urls) {
+                    if(!StringUtils.isEmpty(url) && url.contains("snmpv3://")){
+                        //snmpv3://protocol:address:port:username:authType:authPswd:privType:privPswd
+                        url = url.replace("snmpv3://","");
+                        String[] props = url.split(":");
+                        if(props.length < 8){
+                            logger.error("snmp v3 的连接URL格式错误,请检查URL:{} 是否符合格式:snmpv3://protocol:address:port:username:authType:authPswd:privType:privPswd:endPoint(option)",url);
+                            continue;
+                        }
+                        SNMPV3UserInfo userInfo = new SNMPV3UserInfo();
+                        userInfo.setProtocol(props[0]);
+                        userInfo.setAddress(props[1]);
+                        userInfo.setPort(props[2]);
+                        userInfo.setUsername(props[3]);
+                        userInfo.setAythType(props[4]);
+                        userInfo.setAuthPswd(props[5]);
+                        userInfo.setPrivType(props[6]);
+                        userInfo.setPrivPswd(props[7]);
+                        if(props.length >= 9){
+                            userInfo.setEndPoint(props[8].trim());
+                        }
+                        if(props.length >= 10){
+                            String ifEnable = props[9].trim();
+                            List<String> enableList = new ArrayList<>();
+                            Collections.addAll(enableList, ifEnable.split("&"));
+                            userInfo.setIfCollectNameEnables(enableList.stream().filter(str -> !StringUtils.isEmpty(str)).collect(Collectors.toList()));
+                        }
 
-                    userInfoList.add(userInfo);
+                        userInfoList.add(userInfo);
+                    }
                 }
             }
         }
@@ -171,6 +189,37 @@ public class SwitchPlugin implements SNMPV3Plugin{
             }
         });
         return falconReportObjects;
+    }
+
+    /**
+     * 是否需要进行接口数据采集
+     *
+     * @return
+     */
+    @Override
+    public boolean hasIfCollect() {
+        return "true".equals(this.ifCollect);
+    }
+
+    /**
+     * 允许采集哪些接口数据，用map的形式返回，key为接口metrics名称，value为是否允许。
+     * 若对应key的metrics获取为null或false，均不采集。key的集合为：
+     * <p>
+     * if.HCInBroadcastPkts
+     * if.HCInMulticastPkts
+     * if.HCInOctets
+     * if.HCInUcastPkts
+     * if.HCOutBroadcastPkts
+     * if.HCOutMulticastPkts
+     * if.getIfHCOutUcastPkts
+     * if.OperStatus
+     * if.HCOutOctets
+     *
+     * @return
+     */
+    @Override
+    public Map<String, Boolean> ifCollectMetricsEnable() {
+        return this.ifCollectMetricsEnable;
     }
 
 }
