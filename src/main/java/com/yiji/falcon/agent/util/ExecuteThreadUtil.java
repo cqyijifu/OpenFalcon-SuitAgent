@@ -8,10 +8,7 @@ package com.yiji.falcon.agent.util;
  * guqiu@yiji.com 2016-07-15 13:42 创建
  */
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.SynchronousQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 /**
  * @author guqiu@yiji.com
@@ -32,13 +29,21 @@ public class ExecuteThreadUtil {
     }
 
     /**
-     * 执行一个无返回值的线程任务
-     * 注：若执行的线程任务是长时间运行的线程，
-     * 请不要用此线程池进行线程任务的创建，会有死锁的隐患
+     * 执行线程任务
      * @param task
      */
     public static void execute(Runnable task){
         executorService.submit(task);
+    }
+
+    /**
+     * 执行线程任务
+     * @param task
+     * @param <T>
+     * @return
+     */
+    public static <T> Future<T> execute(Callable<T> task){
+        return executorService.submit(task);
     }
 
     /**

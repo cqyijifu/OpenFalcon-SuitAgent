@@ -16,6 +16,7 @@ import com.yiji.falcon.agent.plugins.SNMPV3Plugin;
 import com.yiji.falcon.agent.plugins.util.SNMPHelper;
 import com.yiji.falcon.agent.plugins.util.SNMPV3Session;
 import com.yiji.falcon.agent.util.CommandUtilForUnix;
+import com.yiji.falcon.agent.util.ExecuteThreadUtil;
 import com.yiji.falcon.agent.util.StringUtils;
 import com.yiji.falcon.agent.vo.snmp.IfStatVO;
 import com.yiji.falcon.agent.vo.snmp.SNMPV3UserInfo;
@@ -26,7 +27,9 @@ import org.snmp4j.smi.VariableBinding;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 import static com.yiji.falcon.agent.plugins.util.SNMPHelper.ignoreIfName;
@@ -294,7 +297,31 @@ public class SNMPV3MetricsValue extends MetricsCommon {
             return result;
         }
 
+        List<Future<List<FalconReportObject>>> futureList = new ArrayList<>();
         for (SNMPV3Session session : sessionList) {
+            futureList.add(ExecuteThreadUtil.execute(new Collect(session)));
+        }
+        for (Future<List<FalconReportObject>> future : futureList) {
+            try {
+                result.addAll(future.get());
+            } catch (Exception e) {
+                logger.error("SNMP采集异常，target：{}",e);
+            }
+        }
+
+        return result;
+    }
+
+    private class Collect implements Callable<List<FalconReportObject>>{
+
+        private SNMPV3Session session;
+
+        public Collect(SNMPV3Session session) {
+            this.session = session;
+        }
+
+        @Override
+        public List<FalconReportObject> call() throws Exception {
             List<FalconReportObject> temp = new ArrayList<>();
             //ping报告
             FalconReportObject reportObject = ping(session, 5);
@@ -324,11 +351,8 @@ public class SNMPV3MetricsValue extends MetricsCommon {
                     report.appendTags("customerEndPoint=true");
                 }
             });
-
-            result.addAll(temp);
+            return temp;
         }
-
-        return result;
     }
 
 }
