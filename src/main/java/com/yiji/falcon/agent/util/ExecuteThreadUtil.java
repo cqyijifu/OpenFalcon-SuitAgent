@@ -8,6 +8,8 @@ package com.yiji.falcon.agent.util;
  * guqiu@yiji.com 2016-07-15 13:42 创建
  */
 
+import com.yiji.falcon.agent.config.AgentConfiguration;
+
 import java.util.concurrent.*;
 
 /**
@@ -16,7 +18,7 @@ import java.util.concurrent.*;
 public class ExecuteThreadUtil {
     private static ExecutorService executorService;
     static {
-        final int maxPoolSize = 200;
+        final int maxPoolSize = AgentConfiguration.INSTANCE.getAgentMaxThreadCount();
         //定义并发执行服务
         executorService = new ThreadPoolExecutor(5,maxPoolSize,0L,TimeUnit.MILLISECONDS,
                 new SynchronousQueue<>(),

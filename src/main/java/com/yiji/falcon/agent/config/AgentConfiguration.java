@@ -93,6 +93,11 @@ public enum  AgentConfiguration {
     private int agentFlushTime = 300;
 
     /**
+     * agent最大线程数
+     */
+    private int agentMaxThreadCount = 200;
+
+    /**
      * JMX连接是否支持本地连接
      */
     private boolean agentJMXLocalConnect = false;
@@ -100,6 +105,7 @@ public enum  AgentConfiguration {
 
     private static final String CONF_AGENT_ENDPOINT = "agent.endpoint";
     private static final String CONF_AGENT_FLUSH_TIME = "agent.flush.time";
+    private static final String CONF_AGENT_MAX_THREAD = "agent.thread.maxCount";
 
     private static final String CONF_AGENT_FALCON_PUSH_URL = "agent.falcon.push.url";
     private static final String CONF_AGENT_PORT = "agent.port";
@@ -232,6 +238,19 @@ public enum  AgentConfiguration {
             System.exit(0);
         }
 
+        if(!StringUtils.isEmpty(agentConf.getProperty(CONF_AGENT_MAX_THREAD))){
+            try {
+                this.agentMaxThreadCount = Integer.parseInt(agentConf.getProperty(CONF_AGENT_MAX_THREAD));
+                if(this.agentMaxThreadCount <= 5){
+                    log.error("Agent启动失败,最大线程数 {} 必须大于5: {}",CONF_AGENT_MAX_THREAD,agentConf.getProperty(CONF_AGENT_MAX_THREAD));
+                    System.exit(0);
+                }
+            } catch (NumberFormatException e) {
+                log.error("Agent启动失败,最大线程数{}无效:{}",CONF_AGENT_MAX_THREAD,agentConf.getProperty(CONF_AGENT_MAX_THREAD));
+                System.exit(0);
+            }
+        }
+
     }
 
     private void initJMXCommon(){
@@ -241,6 +260,10 @@ public enum  AgentConfiguration {
             System.exit(0);
         }
         this.jmxCommonMetricsConfPath = property;
+    }
+
+    public int getAgentMaxThreadCount() {
+        return agentMaxThreadCount;
     }
 
     public String getQuartzConfPath() {
