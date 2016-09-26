@@ -78,7 +78,7 @@ public class StandaloneJarPlugin implements JMXPlugin {
                             }
                         });
                     } catch (IOException e) {
-                        logger.error("遍历目录 {} 发生异常",jmxServerDir);
+                        logger.error("遍历目录 {} 发生异常",jmxServerDir,e);
                     }
                 }
             }
