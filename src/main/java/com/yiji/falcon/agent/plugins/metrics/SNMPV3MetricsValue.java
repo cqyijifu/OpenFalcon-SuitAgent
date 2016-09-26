@@ -137,39 +137,39 @@ public class SNMPV3MetricsValue extends MetricsCommon {
                     statVO.setIfIndex(index);
                     if (hasIfCollection("if.HCInBroadcastPkts")) {
                         List<PDU> ifHCInBroadcastPktsList = session.walk(SNMPHelper.ifHCInBroadcastPktsOid);
-                        statVO.setIfHCInBroadcastPkts(SNMPHelper.getValueFromPDU(ifHCInBroadcastPktsList.get(index)));
+                        statVO.setIfHCInBroadcastPkts(index >= ifHCInBroadcastPktsList.size() ? null : SNMPHelper.getValueFromPDU(ifHCInBroadcastPktsList.get(index)));
                     }
                     if (hasIfCollection("if.HCInMulticastPkts")) {
                         List<PDU> ifHCInMulticastPktsList = session.walk(SNMPHelper.ifHCInMulticastPktsOid);
-                        statVO.setIfHCInMulticastPkts(SNMPHelper.getValueFromPDU(ifHCInMulticastPktsList.get(index)));
+                        statVO.setIfHCInMulticastPkts(index >= ifHCInMulticastPktsList.size() ? null : SNMPHelper.getValueFromPDU(ifHCInMulticastPktsList.get(index)));
                     }
                     if (hasIfCollection("if.HCInOctets")) {
                         List<PDU> ifInList = session.walk(SNMPHelper.ifHCInOid);
-                        statVO.setIfHCInOctets(SNMPHelper.getValueFromPDU(ifInList.get(index)));
+                        statVO.setIfHCInOctets(index >= ifInList.size() ? null : SNMPHelper.getValueFromPDU(ifInList.get(index)));
                     }
                     if (hasIfCollection("if.HCOutOctets")) {
                         List<PDU> ifOutList = session.walk(SNMPHelper.ifHCOutOid);
-                        statVO.setIfHCOutOctets(SNMPHelper.getValueFromPDU(ifOutList.get(index)));
+                        statVO.setIfHCOutOctets(index >= ifOutList.size() ? null : SNMPHelper.getValueFromPDU(ifOutList.get(index)));
                     }
                     if (hasIfCollection("if.HCInUcastPkts")) {
                         List<PDU> ifHCInPktsList = session.walk(SNMPHelper.ifHCInPktsOid);
-                        statVO.setIfHCInUcastPkts(SNMPHelper.getValueFromPDU(ifHCInPktsList.get(index)));
+                        statVO.setIfHCInUcastPkts(index >= ifHCInPktsList.size() ? null : SNMPHelper.getValueFromPDU(ifHCInPktsList.get(index)));
                     }
                     if (hasIfCollection("if.getIfHCOutUcastPkts")) {
                         List<PDU> ifHCOutPktsList = session.walk(SNMPHelper.ifHCOutPktsOid);
-                        statVO.setIfHCOutUcastPkts(SNMPHelper.getValueFromPDU(ifHCOutPktsList.get(index)));
+                        statVO.setIfHCOutUcastPkts(index >= ifHCOutPktsList.size() ? null : SNMPHelper.getValueFromPDU(ifHCOutPktsList.get(index)));
                     }
                     if (hasIfCollection("if.OperStatus")) {
                         List<PDU> ifOperStatusList = session.walk(SNMPHelper.ifOperStatusOid);
-                        statVO.setIfOperStatus(SNMPHelper.getValueFromPDU(ifOperStatusList.get(index)));
+                        statVO.setIfOperStatus(index >= ifOperStatusList.size() ? null : SNMPHelper.getValueFromPDU(ifOperStatusList.get(index)));
                     }
                     if (hasIfCollection("if.HCOutBroadcastPkts")) {
                         List<PDU> ifHCOutBroadcastPktsList = session.walk(SNMPHelper.ifHCOutBroadcastPktsOid);
-                        statVO.setIfHCOutBroadcastPkts(SNMPHelper.getValueFromPDU(ifHCOutBroadcastPktsList.get(index)));
+                        statVO.setIfHCOutBroadcastPkts(index >= ifHCOutBroadcastPktsList.size() ? null : SNMPHelper.getValueFromPDU(ifHCOutBroadcastPktsList.get(index)));
                     }
                     if (hasIfCollection("if.HCOutMulticastPkts")) {
                         List<PDU> ifHCOutMulticastPktsList = session.walk(SNMPHelper.ifHCOutMulticastPktsOid);
-                        statVO.setIfHCOutMulticastPkts(SNMPHelper.getValueFromPDU(ifHCOutMulticastPktsList.get(index)));
+                        statVO.setIfHCOutMulticastPkts(index >= ifHCOutMulticastPktsList.size() ? null : SNMPHelper.getValueFromPDU(ifHCOutMulticastPktsList.get(index)));
                     }
                     statVO.setTime(new Date());
 
