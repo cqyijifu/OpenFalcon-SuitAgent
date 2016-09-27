@@ -9,6 +9,8 @@ package com.yiji.falcon.agent.plugins;
  */
 
 import com.yiji.falcon.agent.falcon.FalconReportObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -19,7 +21,6 @@ import java.util.Collection;
  * @author guqiu@yiji.com
  */
 public interface JDBCPlugin extends Plugin{
-
 
     /**
      * 获取JDBC连接集合
@@ -60,11 +61,13 @@ public interface JDBCPlugin extends Plugin{
      * 插件监控的服务正常运行时的內建监控报告
      * 若有些特殊的监控值无法用配置文件进行配置监控,可利用此方法进行硬编码形式进行获取
      * 注:此方法只有在监控对象可用时,才会调用,并加入到监控值报告中,一并上传
+     * @param connections
+     * 数据库连接 不需在方法内关闭连接
      * @return
      * @throws SQLException
      * @throws ClassNotFoundException
      */
-    Collection<FalconReportObject> inbuiltReportObjectsForValid() throws SQLException, ClassNotFoundException;
+    Collection<FalconReportObject> inbuiltReportObjectsForValid(Collection<Connection> connections) throws SQLException, ClassNotFoundException;
 
     /**
      * 关闭数据库连接的工具方法
@@ -72,14 +75,16 @@ public interface JDBCPlugin extends Plugin{
      * @throws SQLException
      * @throws ClassNotFoundException
      */
-    default void helpCloseConnections(Collection<Connection> connections) throws SQLException, ClassNotFoundException {
+    default void helpCloseConnections(Collection<Connection> connections) {
+        Logger logger = LoggerFactory.getLogger(JDBCPlugin.class);
         if(connections != null){
-            connections.stream().filter(connection -> null != connection).forEach(connection -> {
+            for (Connection connection : connections) {
                 try {
                     connection.close();
-                } catch (Exception ignored) {
+                } catch (SQLException e) {
+                    logger.error("数据库关闭异常",e);
                 }
-            });
+            }
         }
     }
 

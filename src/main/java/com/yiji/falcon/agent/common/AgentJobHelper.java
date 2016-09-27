@@ -21,6 +21,7 @@ import org.quartz.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.sql.Connection;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ConcurrentSkipListSet;
@@ -124,12 +125,14 @@ public class AgentJobHelper {
         if(!isHasWorked(serverName)){
             if(pluginActivateType == PluginActivateType.AUTO){
                 try {
-                    Collection collection = jdbcPlugin.getConnections();
-                    if(collection != null && !collection.isEmpty()){
+                    Collection<Connection> connections = jdbcPlugin.getConnections();
+                    if(connections != null && !connections.isEmpty()){
                         //无异常且连接正常,代表连接获取成功,开启服务监控
                         log.info("发现服务 {} , 启动插件 {} ",serverName,pluginName);
                         doJob(jobClazz,desc,step,jobDataMap,serverName);
                     }
+                    //关闭连接
+                    jdbcPlugin.helpCloseConnections(connections);
                 } catch (Exception ignored) {
                 }
             }else if(!StringUtils.isEmpty(jdbcPlugin.jdbcConfig()) && pluginActivateType == PluginActivateType.FORCE){

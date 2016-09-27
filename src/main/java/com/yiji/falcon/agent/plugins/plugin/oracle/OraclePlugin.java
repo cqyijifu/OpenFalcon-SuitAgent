@@ -142,13 +142,15 @@ public class OraclePlugin implements JDBCPlugin {
      * 插件监控的服务正常运行时的內建监控报告
      * 若有些特殊的监控值无法用配置文件进行配置监控,可利用此方法进行硬编码形式进行获取
      * 注:此方法只有在监控对象可用时,才会调用,并加入到监控值报告中,一并上传
-     *
+     * @param connections
+     * 数据库连接 不需在方法内关闭连接
      * @return
+     * @throws SQLException
+     * @throws ClassNotFoundException
      */
     @Override
-    public Collection<FalconReportObject> inbuiltReportObjectsForValid() throws SQLException, ClassNotFoundException {
+    public Collection<FalconReportObject> inbuiltReportObjectsForValid(Collection<Connection> connections) throws SQLException, ClassNotFoundException {
         List<FalconReportObject> result = new ArrayList<>();
-        Collection<Connection> connections = getConnections();
         for (Connection connection : connections) {
             //创建该连接下的PreparedStatement对象
             PreparedStatement pstmt = connection.prepareStatement(tbSql);
@@ -193,7 +195,6 @@ public class OraclePlugin implements JDBCPlugin {
             rs.close();
             pstmt.close();
         }
-        helpCloseConnections(connections);
 
         return result;
     }

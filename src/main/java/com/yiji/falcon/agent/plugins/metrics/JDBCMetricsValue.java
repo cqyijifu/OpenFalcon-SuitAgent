@@ -37,6 +37,8 @@ public class JDBCMetricsValue extends MetricsCommon{
 
     private JDBCPlugin jdbcPlugin;
 
+    private Collection<Connection> connections;
+
     public JDBCMetricsValue(JDBCPlugin jdbcPlugin) {
         this.jdbcPlugin = jdbcPlugin;
     }
@@ -51,10 +53,12 @@ public class JDBCMetricsValue extends MetricsCommon{
         Set<FalconReportObject> result = new HashSet<>();
         Map<String,String> allMetrics = getAllMetricsQuery();
         try {
-            jdbcPlugin.getConnections();
+            connections = jdbcPlugin.getConnections();
         } catch (Exception e) {
             log.warn("连接JDBC异常,创建不可用报告",e);
             result.add(MetricsCommon.generatorVariabilityReport(false,jdbcPlugin.agentSignName(),jdbcPlugin.step(),jdbcPlugin,jdbcPlugin.serverName()));
+            //关闭数据库连接
+            jdbcPlugin.helpCloseConnections(connections);
             return result;
         }
 
@@ -85,7 +89,7 @@ public class JDBCMetricsValue extends MetricsCommon{
 
         try {
             //添加內建报告
-            Collection<FalconReportObject> inbuilt = jdbcPlugin.inbuiltReportObjectsForValid();
+            Collection<FalconReportObject> inbuilt = jdbcPlugin.inbuiltReportObjectsForValid(connections);
             if(inbuilt != null && !inbuilt.isEmpty()){
                 result.addAll(inbuilt);
             }
@@ -93,6 +97,9 @@ public class JDBCMetricsValue extends MetricsCommon{
             log.error("插件內建报告获取异常",e);
         }
         result.add(MetricsCommon.generatorVariabilityReport(true,jdbcPlugin.agentSignName(),jdbcPlugin.step(),jdbcPlugin,jdbcPlugin.serverName()));
+
+        //关闭数据库连接
+        jdbcPlugin.helpCloseConnections(connections);
 
         return result;
     }
@@ -117,7 +124,6 @@ public class JDBCMetricsValue extends MetricsCommon{
     private String getMetricsValue(String sql) throws SQLException, ClassNotFoundException {
         String result = "";
         if(!StringUtils.isEmpty(sql)){
-            Collection<Connection> connections = jdbcPlugin.getConnections();
             for (Connection connection : connections) {
                 //创建该连接下的PreparedStatement对象
                 PreparedStatement pstmt = connection.prepareStatement(sql);
@@ -130,7 +136,6 @@ public class JDBCMetricsValue extends MetricsCommon{
                 rs.close();
                 pstmt.close();
             }
-            jdbcPlugin.helpCloseConnections(connections);
         }
         return result;
     }

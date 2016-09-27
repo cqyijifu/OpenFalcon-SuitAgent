@@ -29,9 +29,11 @@ import java.util.Set;
 class Metrics {
 
     private JDBCPlugin plugin;
+    private Collection<Connection> connections;
 
-    Metrics(JDBCPlugin plugin) {
+    Metrics(JDBCPlugin plugin,Collection<Connection> connections) {
         this.plugin = plugin;
+        this.connections = connections;
     }
 
     /**
@@ -40,18 +42,16 @@ class Metrics {
      */
     Collection<FalconReportObject> getReports() throws SQLException, ClassNotFoundException {
         Set<FalconReportObject> reportObjectSet = new HashSet<>();
-        Collection<Connection> connections = plugin.getConnections();
 
-        reportObjectSet.addAll(getGlobalStatus(connections));
-        reportObjectSet.addAll(getGlobalVariables(connections));
+        reportObjectSet.addAll(getGlobalStatus());
+        reportObjectSet.addAll(getGlobalVariables());
 //        reportObjectSet.addAll(getInnodbStatus());
-        reportObjectSet.addAll(getSalveStatus(connections));
+        reportObjectSet.addAll(getSalveStatus());
 
-        plugin.helpCloseConnections(connections);
         return reportObjectSet;
     }
 
-    private Collection<? extends FalconReportObject> getSalveStatus(Collection<Connection> connections) throws SQLException, ClassNotFoundException {
+    private Collection<? extends FalconReportObject> getSalveStatus() throws SQLException, ClassNotFoundException {
         Set<FalconReportObject> reportObjectSet = new HashSet<>();
         String sql = "show slave status";
         for (Connection connection : connections) {
@@ -98,7 +98,7 @@ class Metrics {
         return reportObjectSet;
     }
 
-    private Collection<? extends FalconReportObject> getGlobalVariables(Collection<Connection> connections) throws SQLException, ClassNotFoundException {
+    private Collection<? extends FalconReportObject> getGlobalVariables() throws SQLException, ClassNotFoundException {
         Set<FalconReportObject> reportObjectSet = new HashSet<>();
         String sql = "SHOW /*!50001 GLOBAL */ VARIABLES";
         for (Connection connection : connections) {
@@ -133,7 +133,7 @@ class Metrics {
 //        return reportObjectSet;
 //    }
 
-    private Collection<? extends FalconReportObject> getGlobalStatus(Collection<Connection> connections) throws SQLException, ClassNotFoundException {
+    private Collection<? extends FalconReportObject> getGlobalStatus() throws SQLException, ClassNotFoundException {
         Set<FalconReportObject> reportObjectSet = new HashSet<>();
         String sql = "SHOW /*!50001 GLOBAL */ STATUS";
         for (Connection connection : connections) {
