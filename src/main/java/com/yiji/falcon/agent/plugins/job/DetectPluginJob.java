@@ -8,10 +8,9 @@ package com.yiji.falcon.agent.plugins.job;
  * guqiu@yiji.com 2016-07-22 11:00 创建
  */
 
-import com.yiji.falcon.agent.falcon.ReportMetrics;
 import com.yiji.falcon.agent.plugins.DetectPlugin;
-import com.yiji.falcon.agent.plugins.metrics.MetricsCommon;
 import com.yiji.falcon.agent.plugins.metrics.DetectMetricsValue;
+import com.yiji.falcon.agent.plugins.metrics.MetricsCommon;
 import com.yiji.falcon.agent.util.ExecuteThreadUtil;
 import org.quartz.Job;
 import org.quartz.JobDataMap;
