@@ -303,7 +303,9 @@ public class SNMPV3MetricsValue extends MetricsCommon {
         }
         for (Future<List<FalconReportObject>> future : futureList) {
             try {
-                result.addAll(future.get());
+                if(future != null){
+                    result.addAll(future.get());
+                }
             } catch (Exception e) {
                 logger.error("SNMP采集异常，target：{}",e);
             }
