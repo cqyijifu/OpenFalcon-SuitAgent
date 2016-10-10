@@ -16,7 +16,6 @@ import com.yiji.falcon.agent.plugins.SNMPV3Plugin;
 import com.yiji.falcon.agent.plugins.util.SNMPHelper;
 import com.yiji.falcon.agent.plugins.util.SNMPV3Session;
 import com.yiji.falcon.agent.util.CommandUtilForUnix;
-import com.yiji.falcon.agent.util.ExecuteThreadUtil;
 import com.yiji.falcon.agent.util.StringUtils;
 import com.yiji.falcon.agent.vo.snmp.IfStatVO;
 import com.yiji.falcon.agent.vo.snmp.SNMPV3UserInfo;
@@ -27,9 +26,7 @@ import org.snmp4j.smi.VariableBinding;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 import static com.yiji.falcon.agent.plugins.util.SNMPHelper.ignoreIfName;
@@ -297,64 +294,69 @@ public class SNMPV3MetricsValue extends MetricsCommon {
             return result;
         }
 
-        List<Future<List<FalconReportObject>>> futureList = new ArrayList<>();
+//        List<Future<List<FalconReportObject>>> futureList = new ArrayList<>();
         for (SNMPV3Session session : sessionList) {
-            futureList.add(ExecuteThreadUtil.execute(new Collect(session)));
+//            futureList.add(ExecuteThreadUtil.execute(new Collect(session)));
+            result.addAll(getReports(session));
         }
-        for (Future<List<FalconReportObject>> future : futureList) {
-            try {
-                if(future != null){
-                    result.addAll(future.get());
-                }
-            } catch (Exception e) {
-                logger.error("SNMP采集异常，target：{}",e);
-            }
-        }
+//        for (Future<List<FalconReportObject>> future : futureList) {
+//            try {
+//                if(future != null){
+//                    result.addAll(future.get());
+//                }
+//            } catch (Exception e) {
+//                logger.error("SNMP采集异常，target：{}",e);
+//            }
+//        }
 
         return result;
     }
 
-    private class Collect implements Callable<List<FalconReportObject>>{
-
-        private SNMPV3Session session;
-
-        public Collect(SNMPV3Session session) {
-            this.session = session;
+    private List<FalconReportObject> getReports(SNMPV3Session session){
+        List<FalconReportObject> temp = new ArrayList<>();
+        //ping报告
+        FalconReportObject reportObject = ping(session, 5);
+        if (reportObject != null) {
+            temp.add(reportObject);
+        }
+        try {
+            temp.addAll(getIfStatReports(session));
+            //添加可用性报告
+            temp.add(MetricsCommon.generatorVariabilityReport(true, session.getEquipmentName(), plugin.step(), plugin, plugin.serverName()));
+            //添加插件报告
+            Collection<FalconReportObject> inBuildReports = plugin.inbuiltReportObjectsForValid(session);
+            if (inBuildReports != null && !inBuildReports.isEmpty()) {
+                temp.addAll(inBuildReports);
+            }
+        } catch (Exception e) {
+            logger.error("设备 {} 通过SNMP获取监控数据发生异常,push 该设备不可用报告", session.toString(), e);
+            temp.add(MetricsCommon.generatorVariabilityReport(false, "allUnVariability", plugin.step(), plugin, plugin.serverName()));
         }
 
-        @Override
-        public List<FalconReportObject> call() throws Exception {
-            List<FalconReportObject> temp = new ArrayList<>();
-            //ping报告
-            FalconReportObject reportObject = ping(session, 5);
-            if (reportObject != null) {
-                temp.add(reportObject);
+        // EndPoint 单独设置
+        temp.forEach(report -> {
+            String endPoint = session.getUserInfo().getEndPoint();
+            if (!StringUtils.isEmpty(endPoint) && reportObject != null) {
+                //设置单独设置的endPoint
+                report.setEndpoint(endPoint);
+                report.appendTags("customerEndPoint=true");
             }
-            try {
-                temp.addAll(getIfStatReports(session));
-                //添加可用性报告
-                temp.add(MetricsCommon.generatorVariabilityReport(true, session.getEquipmentName(), plugin.step(), plugin, plugin.serverName()));
-                //添加插件报告
-                Collection<FalconReportObject> inBuildReports = plugin.inbuiltReportObjectsForValid(session);
-                if (inBuildReports != null && !inBuildReports.isEmpty()) {
-                    temp.addAll(inBuildReports);
-                }
-            } catch (Exception e) {
-                logger.error("设备 {} 通过SNMP获取监控数据发生异常,push 该设备不可用报告", session.toString(), e);
-                temp.add(MetricsCommon.generatorVariabilityReport(false, "allUnVariability", plugin.step(), plugin, plugin.serverName()));
-            }
-
-            // EndPoint 单独设置
-            temp.forEach(report -> {
-                String endPoint = session.getUserInfo().getEndPoint();
-                if (!StringUtils.isEmpty(endPoint) && reportObject != null) {
-                    //设置单独设置的endPoint
-                    report.setEndpoint(endPoint);
-                    report.appendTags("customerEndPoint=true");
-                }
-            });
-            return temp;
-        }
+        });
+        return temp;
     }
+
+//    private class Collect implements Callable<List<FalconReportObject>>{
+//
+//        private SNMPV3Session session;
+//
+//        public Collect(SNMPV3Session session) {
+//            this.session = session;
+//        }
+//
+//        @Override
+//        public List<FalconReportObject> call() throws Exception {
+//            return getReports(session);
+//        }
+//    }
 
 }
