@@ -59,7 +59,7 @@ public class FileUtil {
             BufferedReader reader = new BufferedReader(read);
             String line = "";
             while((line = reader.readLine()) != null){
-                text.append(line).append("\r\n");
+                text.append(line).append("\n");
             }
             reader.close();
 		} catch (Exception e) {
@@ -95,7 +95,7 @@ public class FileUtil {
                 BufferedReader reader = new BufferedReader(read);
                 String line = "";
                 while((line = reader.readLine()) != null){
-                    text.append(line).append("\r\n");
+                    text.append(line).append("\n");
                 }
 				filesText.add(text.toString());
 				reader.close();
@@ -138,7 +138,7 @@ public class FileUtil {
             BufferedReader reader = new BufferedReader(read);
             String line = "";
             while((line = reader.readLine()) != null){
-                text.append(line).append("\r\n");
+                text.append(line).append("\n");
             }
 			reader.close();
 		} catch (Exception e) {
