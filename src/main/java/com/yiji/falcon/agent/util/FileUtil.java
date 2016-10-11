@@ -50,7 +50,7 @@ public class FileUtil {
                     log.warn("文件已存在");
                 }
 			} catch (IOException e) {
-                log.error("文件读取失败，请检查是否有文件读取权限，或指定文件是否损坏等");
+                log.error("文件读取失败，请检查是否有文件读取权限，或指定文件是否损坏等",e);
 			}
 		}
 		try {
@@ -101,6 +101,7 @@ public class FileUtil {
 				reader.close();
 			}
 		} catch (Exception e) {
+            log.error("",e);
             return new ArrayList<>();
 		}
 		return filesText;
@@ -142,6 +143,7 @@ public class FileUtil {
             }
 			reader.close();
 		} catch (Exception e) {
+            log.error("",e);
             return "文件读取失败，请检查是否有文件读取权限，或指定文件是否损坏等";
 		}
 		return text.toString();
@@ -184,6 +186,7 @@ public class FileUtil {
 			writer.close();
 			return true;
 		} catch (Exception e) {
+            log.error("",e);
 			return false;
 		}
     }
@@ -209,6 +212,7 @@ public class FileUtil {
             writer.close();
             return true;
         } catch (Exception e) {
+            log.error("",e);
             return false;
         }
     }
@@ -230,6 +234,7 @@ public class FileUtil {
             ins.close();
             return true;
         } catch (Exception e) {
+            log.error("",e);
             return false;
         }
     }
