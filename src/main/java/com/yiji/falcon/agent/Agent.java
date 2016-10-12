@@ -222,8 +222,6 @@ public class Agent extends Thread{
 
         log.info("关闭JMX连接");
         JMXConnection.close();
-        log.info("关闭SNMP连接");
-        SNMPV3MetricsValue.closeAllSession();
 
         String agentPushUrl = AgentConfiguration.INSTANCE.getAgentPushUrl();
         if(agentPushUrl.contains("127.0.0.1") ||

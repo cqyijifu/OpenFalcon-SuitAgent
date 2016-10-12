@@ -26,7 +26,6 @@ import org.snmp4j.smi.VariableBinding;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import static com.yiji.falcon.agent.plugins.util.SNMPHelper.ignoreIfName;
@@ -38,27 +37,10 @@ public class SNMPV3MetricsValue extends MetricsCommon {
 
     private static final Logger logger = LoggerFactory.getLogger(SNMPV3MetricsValue.class);
 
-    private static final ConcurrentHashMap<String, List<SNMPV3Session>> pluginSessionsMem = new ConcurrentHashMap<>();
-
     private SNMPV3Plugin plugin;
 
     public SNMPV3MetricsValue(SNMPV3Plugin plugin) {
         this.plugin = plugin;
-    }
-
-    /**
-     * 关闭所有的SNMP连接
-     */
-    public static void closeAllSession() {
-        for (List<SNMPV3Session> sessions : pluginSessionsMem.values()) {
-            for (SNMPV3Session session : sessions) {
-                try {
-                    session.close();
-                } catch (IOException e) {
-                    logger.error("", e);
-                }
-            }
-        }
     }
 
     /**
@@ -80,7 +62,6 @@ public class SNMPV3MetricsValue extends MetricsCommon {
             }
         }
 
-        pluginSessionsMem.put(plugin.pluginName(), pluginSessions);
         return pluginSessions;
     }
 
@@ -298,6 +279,12 @@ public class SNMPV3MetricsValue extends MetricsCommon {
         for (SNMPV3Session session : sessionList) {
 //            futureList.add(ExecuteThreadUtil.execute(new Collect(session)));
             result.addAll(getReports(session));
+
+            try {
+                session.close();
+            } catch (Exception e) {
+                logger.error("SNMP Session Close Exception",e);
+            }
         }
 //        for (Future<List<FalconReportObject>> future : futureList) {
 //            try {
