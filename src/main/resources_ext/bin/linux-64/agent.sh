@@ -44,6 +44,7 @@ client_cmd="${JAVA} \
 	-Dagent.plugin.conf.dir=${agentHome}/conf/plugin \
 	-Dagent.falcon.dir=${agentHome}/falcon \
 	-Dagent.falcon.conf.dir=${agentHome}/conf/falcon \
+	-Dagent.home.dir=${agentHome} \
 	-cp ${agent_classpath} ${agent_class} $1
 "
 
@@ -54,9 +55,12 @@ start)
 stop)
 	$client_cmd
 ;;
+update)
+	$client_cmd
+;;
 status)
 	$client_cmd
 ;;
 *)
-    echo "Syntax: program < start | stop | status >"
+    echo "Syntax: program < start | stop | status | update >"
 esac

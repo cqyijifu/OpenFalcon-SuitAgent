@@ -6,7 +6,7 @@
 
     <groupId>com.yiji.falcon.agent</groupId>
     <artifactId>falcon-agent</artifactId>
-    <version>1.0-beta</version>
+    <version>1.0</version>
 
     <profiles>
         <profile>
@@ -302,6 +302,18 @@
             <groupId>com.github.kevinsawicki</groupId>
             <artifactId>http-request</artifactId>
             <version>6.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.5</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-compress</artifactId>
+            <version>1.9</version>
         </dependency>
 
         <!--<dependency>
