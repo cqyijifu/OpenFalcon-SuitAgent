@@ -270,27 +270,32 @@ JMX监控的属性，由以下三部分组成
 
 采集的私有metric列表	
 
-		- 公共的metrics数据
-		- CPU利用率
-		- 内存利用率
+	- 公共的metrics数据
+	- CPU利用率
+	- 内存利用率
 
 内存和CPU的目前测试的支持设备
-​	
-		- Cisco IOS(Version 12)
-		- Cisco NX-OS(Version 6)
-		- Cisco IOS XR(Version 5)
-		- Cisco IOS XE(Version 15)
-		- Cisco ASA (Version 9)
-		- Ruijie 10G Routing Switch
-		- Huawei VRP(Version 8)
-		- Huawei VRP(Version 5.20)
-		- Huawei VRP(Version 5.120)
-		- Huawei VRP(Version 5.130)
-		- Huawei VRP(Version 5.70)
-		- Juniper JUNOS(Version 10)
-		- H3C(Version 5)
-		- H3C(Version 5.20)
-		- H3C(Version 7)
+
+
+```
+- Cisco IOS(Version 12)
+- Cisco NX-OS(Version 6)
+- Cisco IOS XR(Version 5)
+- Cisco IOS XE(Version 15)
+- Cisco ASA (Version 9)
+- Ruijie 10G Routing Switch
+- Huawei VRP(Version 8)
+- Huawei VRP(Version 5.20)
+- Huawei VRP(Version 5.120)
+- Huawei VRP(Version 5.130)
+- Huawei VRP(Version 5.70)
+- Juniper JUNOS(Version 10)
+- H3C(Version 5)
+- H3C(Version 5.20)
+- H3C(Version 7)
+```
+
+
 
 #### 探测监控服务
 
@@ -304,7 +309,7 @@ JMX监控的属性，由以下三部分组成
 
 -  Ping监控
 
-    监控Metrics
+     监控Metrics
 
    - availability
      - pingAvgTime : ping的平均延时（当前为每次ping5次，取绝对值）
@@ -312,14 +317,14 @@ JMX监控的属性，由以下三部分组成
 
 -  TCP（Socket）监控
 
-    监控Metrics : 
+     监控Metrics : 
 
    - availability
      - response.time : 响应时间 毫秒
 
 -  Yiji NTP 监控
 
-    监控Metrics
+     监控Metrics
 
    - availability
       - `0`：NTP监控失败（如ntpdate命令执行失败）
@@ -328,7 +333,7 @@ JMX监控的属性，由以下三部分组成
 
 -  Docker 监控
 
-    监控Metrics
+     监控Metrics
 
    - availability
       - `0`：Docker daemon 探测失败
