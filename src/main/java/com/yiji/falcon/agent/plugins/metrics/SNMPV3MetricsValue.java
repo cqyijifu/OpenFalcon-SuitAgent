@@ -45,7 +45,6 @@ public class SNMPV3MetricsValue extends MetricsCommon {
 
     /**
      * 获取SNMP的session
-     * 首先从缓存中获取,若获取失败,则进行缓存对象的创建,并加入缓存
      *
      * @return
      * @throws IOException
