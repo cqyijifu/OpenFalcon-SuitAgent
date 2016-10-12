@@ -27,6 +27,8 @@ public enum  AgentConfiguration {
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
+    public static final float VERSION = (float) 2.0;
+
     /**
      * quartz配置文件路径
      */
@@ -102,8 +104,13 @@ public enum  AgentConfiguration {
      */
     private boolean agentJMXLocalConnect = false;
 
+    private String agentUpdateUrl = null;
+
+    private String agentHomeDir;
+
 
     private static final String CONF_AGENT_ENDPOINT = "agent.endpoint";
+    private static final String CONF_AGENT_HOME = "agent.home.dir";
     private static final String CONF_AGENT_FLUSH_TIME = "agent.flush.time";
     private static final String CONF_AGENT_MAX_THREAD = "agent.thread.maxCount";
 
@@ -116,6 +123,7 @@ public enum  AgentConfiguration {
     private static final String FALCON_DIR_PATH = "agent.falcon.dir";
     private static final String FALCON_CONF_DIR_PATH = "agent.falcon.conf.dir";
     private static final String CONF_AGENT_JMX_LOCAL_CONNECT = "agent.jmx.localConnectSupport";
+    private static final String CONF_AGENT_UPDATE_URL = "agent.update.pack.url";
 
     private Properties agentConf = null;
 
@@ -128,6 +136,13 @@ public enum  AgentConfiguration {
             System.exit(0);
         }else{
             this.agentConfPath = System.getProperty("agent.conf.path");
+        }
+
+        if(StringUtils.isEmpty(System.getProperty(CONF_AGENT_HOME))){
+            log.error("agent home dir 读取失败,请确定系统配置项:" + CONF_AGENT_HOME);
+            System.exit(0);
+        }else{
+            this.agentHomeDir = System.getProperty(CONF_AGENT_HOME);
         }
 
         if(StringUtils.isEmpty(System.getProperty(AUTHORIZATION_CONF_PATH))){
@@ -206,6 +221,10 @@ public enum  AgentConfiguration {
 
         if(!StringUtils.isEmpty(agentConf.getProperty(CONF_AGENT_JMX_LOCAL_CONNECT))){
             this.agentJMXLocalConnect = "true".equals(agentConf.getProperty(CONF_AGENT_JMX_LOCAL_CONNECT));
+        }
+
+        if(!StringUtils.isEmpty(agentConf.getProperty(CONF_AGENT_UPDATE_URL))){
+            this.agentUpdateUrl = agentConf.getProperty(CONF_AGENT_UPDATE_URL);
         }
 
         if(!StringUtils.isEmpty(agentConf.getProperty(CONF_AGENT_PORT))){
@@ -324,5 +343,13 @@ public enum  AgentConfiguration {
 
     public int getMockValidTime() {
         return mockValidTime;
+    }
+
+    public String getAgentUpdateUrl() {
+        return agentUpdateUrl;
+    }
+
+    public String getAgentHomeDir() {
+        return agentHomeDir;
     }
 }

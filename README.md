@@ -1,7 +1,12 @@
 # OpenFalcon-SuitAgent
 
-
 ### 升级日志
+
+---
+
+**2016年10月12日**
+
+- `SuitAgent`添加在线升级功能（也支持未在互联网环境的局域网升级）。从此以后，`SuitAgent`升级，只需要一条命令`./bin/agent.sh update`就可以升级啦。更新从此不再是麻烦事，一切升级操作，程序帮你自动搞定。如果是互联网环境，直接命令就可以升级，如果`SuitAgent`未联网，可参考`conf/agent.properties`配置文件中，关于自定义配置升级地址的说明。
 
 ---
 
@@ -42,8 +47,6 @@
 - alpha：内部测试版（不建议使用于生产环境）
 - beta：公开测试版（不建议使用于生产环境）
 - final：最终正式版（可用于生产环境）
-
-当前版本请查看pom.xml信息。
 
 ### 使用之前
 
@@ -135,7 +138,8 @@ https://yunpan.cn/cMTHpgsQ3e5DV （提取码：9f74）
     - 可通过`tail -f conf/console.log`  
       观察`SuitAgent`的运行情况
 - 关闭：`./bin/agent.sh stop`
-- 状态：`/bin/agent.sh status`
+- 状态：`./bin/agent.sh status`
+- 升级：`./bin/agent.sh update`
 
 ### SuitAgent日志
 
@@ -300,7 +304,7 @@ JMX监控的属性，由以下三部分组成
 
 -  Ping监控
 
-   监控Metrics
+    监控Metrics
 
    - availability
      - pingAvgTime : ping的平均延时（当前为每次ping5次，取绝对值）
@@ -308,14 +312,14 @@ JMX监控的属性，由以下三部分组成
 
 -  TCP（Socket）监控
 
-   监控Metrics : 
+    监控Metrics : 
 
    - availability
      - response.time : 响应时间 毫秒
 
 -  Yiji NTP 监控
 
-   监控Metrics
+    监控Metrics
 
    - availability
       - `0`：NTP监控失败（如ntpdate命令执行失败）
@@ -324,7 +328,7 @@ JMX监控的属性，由以下三部分组成
 
 -  Docker 监控
 
-   监控Metrics
+    监控Metrics
 
    - availability
       - `0`：Docker daemon 探测失败

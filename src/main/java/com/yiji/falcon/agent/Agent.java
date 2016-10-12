@@ -6,7 +6,6 @@ package com.yiji.falcon.agent;
 
 import com.yiji.falcon.agent.config.AgentConfiguration;
 import com.yiji.falcon.agent.jmx.JMXConnection;
-import com.yiji.falcon.agent.plugins.metrics.SNMPV3MetricsValue;
 import com.yiji.falcon.agent.plugins.util.PluginExecute;
 import com.yiji.falcon.agent.plugins.util.PluginLibraryHelper;
 import com.yiji.falcon.agent.util.*;
@@ -288,11 +287,12 @@ public class Agent extends Thread{
     }
 
     public static void main(String[] args){
-        String errorMsg = "Syntax: program < start | stop | status >";
+        String errorMsg = "Syntax: program < start | stop | status | update>";
         if(args.length < 1 ||
                         !("start".equals(args[0]) ||
                                 "stop".equals(args[0]) ||
-                                "status".equals(args[0])
+                                "status".equals(args[0]) ||
+                                "update".equals(args[0])
                         ))
         {
             ERR.println(errorMsg);
@@ -318,7 +318,10 @@ public class Agent extends Thread{
                 stopAgent();
                 break;
             case "status":
-                statusAgent();
+                statusAgent(true);
+                break;
+            case "update":
+                update();
                 break;
             default:
                 OUT.println(errorMsg);
@@ -326,15 +329,42 @@ public class Agent extends Thread{
 
     }
 
-    private static void statusAgent(){
+    /**
+     * 升级操作
+     */
+    private static void update() {
+        if(statusAgent(false)){
+            log.warn("Suit-Agent is running,please stop it at first");
+            return;
+        }
+        try {
+            new Update().update();
+        } catch (Exception e) {
+            log.error("update exception",e);
+        }
+    }
+
+    /**
+     * Agent运行状态
+     * @param showLog 是否打印状态日志
+     * @return
+     * true：正在运行
+     */
+    private static boolean statusAgent(boolean showLog){
         try {
             Client client = new Client();
             client.start(AgentConfiguration.INSTANCE.getAgentPort());
-            OUT.println("Agent Started On Port " + AgentConfiguration.INSTANCE.getAgentPort());
+            if(showLog){
+                OUT.println("Agent Started On Port " + AgentConfiguration.INSTANCE.getAgentPort());
+            }
             client.closeClient();
+            return true;
         } catch (IOException e) {
-            exception(e);
-            OUT.println("Connection refused ! Agent Not Start");
+            if(showLog){
+                exception(e);
+                OUT.println("Connection refused ! Agent Not Start");
+            }
+            return false;
         }
     }
 
