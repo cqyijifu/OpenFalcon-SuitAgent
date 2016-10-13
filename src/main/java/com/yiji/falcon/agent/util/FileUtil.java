@@ -35,7 +35,7 @@ public class FileUtil {
     }
 
 	/**
-	 * 获取文本文件的文本内容 若没有此文件，则创建一个新文件，返回空串
+	 * 获取文本文件的文本内容 若没有此文件，返回空串
 	 * 
 	 * @param fileName
 	 * @return
@@ -45,13 +45,8 @@ public class FileUtil {
         StringBuilder text = new StringBuilder();
 		File f = new File(fileName);
 		if (!f.exists()) {
-			try {
-				if(!f.createNewFile()){
-                    log.warn("文件已存在");
-                }
-			} catch (IOException e) {
-                log.error("文件读取失败，请检查是否有文件读取权限，或指定文件是否损坏等",e);
-			}
+            log.error("文件{}不存在",fileName);
+            return "";
 		}
 		try {
             FileInputStream fis = new FileInputStream(f);
