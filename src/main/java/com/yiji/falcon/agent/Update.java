@@ -227,15 +227,17 @@ public class Update {
                 StringBuilder finalContent = new StringBuilder();
                 StringTokenizer st = new StringTokenizer(content,"\n",true);
                 boolean add = true;//判断是否指定新key的添加操作
-                String addKeyName = "";//获取新key的名称
-                if(targetKeyName.contains("=")){//如果是add操作，targetKeyName将会是key = value的字符串
-                    addKeyName = targetKeyName.split("=")[0].trim();
+                String newPropertiesKey = "";//需要新增的Key
+                if(targetKeyName.contains("=")){//如果是add操作，targetKeyName可能会是key = value的字符串
+                    newPropertiesKey = targetKeyName.split("=")[0].trim();
+                }else{
+                    newPropertiesKey = targetKeyName;
                 }
                 while( st.hasMoreElements() ){
                     String line = st.nextToken();
                     String lineTrim = line.trim();
                     if("add".equals(type)){
-                        if(!lineTrim.startsWith("#") && lineTrim.startsWith(addKeyName)){
+                        if(!lineTrim.startsWith("#") && lineTrim.startsWith(newPropertiesKey)){
                             //如果已存在key，否定新key的添加操作
                             add = false;
                         }
