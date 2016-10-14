@@ -4,6 +4,13 @@
 
 ---
 
+**2016年10月13日**
+
+- 版本：3.0
+  - ​    添加 1，5，15分钟的系统负载 除 CPU 核数 的 监控值的插件（CpuLoadAvgByCpuCoreNumPlugin），只支持Linux系统。
+
+---
+
 **2016年10月12日**
 
 - `SuitAgent`添加在线升级功能（也支持未在互联网环境的局域网升级）。从此以后，`SuitAgent`升级，只需要一条命令`./bin/agent.sh update`就可以升级啦。更新从此不再是麻烦事，一切升级操作，程序帮你自动搞定。如果是互联网环境，直接命令就可以升级，如果`SuitAgent`未联网，可参考`conf/agent.properties`配置文件中，关于自定义配置升级地址的说明（未联网升级可利用我开发的小工具方便升级：[SuitAgent-UpdateTool](https://github.com/cqyijifu/SuitAgent-UpdateToole)）。
@@ -309,7 +316,7 @@ JMX监控的属性，由以下三部分组成
 
 -  Ping监控
 
-      监控Metrics
+       监控Metrics
 
    - availability
      - pingAvgTime : ping的平均延时（当前为每次ping5次，取绝对值）
@@ -317,14 +324,14 @@ JMX监控的属性，由以下三部分组成
 
 -  TCP（Socket）监控
 
-      监控Metrics : 
+       监控Metrics : 
 
    - availability
      - response.time : 响应时间 毫秒
 
 -  Yiji NTP 监控
 
-      监控Metrics
+       监控Metrics
 
    - availability
       - `0`：NTP监控失败（如ntpdate命令执行失败）
@@ -333,7 +340,7 @@ JMX监控的属性，由以下三部分组成
 
 -  Docker 监控
 
-      监控Metrics
+       监控Metrics
 
    - availability
       - `0`：Docker daemon 探测失败
