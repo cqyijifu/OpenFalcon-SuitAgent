@@ -7,8 +7,13 @@
  * guqiu@yiji.com 2016-08-09 10:58 创建
  */
 
-import com.yiji.falcon.agent.util.Maths;
+import org.ho.yaml.Yaml;
 import org.junit.Test;
+
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author guqiu@yiji.com
@@ -16,8 +21,9 @@ import org.junit.Test;
 public class UtilTest {
 
     @Test
-    public void test(){
-        System.out.println(Maths.div(3,5));
+    public void test() throws FileNotFoundException {
+        Map<String,Map<String,Object>> updateConf = Yaml.loadType(new FileInputStream("/Users/QianL/Documents/develop/falcon-agent/SuitAgent-Update/3.0/updateList.yml"),HashMap.class);
+        System.out.println(updateConf);
     }
 
 }

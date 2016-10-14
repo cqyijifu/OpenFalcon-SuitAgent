@@ -19,9 +19,8 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author guqiu@yiji.com
@@ -31,7 +30,7 @@ public class TcpPlugin implements DetectPlugin {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private int step;
-    private String address;
+    private Set<String> addresses = new HashSet<>();
 
     /**
      * 监控的具体服务的agentSignName tag值
@@ -41,7 +40,13 @@ public class TcpPlugin implements DetectPlugin {
      */
     @Override
     public String agentSignName(String address) {
-        return address;
+        String adder;
+        if(address.contains("[") && address.contains("]")){
+            adder = address.substring(0,address.indexOf("["));
+        }else{
+            adder = address;
+        }
+        return adder;
     }
 
     /**
@@ -52,19 +57,29 @@ public class TcpPlugin implements DetectPlugin {
      */
     @Override
     public DetectResult detectResult(String address) {
+        String adder,tags = "";
+        if(address.contains("[") && address.contains("]")){
+            adder = address.substring(0,address.indexOf("["));
+            tags = address.substring(address.indexOf("[") + 1,address.lastIndexOf("]"));
+            tags = tags.replace(";",",");
+        }else{
+            adder = address;
+        }
+
         String ipAddr = "";
         int port = 80;
-        String[] ss = address.split(":");
+        String[] ss = adder.split(":");
         if(ss.length == 1){
             ipAddr = ss[0];
         }else if(ss.length == 2){
             ipAddr = ss[0];
             port = Integer.parseInt(ss[1]);
         }else{
-            logger.error("地址配置:{} 非法,请确定是否符合 address:port格式",address);
+            logger.error("地址配置:{} 非法,请确定是否符合 address:port格式",adder);
             return null;
         }
         DetectResult detectResult = new DetectResult();
+        detectResult.setCommonTag(tags);
         Socket socket = null;
         try {
             boolean isAva = false;
@@ -108,7 +123,11 @@ public class TcpPlugin implements DetectPlugin {
      */
     @Override
     public Collection<String> detectAddressCollection() {
-        return helpTransformAddressCollection(this.address,",");
+        Set<String> adders = new HashSet<>();
+        for (String address : addresses) {
+            adders.addAll(helpTransformAddressCollection(address,","));
+        }
+        return adders;
     }
 
     /**
@@ -123,7 +142,8 @@ public class TcpPlugin implements DetectPlugin {
     @Override
     public void init(Map<String, String> properties) {
         this.step = Integer.parseInt(properties.get("step"));
-        this.address = properties.get("address");
+        Set<String> keys = properties.keySet();
+        addresses.addAll(keys.stream().filter(key -> key != null).filter(key -> key.contains("address")).map(properties::get).collect(Collectors.toList()));
     }
 
     /**

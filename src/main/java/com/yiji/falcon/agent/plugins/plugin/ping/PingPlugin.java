@@ -18,10 +18,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author guqiu@yiji.com
@@ -31,7 +29,7 @@ public class PingPlugin implements DetectPlugin {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private int step;
-    private String address;
+    private Set<String> addresses = new HashSet<>();
 
     /**
      * 监控的具体服务的agentSignName tag值
@@ -41,7 +39,13 @@ public class PingPlugin implements DetectPlugin {
      */
     @Override
     public String agentSignName(String address) {
-        return address;
+        String adds = "";
+        if(address.contains("[") && address.contains("]")){
+            adds = address.substring(0,address.indexOf("["));
+        }else{
+            adds = address;
+        }
+        return adds;
     }
 
     /**
@@ -52,13 +56,25 @@ public class PingPlugin implements DetectPlugin {
      */
     @Override
     public DetectResult detectResult(String address) {
+        String adds;
+        String tags = "";
+        if(address.contains("[") && address.contains("]")){
+            adds = address.substring(0,address.indexOf("["));
+            tags = address.substring(address.indexOf("[") + 1,address.lastIndexOf("]"));
+            tags = tags.replace(";",",");
+        }else{
+            adds = address;
+        }
         int pingCount = 5;
         try {
             DetectResult result = new DetectResult();
-            CommandUtilForUnix.PingResult pingResult = CommandUtilForUnix.ping(address,pingCount);
+            result.setCommonTag(tags);
+            CommandUtilForUnix.PingResult pingResult = CommandUtilForUnix.ping(adds,pingCount);
             if(pingResult.resultCode == -2){
                 //命令执行失败
-                return null;
+                result.setSuccess(false);
+                //返回探测失败结果
+                return result;
             }
             if(pingResult.resultCode == -1){
                 result.setSuccess(false);
@@ -74,7 +90,7 @@ public class PingPlugin implements DetectPlugin {
                 return result;
             }
         } catch (IOException e) {
-            logger.error("Ping {} 命令执行异常",address,e);
+            logger.error("Ping {} 命令执行异常",adds,e);
         }
         return null;
     }
@@ -87,7 +103,11 @@ public class PingPlugin implements DetectPlugin {
      */
     @Override
     public Collection<String> detectAddressCollection() {
-        return helpTransformAddressCollection(this.address,",");
+        Set<String> adders = new HashSet<>();
+        for (String address : addresses) {
+            adders.addAll(helpTransformAddressCollection(address,","));
+        }
+        return adders;
     }
 
     /**
@@ -102,7 +122,8 @@ public class PingPlugin implements DetectPlugin {
     @Override
     public void init(Map<String, String> properties) {
         step = Integer.parseInt(properties.get("step"));
-        address = properties.get("address");
+        Set<String> keys = properties.keySet();
+        addresses.addAll(keys.stream().filter(key -> key != null).filter(key -> key.contains("address")).map(properties::get).collect(Collectors.toList()));
     }
 
     /**

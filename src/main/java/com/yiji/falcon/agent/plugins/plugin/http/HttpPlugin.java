@@ -18,10 +18,8 @@ import com.yiji.falcon.agent.vo.detect.DetectResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author guqiu@yiji.com
@@ -31,7 +29,7 @@ public class HttpPlugin implements DetectPlugin {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private int step;
-    private String address;
+    private Set<String> addresses = new HashSet<>();
 
     /**
      * 插件初始化操作
@@ -45,7 +43,8 @@ public class HttpPlugin implements DetectPlugin {
     @Override
     public void init(Map<String, String> properties) {
         step = Integer.parseInt(properties.get("step"));
-        address = properties.get("address");
+        Set<String> keys = properties.keySet();
+        addresses.addAll(keys.stream().filter(key -> key != null).filter(key -> key.contains("address")).map(properties::get).collect(Collectors.toList()));
     }
 
     /**
@@ -87,7 +86,14 @@ public class HttpPlugin implements DetectPlugin {
      */
     @Override
     public String agentSignName(String address) {
-        AddressParse.Address addObj = AddressParse.parseAddress(address);
+        String adder;
+        if(address.contains("[") && address.contains("]")){
+            adder = address.substring(0,address.indexOf("["));
+        }else{
+            adder = address;
+        }
+
+        AddressParse.Address addObj = AddressParse.parseAddress(adder);
 
         if(addObj != null && !StringUtils.isEmpty(addObj.url)){
             String url = addObj.url;
@@ -109,10 +115,20 @@ public class HttpPlugin implements DetectPlugin {
      */
     @Override
     public DetectResult detectResult(String address) {
-        AddressParse.Address addObj = AddressParse.parseAddress(address);
+        String adder,tags = "";
+        if(address.contains("[") && address.contains("]")){
+            adder = address.substring(0,address.indexOf("["));
+            tags = address.substring(address.indexOf("[") + 1,address.lastIndexOf("]"));
+            tags = tags.replace(";",",");
+        }else{
+            adder = address;
+        }
+
+        AddressParse.Address addObj = AddressParse.parseAddress(adder);
         if(addObj != null && !StringUtils.isEmpty(addObj.url)){
             String url = addObj.url;
             DetectResult detectResult = new DetectResult();
+            detectResult.setCommonTag(tags);
             if(addObj.isHttp() || addObj.isHttps()){
                 boolean isAva = false;
                 HttpResult httpResult = null;
@@ -132,7 +148,7 @@ public class HttpPlugin implements DetectPlugin {
                         detectResult.setSuccess(false);
                     }
                 }else{
-                    logger.error("请求协议值非法,只能是get或post。您的参数为:{}",address);
+                    logger.error("请求协议值非法,只能是get或post。您的参数为:{}",adder);
                 }
 
                 detectResult.setSuccess(isAva);
@@ -147,7 +163,7 @@ public class HttpPlugin implements DetectPlugin {
                 }
 
             }else{
-                logger.error("请求协议值非法,只能是http或https。您的参数为:{}",address);
+                logger.error("请求协议值非法,只能是http或https。您的参数为:{}",adder);
                 return null;
             }
 
@@ -164,7 +180,11 @@ public class HttpPlugin implements DetectPlugin {
      */
     @Override
     public Collection<String> detectAddressCollection() {
-        return helpTransformAddressCollection(this.address,",");
+        Set<String> adders = new HashSet<>();
+        for (String address : addresses) {
+            adders.addAll(helpTransformAddressCollection(address,","));
+        }
+        return adders;
     }
 
 }
