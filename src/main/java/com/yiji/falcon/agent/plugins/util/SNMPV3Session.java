@@ -99,6 +99,18 @@ public class SNMPV3Session {
     }
 
     /**
+     * 获取该会话是否可用
+     * @return
+     */
+    public boolean isValid(){
+        try {
+            return SNMPHelper.snmpGet(snmp,target,SNMPHelper.sysDescOid) != null;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /**
      * 获取设备名称
      * ip-vendor-version
      *
@@ -112,10 +124,15 @@ public class SNMPV3Session {
         }
         String prefix = this.getUserInfo().getAddress() + "-" + this.getUserInfo().getPort();
         try {
-            String name = prefix + "-" + getSysVendor() + "-" + getSysVersion();
-            infoCache.put(cacheKey_equipmentName,name);
-            infoCache.put(cacheKey_equipmentNameDone,"true");
-            return name;
+            if(isValid()){
+                String name = prefix + "-" + getSysVendor() + "-" + getSysVersion();
+                infoCache.put(cacheKey_equipmentName,name);
+                infoCache.put(cacheKey_equipmentNameDone,"true");
+                return name;
+            }else{
+                infoCache.put(cacheKey_equipmentNameDone,"false");
+                return prefix;
+            }
         } catch (IOException e) {
             logger.error("设备描述信息获取失败",e);
             infoCache.put(cacheKey_equipmentNameDone,"false");

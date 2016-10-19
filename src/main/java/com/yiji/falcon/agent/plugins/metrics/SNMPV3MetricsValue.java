@@ -300,29 +300,33 @@ public class SNMPV3MetricsValue extends MetricsCommon {
 
     private List<FalconReportObject> getReports(SNMPV3Session session){
         List<FalconReportObject> temp = new ArrayList<>();
-        //ping报告
-        FalconReportObject reportObject = ping(session, 5);
-        if (reportObject != null) {
-            temp.add(reportObject);
-        }
-        try {
-            temp.addAll(getIfStatReports(session));
-            //添加可用性报告
-            temp.add(MetricsCommon.generatorVariabilityReport(true, session.getEquipmentName(), plugin.step(), plugin, plugin.serverName()));
-            //添加插件报告
-            Collection<FalconReportObject> inBuildReports = plugin.inbuiltReportObjectsForValid(session);
-            if (inBuildReports != null && !inBuildReports.isEmpty()) {
-                temp.addAll(inBuildReports);
+        if(!session.isValid()){
+            temp.add(MetricsCommon.generatorVariabilityReport(false, session.getEquipmentName(), plugin.step(), plugin, plugin.serverName()));
+        }else{
+            //ping报告
+            FalconReportObject reportObject = ping(session, 5);
+            if (reportObject != null) {
+                temp.add(reportObject);
             }
-        } catch (Exception e) {
-            logger.error("设备 {} 通过SNMP获取监控数据发生异常,push 该设备不可用报告", session.toString(), e);
-            temp.add(MetricsCommon.generatorVariabilityReport(false, "allUnVariability", plugin.step(), plugin, plugin.serverName()));
+            try {
+                temp.addAll(getIfStatReports(session));
+                //添加可用性报告
+                temp.add(MetricsCommon.generatorVariabilityReport(true, session.getEquipmentName(), plugin.step(), plugin, plugin.serverName()));
+                //添加插件报告
+                Collection<FalconReportObject> inBuildReports = plugin.inbuiltReportObjectsForValid(session);
+                if (inBuildReports != null && !inBuildReports.isEmpty()) {
+                    temp.addAll(inBuildReports);
+                }
+            } catch (Exception e) {
+                logger.error("设备 {} 通过SNMP获取监控数据发生异常,push 该设备不可用报告", session.toString(), e);
+                temp.add(MetricsCommon.generatorVariabilityReport(false, session.getEquipmentName(), plugin.step(), plugin, plugin.serverName()));
+            }
         }
 
         // EndPoint 单独设置
         temp.forEach(report -> {
             String endPoint = session.getUserInfo().getEndPoint();
-            if (!StringUtils.isEmpty(endPoint) && reportObject != null) {
+            if (!StringUtils.isEmpty(endPoint)) {
                 //设置单独设置的endPoint
                 report.setEndpoint(endPoint);
                 report.appendTags("customerEndPoint=true");
