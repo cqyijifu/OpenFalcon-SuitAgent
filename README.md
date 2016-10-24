@@ -323,7 +323,7 @@ JMX监控的属性，由以下三部分组成
 
 -  Ping监控
 
-        监控Metrics
+         监控Metrics
 
    - availability
      - pingAvgTime : ping的平均延时（当前为每次ping5次，取绝对值）
@@ -331,14 +331,14 @@ JMX监控的属性，由以下三部分组成
 
 -  TCP（Socket）监控
 
-        监控Metrics : 
+         监控Metrics : 
 
    - availability
      - response.time : 响应时间 毫秒
 
 -  Yiji NTP 监控
 
-        监控Metrics
+         监控Metrics
 
    - availability
       - `0`：NTP监控失败（如ntpdate命令执行失败）
@@ -347,7 +347,7 @@ JMX监控的属性，由以下三部分组成
 
 -  Docker 监控
 
-        监控Metrics
+         监控Metrics
 
    - availability
       - `0`：Docker daemon 探测失败
@@ -469,6 +469,10 @@ JMX监控的属性，由以下三部分组成
 若`mock`的时间超时,既无效,则会上报目标服务不可用的监控数据,并且带上 `mock=timeout-{time}` 的 `tag` 。其中`{time}`是停机时间
 
 接口使用
+
+- http://ip:port/version
+  - 查看当前版本
+
 
 - http://ip:port/mock/list
 

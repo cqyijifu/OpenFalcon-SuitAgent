@@ -8,6 +8,7 @@ package com.yiji.falcon.agent.web;
  * guqiu@yiji.com 2016-07-26 13:54 创建
  */
 
+import com.yiji.falcon.agent.config.AgentConfiguration;
 import com.yiji.falcon.agent.plugins.metrics.MetricsCommon;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,6 +81,8 @@ public class Response {
 
             }
             send(msg);
+        }else if(urlPath.size() >= 1 && "version".equals(urlPath.get(0))){
+            send("Version " + AgentConfiguration.VERSION);
         }else{
             send_404();
         }
