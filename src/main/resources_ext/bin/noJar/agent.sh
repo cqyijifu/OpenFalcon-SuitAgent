@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-
+source /etc/profile
 if [ "x${JAVA_HOME}" == "x" ]; then
     echo "JAVA_HOME is not valid"
     exit 1
