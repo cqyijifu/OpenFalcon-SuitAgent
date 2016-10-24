@@ -4,6 +4,13 @@
 
 ---
 
+2016年10月24日
+
+- 版本：4.2
+  - Web API 添加查看Version：`http://ip:port/version`
+
+---
+
 **2016年10月14日**
 
 - 版本：4.0
@@ -323,7 +330,7 @@ JMX监控的属性，由以下三部分组成
 
 -  Ping监控
 
-         监控Metrics
+          监控Metrics
 
    - availability
      - pingAvgTime : ping的平均延时（当前为每次ping5次，取绝对值）
@@ -331,14 +338,14 @@ JMX监控的属性，由以下三部分组成
 
 -  TCP（Socket）监控
 
-         监控Metrics : 
+          监控Metrics : 
 
    - availability
      - response.time : 响应时间 毫秒
 
 -  Yiji NTP 监控
 
-         监控Metrics
+          监控Metrics
 
    - availability
       - `0`：NTP监控失败（如ntpdate命令执行失败）
@@ -347,7 +354,7 @@ JMX监控的属性，由以下三部分组成
 
 -  Docker 监控
 
-         监控Metrics
+          监控Metrics
 
    - availability
       - `0`：Docker daemon 探测失败
