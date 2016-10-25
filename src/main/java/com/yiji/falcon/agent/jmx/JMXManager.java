@@ -35,9 +35,12 @@ public class JMXManager {
     public synchronized static List<JMXMetricsValueInfo> getJmxMetricValue(String serverName){
         JMXConnection jmxConnection = new JMXConnection(serverName);
         List<JMXConnectionInfo> mbeanConns = jmxConnection.getMBeanConnection();
-        if(mbeanConns == null || mbeanConns.isEmpty()){
+        if(mbeanConns.size() == 1 && !mbeanConns.get(0).isValid()){
             log.error("获取应用 {} jmx连接失败,请检查应用是否已启动",serverName);
-            return new ArrayList<>();
+            JMXMetricsValueInfo jmxMetricsValueInfo = new JMXMetricsValueInfo();
+            jmxMetricsValueInfo.setJmxConnectionInfo(mbeanConns.get(0));
+            //返回上层返回的JMX服务不可用的对象
+            return Collections.singletonList(jmxMetricsValueInfo);
         }
 
         int validCount = 0;

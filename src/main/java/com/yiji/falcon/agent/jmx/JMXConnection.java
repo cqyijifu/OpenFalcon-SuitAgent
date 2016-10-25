@@ -155,6 +155,12 @@ public class JMXConnection {
 
             if(count > 0){
                 serverConnectCount.put(serverName,count);
+            }else{
+                //对应的ServerName的JMX连接获取失败，返回JMX连接失败
+                JMXConnectionInfo jmxConnectionInfo = new JMXConnectionInfo();
+                jmxConnectionInfo.setValid(false);
+                jmxConnectionInfo.setName(serverName);
+                connections.add(jmxConnectionInfo);
             }
         }else if(connections.size() != vmDescList.size()){//若探测的JMX连接与连接池中的数量不一致,执行reset处理逻辑,reset后的结果,将在下一次取监控时生效
             resetMBeanConnection();

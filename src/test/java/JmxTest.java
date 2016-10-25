@@ -3,6 +3,8 @@
  * Created by QianLong on 16/4/25.
  */
 
+import com.sun.tools.attach.VirtualMachine;
+import com.sun.tools.attach.VirtualMachineDescriptor;
 import com.yiji.falcon.agent.util.CommandUtilForUnix;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -18,6 +20,7 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -25,6 +28,16 @@ import java.util.concurrent.TimeUnit;
  * Created by QianLong on 16/4/25.
  */
 public class JmxTest {
+
+    @Test
+    public void vms(){
+        List<VirtualMachineDescriptor> vms = VirtualMachine.list();
+        for (VirtualMachineDescriptor vm : vms) {
+            if(vm.displayName().contains("com.yiji.falcon.agent.Agent")){
+                System.out.println(vm.id());
+            }
+        }
+    }
 
     @Test
     public void jmxConnectTest() throws IOException, IntrospectionException, InstanceNotFoundException, ReflectionException {

@@ -4,6 +4,14 @@
 
 ---
 
+2016年10月25日
+
+- 版本：5.0
+  - `JMX`监控，去除`allUnVariability`监控项
+  - `JMX`监控，修复java应用未启动时上报不准确的bug
+
+---
+
 2016年10月24日
 
 - 版本：4.2
@@ -220,8 +228,6 @@ SuitAgent所有的监控服务都是插件式开发集成
 
 #### JMX监控服务
 
-##### 特殊的metrics说明
-	- 若SuitAgent在启动时，需要进行监控的服务（对应的work配置为true的）未启动，则将会上报一个名为`allUnVariability`的metrics监控指标，值为`0`。tag中有metrics的详情（参考tag命名），代表为该服务全部不可用
 
 ##### JMX监控属性组成
 
@@ -330,7 +336,7 @@ JMX监控的属性，由以下三部分组成
 
 -  Ping监控
 
-          监控Metrics
+           监控Metrics
 
    - availability
      - pingAvgTime : ping的平均延时（当前为每次ping5次，取绝对值）
@@ -338,14 +344,14 @@ JMX监控的属性，由以下三部分组成
 
 -  TCP（Socket）监控
 
-          监控Metrics : 
+           监控Metrics : 
 
    - availability
      - response.time : 响应时间 毫秒
 
 -  Yiji NTP 监控
 
-          监控Metrics
+           监控Metrics
 
    - availability
       - `0`：NTP监控失败（如ntpdate命令执行失败）
@@ -354,7 +360,7 @@ JMX监控的属性，由以下三部分组成
 
 -  Docker 监控
 
-          监控Metrics
+           监控Metrics
 
    - availability
       - `0`：Docker daemon 探测失败
