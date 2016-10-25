@@ -10,11 +10,11 @@
 import com.yiji.falcon.agent.plugins.plugin.docker.CAdvisorRunner;
 import com.yiji.falcon.agent.util.CommandUtilForUnix;
 import com.yiji.falcon.agent.util.StringUtils;
-import org.apache.log4j.PropertyConfigurator;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.StringTokenizer;
 import java.util.concurrent.TimeUnit;
@@ -24,13 +24,9 @@ import java.util.concurrent.TimeUnit;
  */
 public class CommandTest {
 
-    static {
-        PropertyConfigurator.configure("/home/qianlong/ProjectIDEA/falcon-agent/Falcon-SuitAgent/src/main/resources_ext/conf/log4j.properties");
-    }
-
     @Test
     public void exec() throws IOException {
-        System.out.println(CommandUtilForUnix.execWithReadTimeLimit("docker ps",false,10,TimeUnit.SECONDS));
+        System.out.println(CommandUtilForUnix.execWithReadTimeLimit("whereis mongo",false,10,TimeUnit.SECONDS));
     }
 
     @Test
