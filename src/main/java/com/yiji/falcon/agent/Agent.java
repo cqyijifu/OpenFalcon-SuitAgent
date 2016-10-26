@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
@@ -183,7 +184,7 @@ public class Agent extends Thread{
         if(httpServer != null){
             try {
                 log.info("发送web关闭命令");
-                HttpResult response = HttpUtil.get(String.format("http://127.0.0.1:%d/__SHUTDOWN__",AgentConfiguration.INSTANCE.getAgentWebPort()));
+                HttpResult response = HttpUtil.get(String.format("http://%s:%d/__SHUTDOWN__", InetAddress.getLocalHost().getHostAddress(),AgentConfiguration.INSTANCE.getAgentWebPort()));
                 log.info("web关闭结果:{}",response);
             } catch (Exception e) {
                 log.error("web关闭",e);
@@ -191,7 +192,7 @@ public class Agent extends Thread{
         }
         try {
             serverSocketChannel.close();
-        } catch (IOException e) {
+        } catch (Exception e) {
             log.error("serverSocketChannel.close()异常",e);
         }
         log.info("------------进行调度器关闭处理-------------------");
@@ -213,7 +214,7 @@ public class Agent extends Thread{
                     }
                 }
             }
-        } catch (SchedulerException e) {
+        } catch (Exception e) {
             log.warn("获取Schedulers发生异常：" + e);
             log.error("获取Schedulers发生异常 " + e.getMessage());
         }
@@ -238,7 +239,7 @@ public class Agent extends Thread{
                 }else{
                     log.error("Falcon Agent 服务自动关闭失败,请手动关闭,Falcon Agent 进程ID为 : {}",falconAgentPid);
                 }
-            } catch (IOException e) {
+            } catch (Exception e) {
                 log.error("Falcon Agent 自动关闭失败,请手动关闭,Falcon Agent 进程ID为 : {}",falconAgentPid,e);
             }
         }
