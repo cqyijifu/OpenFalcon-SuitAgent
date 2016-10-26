@@ -198,7 +198,8 @@ public class CommandUtilForUnix {
         long startTime = System.currentTimeMillis();
         boolean readTimeout = false;
 
-        StringBuilder sb = new StringBuilder();
+        StringBuilder errorSB = new StringBuilder();
+        StringBuilder processSB = new StringBuilder();
         try(ByteArrayOutputStream resultOutStream = new ByteArrayOutputStream();
             InputStream errorInStream = new BufferedInputStream(process.getErrorStream());
             InputStream processInStream = new BufferedInputStream(process.getInputStream())){
@@ -208,7 +209,8 @@ public class CommandUtilForUnix {
 
             while ((num = errorInStream.read(bs)) != -1) {
                 resultOutStream.write(bs, 0, num);
-                sb.append(new String(resultOutStream.toByteArray(),"utf-8"));
+                errorSB.append(new String(resultOutStream.toByteArray(),"utf-8"));
+                resultOutStream.reset();
                 if(waitTime > 0 && System.currentTimeMillis() - startTime >= waitTime){
                     readTimeout = true;
                     break;
@@ -216,14 +218,19 @@ public class CommandUtilForUnix {
             }
             while ((num = processInStream.read(bs)) != -1) {
                 resultOutStream.write(bs, 0, num);
-                sb.append(new String(resultOutStream.toByteArray(),"utf-8"));
+                processSB.append(new String(resultOutStream.toByteArray(),"utf-8"));
+                resultOutStream.reset();
                 if(readTimeout || (waitTime > 0 && System.currentTimeMillis() - startTime >= waitTime)){
                     readTimeout = true;
                     break;
                 }
             }
 
-            result.msg = sb.toString();
+            if(processSB.length() > 0){
+                result.msg = processSB.toString();
+            }else {
+                result.msg = errorSB.toString();
+            }
         }
 
         try {
