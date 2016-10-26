@@ -41,11 +41,11 @@ public class JSONUtil {
                 String key = entry.getKey();
                 Object object = jsonObject.get(key);
                 if(object instanceof JSONObject){
-                    jsonToMap(map,object, StringUtils.isEmpty(keys) ? key : (keys + "." + key));
+                    jsonToMap(map,object, StringUtils.isEmpty(keys) ? key : (keys + "/" + key));
                 }else if(object instanceof JSONArray){
-                    jsonToMap(map,object, StringUtils.isEmpty(keys) ? key : (keys + "." + key));
+                    jsonToMap(map,object, StringUtils.isEmpty(keys) ? key : (keys + "/" + key));
                 }else{
-                    map.put(getKey(map,StringUtils.isEmpty(keys) ? key : (keys + "." + key),0),object);
+                    map.put(getKey(map,StringUtils.isEmpty(keys) ? key : (keys + "/" + key),0),object);
                 }
             }
         }else if(target instanceof JSONArray){

@@ -26,7 +26,7 @@ public class CommandTest {
 
     @Test
     public void exec() throws IOException {
-        System.out.println(CommandUtilForUnix.execWithReadTimeLimit("whereis mongo",false,10,TimeUnit.SECONDS));
+        System.out.println(CommandUtilForUnix.execWithReadTimeLimit("ps aux | grep java",false,10,TimeUnit.SECONDS));
     }
 
     @Test

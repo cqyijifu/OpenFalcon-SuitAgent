@@ -8,21 +8,30 @@ package com.yiji.falcon.agent.plugins.plugin.mongodb;
  * guqiu@yiji.com 2016-10-25 15:09 创建
  */
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.yiji.falcon.agent.falcon.CounterType;
 import com.yiji.falcon.agent.plugins.DetectPlugin;
 import com.yiji.falcon.agent.plugins.Plugin;
 import com.yiji.falcon.agent.util.CommandUtilForUnix;
+import com.yiji.falcon.agent.util.JSONUtil;
 import com.yiji.falcon.agent.util.StringUtils;
 import com.yiji.falcon.agent.vo.detect.DetectResult;
+import org.apache.commons.lang.math.NumberUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
  * @author guqiu@yiji.com
  */
 public class MongoDBPlugin implements DetectPlugin {
+
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+    private int step;
+
     /**
      * 插件初始化操作
      * 该方法将会在插件运行前进行调用
@@ -34,7 +43,7 @@ public class MongoDBPlugin implements DetectPlugin {
      */
     @Override
     public void init(Map<String, String> properties) {
-
+        this.step = Integer.parseInt(properties.get("step"));
     }
 
     /**
@@ -56,7 +65,7 @@ public class MongoDBPlugin implements DetectPlugin {
      */
     @Override
     public String serverName() {
-        return null;
+        return "mongodb";
     }
 
     /**
@@ -66,7 +75,7 @@ public class MongoDBPlugin implements DetectPlugin {
      */
     @Override
     public int step() {
-        return 0;
+        return this.step;
     }
 
     /**
@@ -97,7 +106,50 @@ public class MongoDBPlugin implements DetectPlugin {
      */
     @Override
     public DetectResult detectResult(String address) {
-        return null;
+        DetectResult detectResult = new DetectResult();
+        detectResult.setSuccess(false);
+
+        try {
+            CommandUtilForUnix.ExecuteResult executeResult = CommandUtilForUnix.execWithReadTimeLimit("echo 'db.serverStatus()' | " + address,false,10, TimeUnit.SECONDS);
+            if(!StringUtils.isEmpty(executeResult.msg)){
+                String msg = executeResult.msg;
+                logger.debug(msg);
+                int startSymbol = msg.indexOf("{");
+                int endSymbol = msg.lastIndexOf("}");
+                if(startSymbol != -1 && endSymbol != -1){
+                    String json = msg.substring(startSymbol,endSymbol + 1);
+                    json = transform(json);
+                    JSONObject jsonObject = JSON.parseObject(json);
+                    Map<String,Object> map = new HashMap<>();
+                    JSONUtil.jsonToMap(map,jsonObject,null);
+                    String hostTag = "";
+                    if(map.get("host") != null){
+                        hostTag = "host=" + map.get("host");
+                    }
+                    List<DetectResult.Metric> metrics = new ArrayList<>();
+                    for (Map.Entry<String, Object> entry : map.entrySet()) {
+                        if(NumberUtils.isNumber(String.valueOf(entry.getValue()))){
+                            DetectResult.Metric metric = new DetectResult.Metric(entry.getKey(),
+                                    String.valueOf(entry.getValue()),
+                                    CounterType.GAUGE,
+                                    hostTag);
+                            metrics.add(metric);
+                        }
+                    }
+                    detectResult.setMetricsList(metrics);
+                    detectResult.setSuccess(true);
+                }
+            }
+        } catch (Exception e) {
+            logger.error("MongoDB监控异常",e);
+        }
+
+        return detectResult;
+    }
+
+    private String transform(String msg){
+        return msg.replaceAll("\\w+\\(","")
+                .replace(")","");
     }
 
     /**
