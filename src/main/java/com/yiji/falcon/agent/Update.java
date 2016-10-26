@@ -59,38 +59,39 @@ public class Update {
         }
         if(downloadUpdatePack()){
             String baseDir = updateFilesTempDir + File.separator + "SuitAgent-Update-master";
-            if(!new File(baseDir + File.separator + AgentConfiguration.VERSION).exists()){
-                logger.info("{}Congratulation ! you suit agent is up to date",log4UpdateStart);
-            }else {
-                File baseDirFile = new File(baseDir);
-                String[] ss = baseDirFile.list();
-                if(baseDirFile.exists() && ss != null){
-                    List<Float> versions = new ArrayList<>();
-                    for (String s : ss) {
-                        if(NumberUtils.isNumber(s)){
-                            versions.add(NumberUtils.toFloat(s));
-                        }
-                    }
-                    Collections.sort(versions);
-                    for (Float version : versions) {
-                        if(version >= AgentConfiguration.VERSION){
-                            logger.info("--------------------------------------");
-                            logger.info("{}Update base from {}",log4UpdateStart,version);
-                            String updateDir = baseDir + File.separator + version;
-                            String updateListConfFile = updateDir + File.separator + "updateList.yml";
-                            Map<String,Map<String,Object>> updateConf = Yaml.loadType(new FileInputStream(updateListConfFile),HashMap.class);
-
-                            Map<String,Object> fileAddConf = updateConf.get("file.add");
-                            Map<String,Object> fileReplaceConf = updateConf.get("file.replace");
-                            Map<String,Object> propertiesModifyConf = updateConf.get("conf.properties.modify");
-
-                            updateOfFileAdd(fileAddConf,updateDir);
-                            updateOfFileReplace(fileReplaceConf,updateDir);
-                            updateOfPropertiesModify(propertiesModifyConf, String.valueOf(version));
-                            logger.info("--------------------------------------");
-                        }
+            boolean update = false;
+            File baseDirFile = new File(baseDir);
+            String[] ss = baseDirFile.list();
+            if(baseDirFile.exists() && ss != null){
+                List<Float> versions = new ArrayList<>();
+                for (String s : ss) {
+                    if(NumberUtils.isNumber(s)){
+                        versions.add(NumberUtils.toFloat(s));
                     }
                 }
+                Collections.sort(versions);
+                for (Float version : versions) {
+                    if(version >= AgentConfiguration.VERSION){
+                        logger.info("--------------------------------------");
+                        logger.info("{}Update base from {}",log4UpdateStart,version);
+                        String updateDir = baseDir + File.separator + version;
+                        String updateListConfFile = updateDir + File.separator + "updateList.yml";
+                        Map<String,Map<String,Object>> updateConf = Yaml.loadType(new FileInputStream(updateListConfFile),HashMap.class);
+
+                        Map<String,Object> fileAddConf = updateConf.get("file.add");
+                        Map<String,Object> fileReplaceConf = updateConf.get("file.replace");
+                        Map<String,Object> propertiesModifyConf = updateConf.get("conf.properties.modify");
+
+                        updateOfFileAdd(fileAddConf,updateDir);
+                        updateOfFileReplace(fileReplaceConf,updateDir);
+                        updateOfPropertiesModify(propertiesModifyConf, String.valueOf(version));
+                        logger.info("--------------------------------------");
+                        update = true;
+                    }
+                }
+            }
+            if(!update){
+                logger.info("{}Congratulation ! you suit agent is up to date",log4UpdateStart);
             }
 
             //删除临时目录

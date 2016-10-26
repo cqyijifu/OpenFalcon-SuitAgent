@@ -53,7 +53,7 @@ public class HttpServer extends Thread{
 
     public void startServer() throws IOException {
         serverSocket = new ServerSocket(port, 10, InetAddress.getLocalHost());
-        logger.info("Web服务启动地址:http://{}:{}",serverSocket.getInetAddress().getHostName(),serverSocket.getLocalPort());
+        logger.info("Web服务启动地址:http://{}:{}",InetAddress.getLocalHost().getHostAddress(),serverSocket.getLocalPort());
         status = 1;
         while (!shutdown) {
             Socket socket;
@@ -77,12 +77,12 @@ public class HttpServer extends Thread{
                 }
                 socket.close();
             } catch (Exception e) {
-                throw new RuntimeException(e);
+                logger.error("Web处理异常",e);
             }
         }
         try {
             close();
-        } catch (IOException e) {
+        } catch (Exception e) {
             logger.error("web服务关闭异常",e);
         }
     }
