@@ -69,13 +69,7 @@
 
 ---
 
-### 版本说明
 
-本系统版本划分如下
-
-- alpha：内部测试版（不建议使用于生产环境）
-- beta：公开测试版（不建议使用于生产环境）
-- final：最终正式版（可用于生产环境）
 
 ### 使用之前
 
@@ -336,7 +330,7 @@ JMX监控的属性，由以下三部分组成
 
 -  Ping监控
 
-           监控Metrics
+            监控Metrics
 
    - availability
      - pingAvgTime : ping的平均延时（当前为每次ping5次，取绝对值）
@@ -344,14 +338,14 @@ JMX监控的属性，由以下三部分组成
 
 -  TCP（Socket）监控
 
-           监控Metrics : 
+            监控Metrics : 
 
    - availability
      - response.time : 响应时间 毫秒
 
 -  Yiji NTP 监控
 
-           监控Metrics
+            监控Metrics
 
    - availability
       - `0`：NTP监控失败（如ntpdate命令执行失败）
@@ -360,7 +354,7 @@ JMX监控的属性，由以下三部分组成
 
 -  Docker 监控
 
-           监控Metrics
+            监控Metrics
 
    - availability
       - `0`：Docker daemon 探测失败
