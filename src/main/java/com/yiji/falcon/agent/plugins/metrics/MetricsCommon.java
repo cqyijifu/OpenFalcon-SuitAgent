@@ -198,7 +198,6 @@ public abstract class MetricsCommon {
                             long mockTime = isValidMock(key,targetService);
                             if(mockTime > 0){
                                 logger.info("发现超时的mock服务 - {}:{} 已超时: {} 毫秒",key,targetService,mockTime);
-                                falconReportObject.appendTags("mock=timeout-" + mockTime);
                                 break;
                             }
 
