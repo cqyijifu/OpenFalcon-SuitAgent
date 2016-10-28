@@ -77,7 +77,7 @@ public enum  AgentConfiguration {
     /**
      * mock的有效时间
      */
-    private int mockValidTime = 7200;
+    private int mockValidTime = 10800;
 
     /**
      * agent web 监听端口
