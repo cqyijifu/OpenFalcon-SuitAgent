@@ -15,9 +15,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.StringTokenizer;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 /*
  * 修订记录:
@@ -37,18 +35,30 @@ public class CommandUtilForUnix {
      */
     public static class ExecuteResult{
         /**
-         * 是否执行成功
+         * 命令是否执行成功
          */
         public boolean isSuccess = false;
+        /**
+         * 是否正常执行结束
+         * 如结果读取超时、命令执行失败等都是false
+         */
+        public boolean isNormalExit = false;
         /**
          * 执行命令的返回结果
          */
         public String msg = "";
 
+        public ExecuteResult(boolean isSuccess, boolean isNormalExit, String msg) {
+            this.isSuccess = isSuccess;
+            this.isNormalExit = isNormalExit;
+            this.msg = msg;
+        }
+
         @Override
         public String toString() {
             return "ExecuteResult{" +
                     "isSuccess=" + isSuccess +
+                    ", isNormalExit=" + isNormalExit +
                     ", msg='" + msg + '\'' +
                     '}';
         }
@@ -62,7 +72,7 @@ public class CommandUtilForUnix {
      */
     public static String getCmdDirByPid(int pid) throws IOException {
         String cmd = "lsof -p " + pid;
-        CommandUtilForUnix.ExecuteResult executeResult = CommandUtilForUnix.execWithReadTimeLimit(cmd,false,10, TimeUnit.SECONDS);
+        CommandUtilForUnix.ExecuteResult executeResult = CommandUtilForUnix.execWithReadTimeLimit(cmd,false,7);
         String msg = executeResult.msg;
         String[] ss = msg.split("\n");
         for (String s : ss) {
@@ -77,90 +87,69 @@ public class CommandUtilForUnix {
 
 
     /**
-     * 执行命令,给定最大的命令结果读取时间
+     * 执行命令,给定最大的命令结果读取时间(秒)，实际等待读取时间可能会大于指定时间，最大可能为2倍
      * @param execTarget
      * @param cmd
      * @param cmdSep
      * 是否对cmd进行空格分隔
      * @param maxReadTime
-     * @param unit
      * @return
      * @throws IOException
      */
-    public static ExecuteResult execWithReadTimeLimit(String execTarget,String cmd,boolean cmdSep, long maxReadTime, TimeUnit unit) throws IOException {
-        return exec(execTarget,cmd,cmdSep,unit.toMillis(maxReadTime));
-    }
-
-    /**
-     * 执行命令,给定最大的命令结果读取时间
-     * @param cmd
-     * @param cmdSep
-     * 是否对cmd进行空格分隔
-     * @param maxReadTime
-     * @param unit
-     * @return
-     * @throws IOException
-     */
-    public static ExecuteResult execWithReadTimeLimit(String cmd,boolean cmdSep, long maxReadTime, TimeUnit unit) throws IOException {
-        return execWithReadTimeLimit(null,cmd,cmdSep,maxReadTime,unit);
-    }
-
-    /**
-     * 执行命令,指定执行体
-     * @param execTarget
-     * 指定执行体,null则使用默认执行体(/bin/sh)
-     * @param cmd
-     * @param cmdSep
-     * 是否对cmd进行空格分隔
-     * @param timeout
-     * @param unit
-     * @return
-     * @throws IOException
-     */
-    public static ExecuteResult execWithTimeOut(String execTarget,String cmd,boolean cmdSep, long timeout, TimeUnit unit) throws IOException {
-        final ExecuteResult[] executeResult = {new ExecuteResult()};
+    public static ExecuteResult execWithReadTimeLimit(String execTarget,String cmd,boolean cmdSep, long maxReadTime){
+        final List<Process> resultList = new ArrayList<>();
         final BlockingQueue<Object> blockingQueue = new ArrayBlockingQueue<>(1);
+        StringBuilder resultMsg = new StringBuilder();
         ExecuteThreadUtil.execute(() -> {
+            Process process = null;
             try {
-                executeResult[0] = exec(execTarget,cmd,cmdSep,0);
-                if (!blockingQueue.offer(executeResult[0]))
-                    logger.error("阻塞队列插入失败");
-            } catch (Throwable t) {
-                blockingQueue.offer(t);
+                process = exec(resultMsg,execTarget,cmd,cmdSep,maxReadTime, TimeUnit.SECONDS);
+            } catch (IOException e) {
+                logger.error("Command '{}' execute exception",cmd,e);
             }
+            resultList.add(process);
+            if (!blockingQueue.offer(resultList.get(0)))
+                logger.error("阻塞队列插入失败");
         });
 
-        Object result = BlockingQueueUtil.getResult(blockingQueue,timeout,unit);
-
-        if (result == null)
-            throw new IOException("Command \"" + cmd + "\" execute timeout with " + timeout + " " + unit.name());
-        if (result instanceof ExecuteResult)
-            return (ExecuteResult) result;
         try {
-            throw (Throwable) result;
-        } catch (IOException | RuntimeException | Error e) {
-            throw e;
-        } catch (Throwable e) {
-            throw new IOException(e.toString(), e);
+            Object result = blockingQueue.take();
+            if (result instanceof Process){
+                //命令正常返回
+                Process process = (Process) result;
+                if(process.isAlive()){
+                    logger.debug("process destroyForcibly");
+                   process.destroyForcibly();
+                }
+                return new ExecuteResult(resultMsg.length() > 0 ,process.exitValue() == 0,String.valueOf(resultMsg.toString()));
+            }else{
+                logger.error("Unknown Result Type Mapper",result);
+                return new ExecuteResult(resultMsg.length() > 0,false,resultMsg.toString());
+            }
+        } catch (InterruptedException e) {
+            logger.warn("Command '{}' execute exception",cmd,e);
+            return new ExecuteResult(resultMsg.length() > 0,false,resultMsg.toString());
         }
+
     }
 
     /**
-     * 执行命令,使用默认执行体(/bin/sh)
+     * 执行命令,给定最大的命令结果读取时间
      * @param cmd
      * @param cmdSep
      * 是否对cmd进行空格分隔
-     * @param timeout
-     * @param unit
+     * @param maxReadTime
      * @return
      * @throws IOException
      */
-    public static ExecuteResult execWithTimeOut(String cmd,boolean cmdSep, long timeout, TimeUnit unit) throws IOException {
-        return execWithTimeOut(null,cmd,cmdSep,timeout,unit);
+    public static ExecuteResult execWithReadTimeLimit(String cmd,boolean cmdSep, long maxReadTime) throws IOException {
+        return execWithReadTimeLimit(null,cmd,cmdSep,maxReadTime);
     }
 
     /**
      * 执行命令
+     * @param result
+     * 记录返回值
      * @param execTarget
      * 执行体
      * 默认 /bin/sh
@@ -168,21 +157,19 @@ public class CommandUtilForUnix {
      * 待执行的命令
      * @param cmdSep
      * 是否对cmd进行空格分隔
-     * @param waitTime
-     * 若大于0,则代表开启等待命令结果输出的最大等待时间(毫秒)
      * @return
      * @throws IOException
      */
-    private static ExecuteResult exec(String execTarget,String cmd,boolean cmdSep,long waitTime) throws IOException {
-        ExecuteResult result = new ExecuteResult();
-
+    private static Process exec(StringBuilder result,String execTarget,String cmd,boolean cmdSep,long timeout,TimeUnit timeUnit) throws IOException {
         List<String> shList = new ArrayList<>();
         if(execTarget == null){
             execTarget = "/bin/sh";
             shList.add(execTarget);
             shList.add("-c");
+            logger.info("执行命令 : {} -c \"{}\"",execTarget,cmd);
         }else{
             shList.add(execTarget);
+            logger.info("执行命令 : {} {}",execTarget,cmd);
         }
         if(cmdSep){
             Collections.addAll(shList, cmd.split("\\s"));
@@ -190,66 +177,58 @@ public class CommandUtilForUnix {
             shList.add(cmd);
         }
 
-        logger.info("执行命令 : {} {}",execTarget,cmd);
-
         ProcessBuilder pb = new ProcessBuilder(shList);
         Process process = pb.start();
 
-        long startTime = System.currentTimeMillis();
-        boolean readTimeout = false;
-
-        StringBuilder errorSB = new StringBuilder();
-        StringBuilder processSB = new StringBuilder();
         try(ByteArrayOutputStream resultOutStream = new ByteArrayOutputStream();
             InputStream errorInStream = new BufferedInputStream(process.getErrorStream());
             InputStream processInStream = new BufferedInputStream(process.getInputStream())){
 
-            int num;
-            byte[] bs = new byte[1024];
-
-            while ((num = errorInStream.read(bs)) != -1) {
-                resultOutStream.write(bs, 0, num);
-                errorSB.append(new String(resultOutStream.toByteArray(),"utf-8"));
-                resultOutStream.reset();
-                if(waitTime > 0 && System.currentTimeMillis() - startTime >= waitTime){
-                    readTimeout = true;
-                    break;
+            Callable readTask1 = new Callable<String>(){
+                @Override
+                public String call() throws Exception {
+                    readFromStream(result,errorInStream,resultOutStream);
+                    return "";
                 }
-            }
-            while ((num = processInStream.read(bs)) != -1) {
-                resultOutStream.write(bs, 0, num);
-                processSB.append(new String(resultOutStream.toByteArray(),"utf-8"));
-                resultOutStream.reset();
-                if(readTimeout || (waitTime > 0 && System.currentTimeMillis() - startTime >= waitTime)){
-                    readTimeout = true;
-                    break;
-                }
-            }
+            };
 
-            if(processSB.length() > 0){
-                result.msg = processSB.toString();
-            }else {
-                result.msg = errorSB.toString();
+            Callable readTask2 = new Callable<String>() {
+                @Override
+                public String call() throws Exception {
+                    readFromStream(result,processInStream,resultOutStream);
+                    return "";
+                }
+            };
+
+            Future readFuture1 = ExecuteThreadUtil.execute(readTask1);
+            Future readFuture2 = ExecuteThreadUtil.execute(readTask2);
+
+            try {
+                readFuture1.get(timeout,timeUnit);
+                readFuture2.get(timeout,timeUnit);
+            } catch (Exception e) {
+                logger.info("Command '{}' read timeout {} {}",cmd,timeout,timeUnit.name());
+            }finally {
+                process.destroy();
+                try {
+                    process.waitFor();
+                } catch (InterruptedException e) {
+                    logger.error("",e);
+                }
             }
         }
 
-        try {
-            if(readTimeout){
-                logger.warn("命令 {} 执行读取 {} 毫秒输出的结果 : {}",cmd,waitTime,result.msg);
-                result.isSuccess = true;
-            }else if(process.waitFor() != 0){
-                logger.warn("命令 {} 执行失败 : {}",cmd,result.msg);
-                result.isSuccess = false;
-            }else {
-                result.isSuccess = true;
-            }
-        } catch (InterruptedException e) {
-            logger.error("命令 {} 执行异常",cmd,e);
+        return process;
+    }
+
+    private static void readFromStream(StringBuilder result,InputStream inputStream,ByteArrayOutputStream resultOutStream) throws IOException {
+        int num;
+        byte[] bs = new byte[1024];
+        while ((num = inputStream.read(bs)) != -1) {
+            resultOutStream.write(bs, 0, num);
+            result.append(new String(resultOutStream.toByteArray(),"utf-8"));
+            resultOutStream.reset();
         }
-
-        process.destroy();
-
-        return result;
     }
 
     /**
@@ -266,7 +245,7 @@ public class CommandUtilForUnix {
     public static PingResult ping(String address,int count) throws IOException {
         PingResult pingResult = new PingResult();
         String commend = String.format("ping -c %d %s",count,address);
-        CommandUtilForUnix.ExecuteResult executeResult = CommandUtilForUnix.execWithReadTimeLimit(commend,false,30,TimeUnit.SECONDS);
+        CommandUtilForUnix.ExecuteResult executeResult = CommandUtilForUnix.execWithReadTimeLimit(commend,false,30);
 
         if(executeResult.isSuccess){
             List<Float> times = new ArrayList<>();
@@ -308,7 +287,7 @@ public class CommandUtilForUnix {
      * @throws IOException
      */
     public static String getJavaHomeFromEtcProfile() throws IOException {
-        ExecuteResult executeResult = execWithReadTimeLimit("cat /etc/profile",false,10,TimeUnit.SECONDS);
+        ExecuteResult executeResult = execWithReadTimeLimit("cat /etc/profile",false,7);
         if(!executeResult.isSuccess){
             return null;
         }

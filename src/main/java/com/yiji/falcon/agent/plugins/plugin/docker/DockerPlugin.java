@@ -79,7 +79,7 @@ public class DockerPlugin implements DetectPlugin {
     private int getNativeCAdvisorPort(){
         String warnMsg = "尝试获取本机启动的cAdvisor连接端口时失败，这将使SuitAgent尝试启动内置的cAdvisor服务";
         try {
-            CommandUtilForUnix.ExecuteResult executeResult = CommandUtilForUnix.execWithReadTimeLimit("docker ps",false,10, TimeUnit.SECONDS);
+            CommandUtilForUnix.ExecuteResult executeResult = CommandUtilForUnix.execWithReadTimeLimit("docker ps",false,7);
             if(!executeResult.isSuccess){
                 logger.error("{} : {}",warnMsg,executeResult.msg);
                 return 0;
@@ -154,7 +154,7 @@ public class DockerPlugin implements DetectPlugin {
     public DetectResult detectResult(String address) {
         DetectResult detectResult = new DetectResult();
         try {
-            CommandUtilForUnix.ExecuteResult executeResult = CommandUtilForUnix.execWithReadTimeLimit("docker ps",false,10, TimeUnit.SECONDS);
+            CommandUtilForUnix.ExecuteResult executeResult = CommandUtilForUnix.execWithReadTimeLimit("docker ps",false,7);
             if(executeResult.isSuccess){
                 DockerMetrics dockerMetrics = new DockerMetrics("0.0.0.0",Integer.parseInt(address));
                 List<DockerMetrics.CollectObject> collectObjectList = dockerMetrics.getMetrics();

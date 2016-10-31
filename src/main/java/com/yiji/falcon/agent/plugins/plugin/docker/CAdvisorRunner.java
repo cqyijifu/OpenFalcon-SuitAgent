@@ -39,7 +39,7 @@ public class CAdvisorRunner extends Thread{
      */
     public void shutdownCAdvisor() throws IOException {
         String cmd = "kill " + pid;
-        CommandUtilForUnix.ExecuteResult executeResult = CommandUtilForUnix.execWithReadTimeLimit(cmd,false,5, TimeUnit.SECONDS);
+        CommandUtilForUnix.ExecuteResult executeResult = CommandUtilForUnix.execWithReadTimeLimit(cmd,false,5);
         if(executeResult.isSuccess){
             logger.info("关闭cAdvisor成功({})",cmd);
         }else{

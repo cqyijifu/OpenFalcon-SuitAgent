@@ -65,7 +65,7 @@ class DockerMetricsUtil {
         DockerExecResult execResult = new DockerExecResult();
 
         String dockerExecCmd = String.format("docker exec %s %s",containerIdOrName,cmd);
-        CommandUtilForUnix.ExecuteResult executeResult = CommandUtilForUnix.execWithReadTimeLimit(dockerExecCmd,false,10, TimeUnit.SECONDS);
+        CommandUtilForUnix.ExecuteResult executeResult = CommandUtilForUnix.execWithReadTimeLimit(dockerExecCmd,false,7);
         if(!executeResult.isSuccess){
             execResult.setSuccess(false);
         }else{

@@ -110,7 +110,7 @@ public class MongoDBPlugin implements DetectPlugin {
         detectResult.setSuccess(false);
 
         try {
-            CommandUtilForUnix.ExecuteResult executeResult = CommandUtilForUnix.execWithReadTimeLimit("echo 'db.serverStatus()' | " + address,false,10, TimeUnit.SECONDS);
+            CommandUtilForUnix.ExecuteResult executeResult = CommandUtilForUnix.execWithReadTimeLimit("echo 'db.serverStatus()' | " + address,false,7);
             if(!StringUtils.isEmpty(executeResult.msg)){
                 String msg = executeResult.msg;
                 logger.debug(msg);
@@ -174,7 +174,7 @@ public class MongoDBPlugin implements DetectPlugin {
     public Collection<String> autoDetectAddress() {
         try {
             CommandUtilForUnix.ExecuteResult executeResult = CommandUtilForUnix.execWithReadTimeLimit(
-                    "whereis mongo",false,10, TimeUnit.SECONDS
+                    "whereis mongo",false,5
             );
             if(!StringUtils.isEmpty(executeResult.msg)){
                 String msg = executeResult.msg;

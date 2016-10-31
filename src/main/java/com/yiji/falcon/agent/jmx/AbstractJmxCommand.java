@@ -18,7 +18,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.StringTokenizer;
-import java.util.concurrent.TimeUnit;
 
 /*
  * 修订记录:
@@ -63,7 +62,7 @@ public class AbstractJmxCommand {
         try {
             JMXConnectUrlInfo remoteUrlInfo = new JMXConnectUrlInfo();
 
-            CommandUtilForUnix.ExecuteResult result = CommandUtilForUnix.execWithReadTimeLimit(cmd,false,10, TimeUnit.SECONDS);
+            CommandUtilForUnix.ExecuteResult result = CommandUtilForUnix.execWithReadTimeLimit(cmd,false,7);
 
             if(result.isSuccess){
                 String msg = result.msg;
@@ -103,10 +102,10 @@ public class AbstractJmxCommand {
 
                     List<Boolean> results = new ArrayList<>();
                     //因java授权文件有严格的读取权限控制,为能够读到授权文件信息,创建临时文件
-                    results.add(CommandUtilForUnix.execWithReadTimeLimit(String.format("cp %s %s",accessFile,accessFile + suffix),false,10,TimeUnit.SECONDS).isSuccess);
-                    results.add(CommandUtilForUnix.execWithReadTimeLimit(String.format("chmod 777 %s",accessFile + suffix),false,10,TimeUnit.SECONDS).isSuccess);
-                    results.add(CommandUtilForUnix.execWithReadTimeLimit(String.format("cp %s %s",passwordFile,passwordFile + suffix),false,10,TimeUnit.SECONDS).isSuccess);
-                    results.add(CommandUtilForUnix.execWithReadTimeLimit(String.format("chmod 777 %s",passwordFile + suffix),false,10,TimeUnit.SECONDS).isSuccess);
+                    results.add(CommandUtilForUnix.execWithReadTimeLimit(String.format("cp %s %s",accessFile,accessFile + suffix),false,7).isSuccess);
+                    results.add(CommandUtilForUnix.execWithReadTimeLimit(String.format("chmod 777 %s",accessFile + suffix),false,7).isSuccess);
+                    results.add(CommandUtilForUnix.execWithReadTimeLimit(String.format("cp %s %s",passwordFile,passwordFile + suffix),false,7).isSuccess);
+                    results.add(CommandUtilForUnix.execWithReadTimeLimit(String.format("chmod 777 %s",passwordFile + suffix),false,7).isSuccess);
                     if(results.contains(Boolean.FALSE)){
                         logger.error("JMX的授权文件操作失败");
                         //删除临时文件
@@ -115,9 +114,9 @@ public class AbstractJmxCommand {
                         return null;
                     }
 
-                    String contentForAccess = CommandUtilForUnix.execWithReadTimeLimit(String.format("cat %s",accessFile + suffix),false,10,TimeUnit.SECONDS).msg;
+                    String contentForAccess = CommandUtilForUnix.execWithReadTimeLimit(String.format("cat %s",accessFile + suffix),false,7).msg;
                     String user = getJmxUser(contentForAccess);
-                    String contentForPassword = CommandUtilForUnix.execWithReadTimeLimit(String.format("cat %s",passwordFile + suffix),false,10,TimeUnit.SECONDS).msg;
+                    String contentForPassword = CommandUtilForUnix.execWithReadTimeLimit(String.format("cat %s",passwordFile + suffix),false,7).msg;
                     String password = getJmxPassword(contentForPassword,user);
 
                     //删除临时文件

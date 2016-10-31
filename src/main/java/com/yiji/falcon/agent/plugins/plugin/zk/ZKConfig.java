@@ -52,7 +52,7 @@ public class ZKConfig {
         }
 
         String cmd = "lsof -p " + pid + " | grep zookeeper";
-        CommandUtilForUnix.ExecuteResult executeResult = CommandUtilForUnix.execWithReadTimeLimit(cmd,false,10, TimeUnit.SECONDS);
+        CommandUtilForUnix.ExecuteResult executeResult = CommandUtilForUnix.execWithReadTimeLimit(cmd,false,7);
 
         if(executeResult.isSuccess){
             String path = "";

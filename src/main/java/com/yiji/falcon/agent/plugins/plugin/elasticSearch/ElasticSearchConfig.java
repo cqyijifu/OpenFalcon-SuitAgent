@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 
 /*
  * 修订记录:
@@ -57,7 +56,7 @@ public class ElasticSearchConfig {
         }
 
         String cmd = "lsof -p " + pid + " | grep elasticsearch";
-        CommandUtilForUnix.ExecuteResult executeResult = CommandUtilForUnix.execWithReadTimeLimit(cmd,false,10, TimeUnit.SECONDS);
+        CommandUtilForUnix.ExecuteResult executeResult = CommandUtilForUnix.execWithReadTimeLimit(cmd,false,10);
 
         if(executeResult.isSuccess){
             String path = "";

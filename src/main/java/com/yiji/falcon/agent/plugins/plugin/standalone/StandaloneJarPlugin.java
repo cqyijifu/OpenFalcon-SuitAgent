@@ -191,7 +191,7 @@ public class StandaloneJarPlugin implements JMXPlugin {
         if(StringUtils.isEmpty(dirPath)){
             try {
                 String cmd = "lsof -p " + pid + " | grep " + serverName;
-                CommandUtilForUnix.ExecuteResult executeResult = CommandUtilForUnix.execWithReadTimeLimit(cmd,false,10, TimeUnit.SECONDS);
+                CommandUtilForUnix.ExecuteResult executeResult = CommandUtilForUnix.execWithReadTimeLimit(cmd,false,7);
                 String msg = executeResult.msg;
                 String[] ss = msg.split("\n");
                 for (String s : ss) {
