@@ -37,7 +37,7 @@ public class CommandTest {
 
     @Test
     public void exec() throws IOException {
-        System.out.println(CommandUtilForUnix.execWithReadTimeLimit("lsof -p 18046",false,7));
+//        System.out.println(CommandUtilForUnix.execWithReadTimeLimit("lsof -p 18046",false,7));
 //        System.out.println(CommandUtilForUnix.execWithReadTimeLimit("/Users/QianL/Documents/Dev/JavaServer/elasticsearch-2.2.1/bin/elasticsearch",false,5));
 //        System.out.println(CommandUtilForUnix.ping("192.168.49.99",5));
     }
