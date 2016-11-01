@@ -4,9 +4,25 @@
 
 ---
 
+2016年11月01日
+
+- 版本：6.5
+  - Java应用监控，添加非堆内存监控属性。
+    - `NonHeapMemoryUsedRatio`：非堆内存使用率。当未设置max时，它的上报值为`-1`。
+    - `NonHeapMemoryMax`：非堆内存的最大值。当未设置max时，将不会上报此值。
+    - `NonHeapMemoryFree`：非堆内存的剩余空间。当未设置max时，将不会上报此值。
+  - Java应用监控，Java8运行时添加`metaspace`内存监控
+    - `MetaspaceMemoryCommitted`：元空间内存已提交值
+    - `MetaspaceMemoryUsed`：元空间内存已使用值
+    - `MetaspaceMemoryUsedRatio`：元空间内存使用率。当未设置max时，它的上报值为`-1`。
+    - `MetaspaceMemoryMax`：元空间内存的最大值。当未设置max时，将不会上报此值。
+    - `MetaspaceMemoryFree`：元空间内存的剩余空间。当未设置max时，将不会上报此值。
+
+---
+
 2016年10月26日
 
-- 版本：6.0
+- 版本：
   - 添加`mongodb`数据库的监控
 
 ---
@@ -338,7 +354,7 @@ JMX监控的属性，由以下三部分组成
 
 -  Ping监控
 
-             监控Metrics
+              监控Metrics
 
    - availability
      - pingAvgTime : ping的平均延时（当前为每次ping5次，取绝对值）
@@ -346,14 +362,14 @@ JMX监控的属性，由以下三部分组成
 
 -  TCP（Socket）监控
 
-             监控Metrics : 
+              监控Metrics : 
 
    - availability
      - response.time : 响应时间 毫秒
 
 -  Yiji NTP 监控
 
-             监控Metrics
+              监控Metrics
 
    - availability
       - `0`：NTP监控失败（如ntpdate命令执行失败）
@@ -362,7 +378,7 @@ JMX监控的属性，由以下三部分组成
 
 -  Docker 监控
 
-             监控Metrics
+              监控Metrics
 
    - availability
       - `0`：Docker daemon 探测失败
