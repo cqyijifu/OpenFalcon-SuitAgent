@@ -174,8 +174,8 @@ public class JMXMetricsValue extends MetricsCommon {
                 requestObject.setTimestamp(System.currentTimeMillis() / 1000);
                 requestObject.setObjectName(jmxObjectNameInfo.getObjectName());
                 Object newValue = executeJsExpress(kitObjectNameMetrics.jmxMetricsConfiguration.getValueExpress(), metricsValue);
-                if (NumberUtils.isNumber(String.valueOf(newValue))) {
-                    requestObject.setValue(String.valueOf(newValue));
+                if (NumberUtils.isNumber(String.valueOf(newValue).trim())) {
+                    requestObject.setValue(String.valueOf(newValue).trim());
                 } else {
                     log.error("异常:监控指标值{} - {} : {}不能转换为数字,将忽略此监控值", jmxMetricsConfiguration.getObjectName(), jmxMetricsConfiguration.getMetrics(), metricsValue);
                     continue;

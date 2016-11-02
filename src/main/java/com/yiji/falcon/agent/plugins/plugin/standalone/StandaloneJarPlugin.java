@@ -238,8 +238,13 @@ public class StandaloneJarPlugin implements JMXPlugin {
 
     @Override
     public String serverPath(int pid, String serverName) {
-        String key = StringUtils.getStringByInt(pid);
-        String dirPath = serverDirPathCatch.get(key);
+        String dirPath = serverDirPathCatch.get(serverName);
+
+        //若缓存的路径不存在，清除
+        if(dirPath != null && !new File(dirPath).exists()){
+            dirPath = null;
+            serverDirPathCatch.remove(serverName);
+        }
         if(StringUtils.isEmpty(dirPath)){
             try {
                 String cmd = "lsof -p " + pid + " | grep " + serverName;
@@ -255,8 +260,10 @@ public class StandaloneJarPlugin implements JMXPlugin {
                 }
 
                 if (dirPath != null) {
-                    dirPath += File.separator + serverName;
-                    serverDirPathCatch.put(key,dirPath);
+                    if(!dirPath.toLowerCase().endsWith(".jar")){
+                        dirPath += File.separator + serverName;
+                    }
+                    serverDirPathCatch.put(serverName,dirPath);
                 }
             } catch (IOException e) {
                 logger.error("standaloneJar serverDirPath获取异常",e);

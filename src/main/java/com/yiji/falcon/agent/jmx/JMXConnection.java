@@ -15,6 +15,8 @@ import org.slf4j.LoggerFactory;
 import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXServiceURL;
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -233,11 +235,16 @@ public class JMXConnection {
             }
         }
 
-        JMXConnectUrlInfo jmxConnectUrlInfo = AbstractJmxCommand.findJMXRemoteUrlByProcessId(Integer.parseInt(desc.id()),"127.0.0.1");
-        if(jmxConnectUrlInfo != null){
-            log.info("JMX Remote URL:{}",jmxConnectUrlInfo);
-        }else if(!AgentConfiguration.INSTANCE.isAgentJMXLocalConnect()){
-            log.warn("应用未配置JMX Remote功能,请给应用配置JMX Remote");
+        JMXConnectUrlInfo jmxConnectUrlInfo = null;
+        try {
+            jmxConnectUrlInfo = AbstractJmxCommand.findJMXRemoteUrlByProcessId(Integer.parseInt(desc.id()), InetAddress.getLocalHost().getHostAddress());
+            if(jmxConnectUrlInfo != null){
+                log.info("JMX Remote URL:{}",jmxConnectUrlInfo);
+            }else if(!AgentConfiguration.INSTANCE.isAgentJMXLocalConnect()){
+                log.warn("应用未配置JMX Remote功能,请给应用配置JMX Remote");
+            }
+        } catch (UnknownHostException e) {
+            log.error("JMX连接本机地址获取失败",e);
         }
         return jmxConnectUrlInfo;
     }

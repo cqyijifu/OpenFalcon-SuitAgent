@@ -124,16 +124,13 @@ public class AbstractJmxCommand {
 //                    deleteTempFile(accessFile + suffix);
 //                    deleteTempFile(passwordFile + suffix);
 
-                    if(user == null || password == null){
-                        logger.error("JMX Remote Authentication 授权用户获取失败");
-                        return null;
+                    if(StringUtils.isEmpty(user) || StringUtils.isEmpty(password)){
+                        logger.error("JMX Remote 的认证User {} 或 Password {} 获取失败",user,password);
                     }
+
                     remoteUrlInfo.setJmxUser(user);
                     remoteUrlInfo.setJmxPassword(password);
 
-                    if(StringUtils.isEmpty(user) || StringUtils.isEmpty(password)){
-                        logger.error("JMX Remote 的认证User 和Password 获取失败");
-                    }
                 }
 
             }else{

@@ -21,6 +21,7 @@ import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanServerConnection;
 import javax.management.ObjectInstance;
 import javax.management.ObjectName;
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -185,8 +186,13 @@ public class TomcatPlugin implements JMXPlugin {
 
     @Override
     public String serverPath(int pid, String serverName) {
-        String key = StringUtils.getStringByInt(pid);
+        String key = StringUtils.getStringByInt(pid) + serverName;
         String dirPath = serverDirPathCatch.get(key);
+        //若缓存的路径不存在，清除
+        if(dirPath != null && !new File(dirPath).exists()){
+            dirPath = null;
+            serverDirPathCatch.remove(serverName);
+        }
         if(dirPath == null){
             try {
                 dirPath = CommandUtilForUnix.getCmdDirByPid(pid);

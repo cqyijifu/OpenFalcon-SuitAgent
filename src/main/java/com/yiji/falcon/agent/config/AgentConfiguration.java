@@ -27,7 +27,7 @@ public enum  AgentConfiguration {
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
-    public static final float VERSION = (float) 7.0;
+    public static final float VERSION = (float) 7.1;
 
     /**
      * quartz配置文件路径
