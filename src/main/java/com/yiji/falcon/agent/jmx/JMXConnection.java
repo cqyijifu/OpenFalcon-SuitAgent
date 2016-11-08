@@ -30,7 +30,6 @@ import java.util.stream.Collectors;
  */
 
 /**
- * 此类需要具体的监控对象(如ZK,Tomcat等进行继承)
  * @author guqiu@yiji.com
  */
 public class JMXConnection {
