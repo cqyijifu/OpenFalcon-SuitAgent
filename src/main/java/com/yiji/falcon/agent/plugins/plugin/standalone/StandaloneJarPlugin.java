@@ -241,8 +241,7 @@ public class StandaloneJarPlugin implements JMXPlugin {
         String dirPath = serverDirPathCatch.get(serverName);
 
         //若缓存的路径不存在，清除
-        if(dirPath != null && !new File(dirPath).exists()){
-            dirPath = null;
+        if(!StringUtils.isEmpty(dirPath) && !new File(dirPath).exists()){
             serverDirPathCatch.remove(serverName);
         }
         if(StringUtils.isEmpty(dirPath)){

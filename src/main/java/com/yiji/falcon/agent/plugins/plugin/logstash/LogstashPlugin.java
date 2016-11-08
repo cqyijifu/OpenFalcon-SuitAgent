@@ -161,8 +161,7 @@ public class LogstashPlugin implements JMXPlugin {
         String key = StringUtils.getStringByInt(pid) + serverName;
         String dirPath = serverDirPathCatch.get(key);
         //若缓存的路径不存在，清除
-        if(dirPath != null && !new File(dirPath).exists()){
-            dirPath = null;
+        if(!StringUtils.isEmpty(dirPath) && !new File(dirPath).exists()){
             serverDirPathCatch.remove(serverName);
         }
         if(dirPath == null){
