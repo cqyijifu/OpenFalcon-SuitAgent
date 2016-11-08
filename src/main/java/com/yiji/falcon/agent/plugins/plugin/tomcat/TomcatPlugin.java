@@ -11,7 +11,6 @@ package com.yiji.falcon.agent.plugins.plugin.tomcat;
 import com.yiji.falcon.agent.falcon.FalconReportObject;
 import com.yiji.falcon.agent.jmx.vo.JMXMetricsValueInfo;
 import com.yiji.falcon.agent.plugins.JMXPlugin;
-import com.yiji.falcon.agent.util.MapUtil;
 import com.yiji.falcon.agent.plugins.util.PluginActivateType;
 import com.yiji.falcon.agent.util.CommandUtilForUnix;
 import com.yiji.falcon.agent.util.StringUtils;
@@ -22,13 +21,11 @@ import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanServerConnection;
 import javax.management.ObjectInstance;
 import javax.management.ObjectName;
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author guqiu@yiji.com
@@ -36,8 +33,6 @@ import java.util.concurrent.ConcurrentHashMap;
 public class TomcatPlugin implements JMXPlugin {
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
-    private ConcurrentHashMap<String,String> serverDirNameCatch = new ConcurrentHashMap<>();
-    private ConcurrentHashMap<String,String> serverDirPathCatch = new ConcurrentHashMap<>();
 
     private String basePropertiesKey;
     private String jmxServerName;
@@ -173,54 +168,24 @@ public class TomcatPlugin implements JMXPlugin {
         return new ArrayList<>();
     }
 
-    /**
-     * 当JMX连接的应用已下线(此链接的目标目录已不存在)时,将会在清除连接时,调用此方法进行相关资源的释放操作
-     * 该操作有具体的插件自己实现
-     *
-     * @param pid
-     */
-    @Override
-    public void releaseOption(int pid, String serverName) {
-        for (Object k : MapUtil.getSameValueKeys(serverDirPathCatch, serverDirPathCatch.get(StringUtils.getStringByInt(pid)))) {
-            serverDirPathCatch.remove(String.valueOf(k));
-        }
-        for (Object k : MapUtil.getSameValueKeys(serverDirNameCatch, serverDirNameCatch.get(StringUtils.getStringByInt(pid) + serverName))) {
-            serverDirNameCatch.remove(String.valueOf(k));
-        }
-    }
-
     @Override
     public String serverPath(int pid, String serverName) {
-        String key = StringUtils.getStringByInt(pid) + serverName;
-        String dirPath = serverDirPathCatch.get(key);
-        //若缓存的路径不存在，清除
-        if(!StringUtils.isEmpty(dirPath) && !new File(dirPath).exists()){
-            serverDirPathCatch.remove(serverName);
-        }
-        if(dirPath == null){
-            try {
-                dirPath = CommandUtilForUnix.getCmdDirByPid(pid);
-                if (dirPath != null) {
-                    serverDirPathCatch.put(key,dirPath);
-                }
-            } catch (IOException e) {
-                log.error("tomcat serverDirPath获取异常",e);
-            }
+        String dirPath = "";
+        try {
+            dirPath = CommandUtilForUnix.getCmdDirByPid(pid);
+        } catch (IOException e) {
+            log.error("tomcat serverDirPath获取异常",e);
         }
         return dirPath;
     }
 
     @Override
     public String serverDirName(int pid) {
-        String key = StringUtils.getStringByInt(pid);
-        String dirName = serverDirNameCatch.get(key);
-        if(dirName == null){
-            String dirPath = serverPath(pid,"");
-            if(dirPath != null){
-                dirName = dirPath.replace("/bin","");
-                dirName = dirName.substring(dirName.lastIndexOf("/") + 1);
-                serverDirNameCatch.put(key,dirName);
-            }
+        String dirName = "";
+        String dirPath = serverPath(pid,"");
+        if(dirPath != null){
+            dirName = dirPath.replace("/bin","");
+            dirName = dirName.substring(dirName.lastIndexOf("/") + 1);
         }
         return dirName;
     }

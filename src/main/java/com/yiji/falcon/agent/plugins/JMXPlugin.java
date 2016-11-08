@@ -59,13 +59,6 @@ public interface JMXPlugin extends Plugin{
     Collection<FalconReportObject> inbuiltReportObjectsForValid(JMXMetricsValueInfo metricsValueInfo);
 
     /**
-     * 当JMX连接的应用已下线(此链接的目标目录已不存在)时,将会在清除连接时,调用此方法进行相关资源的释放操作
-     * 该操作有具体的插件自己实现
-     * @param pid
-     */
-    void releaseOption(int pid,String serverName);
-
-    /**
      * 能够代表该JMX服务的绝对路径
      * 若实现此方法,则若该JMX连接不可用时,将会检查该JMX服务的目录是否存在,若不存在,将会清除此连接,并不再监控此JMX。
      * 否则,若JMX连接不可用,将会上报不可用的报告,且不会清除

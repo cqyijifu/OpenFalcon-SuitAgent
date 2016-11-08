@@ -11,10 +11,8 @@ package com.yiji.falcon.agent.plugins.plugin.logstash;
 import com.yiji.falcon.agent.falcon.FalconReportObject;
 import com.yiji.falcon.agent.jmx.vo.JMXMetricsValueInfo;
 import com.yiji.falcon.agent.plugins.JMXPlugin;
-import com.yiji.falcon.agent.util.MapUtil;
 import com.yiji.falcon.agent.plugins.util.PluginActivateType;
 import com.yiji.falcon.agent.util.CommandUtilForUnix;
-import com.yiji.falcon.agent.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,7 +21,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author guqiu@yiji.com
@@ -32,7 +29,6 @@ public class LogstashPlugin implements JMXPlugin {
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
-    private ConcurrentHashMap<String,String> serverDirPathCatch = new ConcurrentHashMap<>();
     private String basePropertiesKey;
     private String jmxServerName;
     private int step;
@@ -86,20 +82,6 @@ public class LogstashPlugin implements JMXPlugin {
     @Override
     public Collection<FalconReportObject> inbuiltReportObjectsForValid(JMXMetricsValueInfo metricsValueInfo) {
         return new ArrayList<>();
-    }
-
-    /**
-     * 当JMX连接的应用已下线(此链接的目标目录已不存在)时,将会在清除连接时,调用此方法进行相关资源的释放操作
-     * 该操作有具体的插件自己实现
-     *
-     * @param pid
-     */
-    @Override
-    public void releaseOption(int pid, String serverName) {
-        String key = StringUtils.getStringByInt(pid) + serverName;
-        for (Object k : MapUtil.getSameValueKeys(serverDirPathCatch, serverDirPathCatch.get(key))) {
-            serverDirPathCatch.remove(String.valueOf(k));
-        }
     }
 
     /**
@@ -161,17 +143,11 @@ public class LogstashPlugin implements JMXPlugin {
 
     @Override
     public String serverPath(int pid, String serverName) {
-        String key = StringUtils.getStringByInt(pid) + serverName;
-        String dirPath = serverDirPathCatch.get(key);
-        if(dirPath == null){
-            try {
-                dirPath = CommandUtilForUnix.getCmdDirByPid(pid);
-                if (dirPath != null) {
-                    serverDirPathCatch.put(key,dirPath);
-                }
-            } catch (IOException e) {
-                log.error("logstash serverDirPath获取异常",e);
-            }
+        String dirPath = "";
+        try {
+            dirPath = CommandUtilForUnix.getCmdDirByPid(pid);
+        } catch (IOException e) {
+            log.error("logstash serverDirPath获取异常",e);
         }
         return dirPath;
     }

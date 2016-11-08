@@ -15,7 +15,6 @@ import com.yiji.falcon.agent.falcon.MetricsType;
 import com.yiji.falcon.agent.jmx.vo.JMXMetricsValueInfo;
 import com.yiji.falcon.agent.plugins.JMXPlugin;
 import com.yiji.falcon.agent.plugins.metrics.MetricsCommon;
-import com.yiji.falcon.agent.util.MapUtil;
 import com.yiji.falcon.agent.plugins.util.PluginActivateType;
 import com.yiji.falcon.agent.util.CommandUtilForUnix;
 import com.yiji.falcon.agent.util.HttpUtil;
@@ -29,7 +28,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 import static com.yiji.falcon.agent.plugins.metrics.MetricsCommon.executeJsExpress;
 
@@ -40,7 +38,6 @@ public class ElasticSearchPlugin implements JMXPlugin {
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    private ConcurrentHashMap<String,String> serverDirPathCatch = new ConcurrentHashMap<>();
     private String basePropertiesKey;
     private String jmxServerName;
     private int step;
@@ -169,21 +166,6 @@ public class ElasticSearchPlugin implements JMXPlugin {
     }
 
     /**
-     * 当JMX连接的应用已下线(此链接的目标目录已不存在)时,将会在清除连接时,调用此方法进行相关资源的释放操作
-     * 该操作有具体的插件自己实现
-     *
-     * @param pid
-     */
-    @Override
-    public void releaseOption(int pid, String serverName) {
-        ElasticSearchConfig.removeCache(pid);
-        String key = StringUtils.getStringByInt(pid) + serverName;
-        for (Object k : MapUtil.getSameValueKeys(serverDirPathCatch, serverDirPathCatch.get(key))) {
-            serverDirPathCatch.remove(String.valueOf(k));
-        }
-    }
-
-    /**
      * 插件初始化操作
      * 该方法将会在插件运行前进行调用
      * @param properties
@@ -252,17 +234,11 @@ public class ElasticSearchPlugin implements JMXPlugin {
      */
     @Override
     public String serverPath(int pid, String serverName) {
-        String key = StringUtils.getStringByInt(pid) + serverName;
-        String dirPath = serverDirPathCatch.get(key);
-        if(dirPath == null){
-            try {
-                dirPath = CommandUtilForUnix.getCmdDirByPid(pid);
-                if (dirPath != null) {
-                    serverDirPathCatch.put(key,dirPath);
-                }
-            } catch (IOException e) {
-                logger.error("elasticSearch serverDirPath获取异常",e);
-            }
+        String dirPath = "";
+        try {
+            dirPath = CommandUtilForUnix.getCmdDirByPid(pid);
+        } catch (IOException e) {
+            logger.error("elasticSearch serverDirPath获取异常",e);
         }
         return dirPath;
     }

@@ -16,7 +16,6 @@ import com.yiji.falcon.agent.falcon.MetricsType;
 import com.yiji.falcon.agent.jmx.vo.JMXMetricsValueInfo;
 import com.yiji.falcon.agent.plugins.JMXPlugin;
 import com.yiji.falcon.agent.plugins.metrics.MetricsCommon;
-import com.yiji.falcon.agent.util.MapUtil;
 import com.yiji.falcon.agent.plugins.util.PluginActivateType;
 import com.yiji.falcon.agent.util.*;
 import com.yiji.falcon.agent.vo.HttpResult;
@@ -30,7 +29,6 @@ import java.net.InetAddress;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author guqiu@yiji.com
@@ -39,7 +37,6 @@ public class StandaloneJarPlugin implements JMXPlugin {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    private ConcurrentHashMap<String,String> serverDirPathCatch = new ConcurrentHashMap<>();
     private String jmxServerDir;
     private String jmxServerName;
     private int step;
@@ -169,19 +166,6 @@ public class StandaloneJarPlugin implements JMXPlugin {
         return reportObjects;
     }
 
-    /**
-     * 当JMX连接的应用已下线(此链接的目标目录已不存在)时,将会在清除连接时,调用此方法进行相关资源的释放操作
-     * 该操作有具体的插件自己实现
-     *
-     * @param pid
-     */
-    @Override
-    public void releaseOption(int pid, String serverName) {
-        String value = serverDirPathCatch.get(serverName + pid);
-        for (Object k : MapUtil.getSameValueKeys(serverDirPathCatch, value)) {
-            serverDirPathCatch.remove(String.valueOf(k));
-        }
-    }
 
     /**
      * 插件初始化操作
@@ -242,7 +226,7 @@ public class StandaloneJarPlugin implements JMXPlugin {
 
     @Override
     public String serverPath(int pid, String serverName) {
-        String dirPath = serverDirPathCatch.get(serverName + pid);
+        String dirPath = "";
 
         if(StringUtils.isEmpty(dirPath)){
             try {
@@ -262,7 +246,6 @@ public class StandaloneJarPlugin implements JMXPlugin {
                     if(!dirPath.toLowerCase().endsWith(".jar")){
                         dirPath += File.separator + serverName;
                     }
-                    serverDirPathCatch.put(serverName + pid,dirPath);
                 }
             } catch (IOException e) {
                 logger.error("standaloneJar serverDirPath获取异常",e);
