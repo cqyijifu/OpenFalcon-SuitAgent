@@ -99,30 +99,10 @@ public class AbstractJmxCommand {
 
                     }
 
-//                    List<Boolean> results = new ArrayList<>();
-                    //因java授权文件有严格的读取权限控制,为能够读到授权文件信息,创建临时文件
-//                    results.add(CommandUtilForUnix.execWithReadTimeLimit(String.format("cp %s %s",accessFile,accessFile + suffix),false,7).isSuccess);
-//                    results.add(CommandUtilForUnix.execWithReadTimeLimit(String.format("chmod 777 %s",accessFile + suffix),false,7).isSuccess);
-//                    results.add(CommandUtilForUnix.execWithReadTimeLimit(String.format("cp %s %s",passwordFile,passwordFile + suffix),false,7).isSuccess);
-//                    results.add(CommandUtilForUnix.execWithReadTimeLimit(String.format("chmod 777 %s",passwordFile + suffix),false,7).isSuccess);
-//                    if(results.contains(Boolean.FALSE)){
-//                        logger.error("JMX的授权文件操作失败");
-                        //删除临时文件
-//                        deleteTempFile(accessFile + suffix);
-//                        deleteTempFile(passwordFile + suffix);
-//                        return null;
-//                    }
-
-//                    String contentForAccess = CommandUtilForUnix.execWithReadTimeLimit(String.format("cat %s",accessFile + suffix),false,7).msg;
                     String contentForAccess = CommandUtilForUnix.execWithReadTimeLimit(String.format("cat %s",accessFile),false,7).msg;
                     String user = getJmxUser(contentForAccess);
-//                    String contentForPassword = CommandUtilForUnix.execWithReadTimeLimit(String.format("cat %s",passwordFile + suffix),false,7).msg;
                     String contentForPassword = CommandUtilForUnix.execWithReadTimeLimit(String.format("cat %s",passwordFile),false,7).msg;
                     String password = getJmxPassword(contentForPassword,user);
-
-                    //删除临时文件
-//                    deleteTempFile(accessFile + suffix);
-//                    deleteTempFile(passwordFile + suffix);
 
                     if(StringUtils.isEmpty(user) || StringUtils.isEmpty(password)){
                         logger.error("JMX Remote 的认证User {} 或 Password {} 获取失败",user,password);
@@ -175,19 +155,6 @@ public class AbstractJmxCommand {
     private static String getConfigValue(String config){
         String[] ss = config.split("=");
         return ss[ss.length - 1].trim();
-    }
-
-    /**
-     * 删除临时文件
-     * @param path
-     */
-    private static void deleteTempFile(String path){
-        File file = new File(path);
-        if(file.exists() && file.isFile()){
-            if(!file.delete()){
-                logger.warn("文件 {} 删除失败",path);
-            }
-        }
     }
 
     /**
