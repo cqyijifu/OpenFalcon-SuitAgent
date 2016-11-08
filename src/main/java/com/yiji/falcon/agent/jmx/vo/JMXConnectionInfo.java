@@ -8,6 +8,7 @@ import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 
 import javax.management.MBeanServerConnection;
+import javax.management.remote.JMXConnector;
 
 /*
  * 修订记录:
@@ -20,6 +21,7 @@ import javax.management.MBeanServerConnection;
 public class JMXConnectionInfo {
     private String cacheKeyId;//JMX缓存的key的唯一id
     private MBeanServerConnection mBeanServerConnection;
+    private JMXConnector jmxConnector;
     private String connectionQualifiedServerName;//JMX中的jmx连接限定名
     private String connectionServerName;//配置中指定的服务名
     private String name;//此jmx连接对监控展示的名称
@@ -31,6 +33,7 @@ public class JMXConnectionInfo {
         return "JMXConnectionInfo{" +
                 "cacheKeyId='" + cacheKeyId + '\'' +
                 ", mBeanServerConnection=" + mBeanServerConnection +
+                ", jmxConnector=" + jmxConnector +
                 ", connectionQualifiedServerName='" + connectionQualifiedServerName + '\'' +
                 ", connectionServerName='" + connectionServerName + '\'' +
                 ", name='" + name + '\'' +
@@ -125,5 +128,13 @@ public class JMXConnectionInfo {
 
     public void setPid(int pid) {
         this.pid = pid;
+    }
+
+    public JMXConnector getJmxConnector() {
+        return jmxConnector;
+    }
+
+    public void setJmxConnector(JMXConnector jmxConnector) {
+        this.jmxConnector = jmxConnector;
     }
 }

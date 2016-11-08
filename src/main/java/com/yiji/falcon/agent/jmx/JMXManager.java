@@ -82,7 +82,6 @@ public class JMXManager {
                 } catch (Exception e) {
                     //jmx 连接取值异常,设置jmx连接为不可用状态,将会在下一次获取连接时进行维护
                     connectionInfo.setValid(false);
-                    connectionInfo.setPid(0);
                 }finally {
                     //设置返回对象-添加监控值对象
                     jmxMetricsValueInfo.setJmxConnectionInfo(connectionInfo);
@@ -90,7 +89,6 @@ public class JMXManager {
                 }
             }else{
                 //设置返回对象-添加监控值对象,连接不可用也需要返回,以便于构建连接不可用的报告对象
-                connectionInfo.setPid(0);
                 jmxMetricsValueInfo.setJmxConnectionInfo(connectionInfo);
                 jmxMetricsValueInfoList.add(jmxMetricsValueInfo);
             }

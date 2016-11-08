@@ -63,7 +63,7 @@ public interface JMXPlugin extends Plugin{
      * 该操作有具体的插件自己实现
      * @param pid
      */
-    void releaseOption(int pid);
+    void releaseOption(int pid,String serverName);
 
     /**
      * 能够代表该JMX服务的绝对路径

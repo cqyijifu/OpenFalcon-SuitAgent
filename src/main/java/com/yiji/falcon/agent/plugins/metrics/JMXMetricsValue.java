@@ -236,45 +236,53 @@ public class JMXMetricsValue extends MetricsCommon {
                         if (!file.exists()) {
                             //JMX服务目录不存在,清除连接,跳过此次监控
                             JMXConnection.removeConnectCache(jmxConnectionInfo.getConnectionServerName(), jmxConnectionInfo.getPid());
-                            jmxPlugin.releaseOption(jmxConnectionInfo.getPid());
+                            jmxPlugin.releaseOption(jmxConnectionInfo.getPid(), jmxConnectionInfo.getConnectionServerName());
+                            try {
+                                jmxConnectionInfo.getJmxConnector().close();
+                            } catch (IOException ignored) {
+                            }
                             continue;
                         }
                     }
                 }
             }
 
-            if (!jmxConnectionInfo.isValid()) {
-                //该连接不可用,添加该 jmx不可用的监控报告
-                FalconReportObject reportObject = generatorVariabilityReport(false, jmxConnectionInfo.getName(), jmxPlugin.step(), jmxPlugin, jmxPlugin.serverName());
-                if (jmxConnectionInfo.getPid() != 0) {
-                    String dirName = jmxPlugin.serverDirName(jmxConnectionInfo.getPid());
-                    if (!StringUtils.isEmpty(dirName)) {
-                        reportObject.appendTags("dir=" + dirName);
-                    }
-                }
-                result.add(reportObject);
-            } else {
-                String dirName = jmxPlugin.serverDirName(jmxConnectionInfo.getPid());
-                Set<KitObjectNameMetrics> kitObjectNameMetricsSet = new HashSet<>();
-
-                for (JMXMetricsConfiguration metricsConfiguration : getMetricsConfig()) {// 配置文件配置的需要监控的
-                    kitObjectNameMetricsSet.addAll(getKitObjectNameMetrics(metricsValueInfo.getJmxObjectNameInfoList(), metricsConfiguration));
-                }
-
-                result.addAll(generatorReportObject(kitObjectNameMetricsSet, metricsValueInfo));
-
-                //添加可用性报告
-                result.add(generatorVariabilityReport(true, jmxConnectionInfo.getName(), jmxPlugin.step(), jmxPlugin, jmxPlugin.serverName()));
-
-                //添加內建报告
-                result.addAll(getInbuiltReportObjects(metricsValueInfo));
-                Collection<FalconReportObject> inbuilt = jmxPlugin.inbuiltReportObjectsForValid(metricsValueInfo);
-                if (inbuilt != null && !inbuilt.isEmpty()) {
-                    for (FalconReportObject reportObject : inbuilt) {
+            if(jmxConnectionInfo.getmBeanServerConnection() != null
+                    && jmxConnectionInfo.getCacheKeyId() != null
+                    && jmxConnectionInfo.getConnectionQualifiedServerName() != null){
+                if (!jmxConnectionInfo.isValid()) {
+                    //该连接不可用,添加该 jmx不可用的监控报告
+                    FalconReportObject reportObject = generatorVariabilityReport(false, jmxConnectionInfo.getName(), jmxPlugin.step(), jmxPlugin, jmxPlugin.serverName());
+                    if (jmxConnectionInfo.getPid() != 0) {
+                        String dirName = jmxPlugin.serverDirName(jmxConnectionInfo.getPid());
                         if (!StringUtils.isEmpty(dirName)) {
                             reportObject.appendTags("dir=" + dirName);
                         }
-                        result.add(reportObject);
+                    }
+                    result.add(reportObject);
+                } else {
+                    String dirName = jmxPlugin.serverDirName(jmxConnectionInfo.getPid());
+                    Set<KitObjectNameMetrics> kitObjectNameMetricsSet = new HashSet<>();
+
+                    for (JMXMetricsConfiguration metricsConfiguration : getMetricsConfig()) {// 配置文件配置的需要监控的
+                        kitObjectNameMetricsSet.addAll(getKitObjectNameMetrics(metricsValueInfo.getJmxObjectNameInfoList(), metricsConfiguration));
+                    }
+
+                    result.addAll(generatorReportObject(kitObjectNameMetricsSet, metricsValueInfo));
+
+                    //添加可用性报告
+                    result.add(generatorVariabilityReport(true, jmxConnectionInfo.getName(), jmxPlugin.step(), jmxPlugin, jmxPlugin.serverName()));
+
+                    //添加內建报告
+                    result.addAll(getInbuiltReportObjects(metricsValueInfo));
+                    Collection<FalconReportObject> inbuilt = jmxPlugin.inbuiltReportObjectsForValid(metricsValueInfo);
+                    if (inbuilt != null && !inbuilt.isEmpty()) {
+                        for (FalconReportObject reportObject : inbuilt) {
+                            if (!StringUtils.isEmpty(dirName)) {
+                                reportObject.appendTags("dir=" + dirName);
+                            }
+                            result.add(reportObject);
+                        }
                     }
                 }
             }

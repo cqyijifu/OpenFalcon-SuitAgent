@@ -11,6 +11,7 @@ package com.yiji.falcon.agent.plugins.plugin.tomcat;
 import com.yiji.falcon.agent.falcon.FalconReportObject;
 import com.yiji.falcon.agent.jmx.vo.JMXMetricsValueInfo;
 import com.yiji.falcon.agent.plugins.JMXPlugin;
+import com.yiji.falcon.agent.plugins.util.MapUtil;
 import com.yiji.falcon.agent.plugins.util.PluginActivateType;
 import com.yiji.falcon.agent.util.CommandUtilForUnix;
 import com.yiji.falcon.agent.util.StringUtils;
@@ -179,9 +180,13 @@ public class TomcatPlugin implements JMXPlugin {
      * @param pid
      */
     @Override
-    public void releaseOption(int pid) {
-        serverDirPathCatch.remove(StringUtils.getStringByInt(pid));
-        serverDirNameCatch.remove(StringUtils.getStringByInt(pid));
+    public void releaseOption(int pid, String serverName) {
+        for (Object k : MapUtil.getSameValueKeys(serverDirPathCatch, serverDirPathCatch.get(StringUtils.getStringByInt(pid)))) {
+            serverDirPathCatch.remove(String.valueOf(k));
+        }
+        for (Object k : MapUtil.getSameValueKeys(serverDirNameCatch, serverDirNameCatch.get(StringUtils.getStringByInt(pid) + serverName))) {
+            serverDirNameCatch.remove(String.valueOf(k));
+        }
     }
 
     @Override

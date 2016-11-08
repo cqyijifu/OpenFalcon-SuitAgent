@@ -11,6 +11,7 @@ package com.yiji.falcon.agent.plugins.plugin.logstash;
 import com.yiji.falcon.agent.falcon.FalconReportObject;
 import com.yiji.falcon.agent.jmx.vo.JMXMetricsValueInfo;
 import com.yiji.falcon.agent.plugins.JMXPlugin;
+import com.yiji.falcon.agent.plugins.util.MapUtil;
 import com.yiji.falcon.agent.plugins.util.PluginActivateType;
 import com.yiji.falcon.agent.util.CommandUtilForUnix;
 import com.yiji.falcon.agent.util.StringUtils;
@@ -18,7 +19,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.management.MBeanServerConnection;
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -95,8 +95,11 @@ public class LogstashPlugin implements JMXPlugin {
      * @param pid
      */
     @Override
-    public void releaseOption(int pid) {
-
+    public void releaseOption(int pid, String serverName) {
+        String key = StringUtils.getStringByInt(pid) + serverName;
+        for (Object k : MapUtil.getSameValueKeys(serverDirPathCatch, serverDirPathCatch.get(key))) {
+            serverDirPathCatch.remove(String.valueOf(k));
+        }
     }
 
     /**
@@ -160,10 +163,6 @@ public class LogstashPlugin implements JMXPlugin {
     public String serverPath(int pid, String serverName) {
         String key = StringUtils.getStringByInt(pid) + serverName;
         String dirPath = serverDirPathCatch.get(key);
-        //若缓存的路径不存在，清除
-        if(!StringUtils.isEmpty(dirPath) && !new File(dirPath).exists()){
-            serverDirPathCatch.remove(serverName);
-        }
         if(dirPath == null){
             try {
                 dirPath = CommandUtilForUnix.getCmdDirByPid(pid);

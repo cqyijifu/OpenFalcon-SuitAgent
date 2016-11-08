@@ -16,6 +16,7 @@ import com.yiji.falcon.agent.falcon.MetricsType;
 import com.yiji.falcon.agent.jmx.vo.JMXMetricsValueInfo;
 import com.yiji.falcon.agent.plugins.JMXPlugin;
 import com.yiji.falcon.agent.plugins.metrics.MetricsCommon;
+import com.yiji.falcon.agent.plugins.util.MapUtil;
 import com.yiji.falcon.agent.plugins.util.PluginActivateType;
 import com.yiji.falcon.agent.util.*;
 import com.yiji.falcon.agent.vo.HttpResult;
@@ -175,8 +176,11 @@ public class StandaloneJarPlugin implements JMXPlugin {
      * @param pid
      */
     @Override
-    public void releaseOption(int pid) {
-
+    public void releaseOption(int pid, String serverName) {
+        String value = serverDirPathCatch.get(serverName + pid);
+        for (Object k : MapUtil.getSameValueKeys(serverDirPathCatch, value)) {
+            serverDirPathCatch.remove(String.valueOf(k));
+        }
     }
 
     /**
@@ -238,12 +242,8 @@ public class StandaloneJarPlugin implements JMXPlugin {
 
     @Override
     public String serverPath(int pid, String serverName) {
-        String dirPath = serverDirPathCatch.get(serverName);
+        String dirPath = serverDirPathCatch.get(serverName + pid);
 
-        //若缓存的路径不存在，清除
-        if(!StringUtils.isEmpty(dirPath) && !new File(dirPath).exists()){
-            serverDirPathCatch.remove(serverName);
-        }
         if(StringUtils.isEmpty(dirPath)){
             try {
                 String cmd = "lsof -p " + pid + " | grep " + serverName;
@@ -262,7 +262,7 @@ public class StandaloneJarPlugin implements JMXPlugin {
                     if(!dirPath.toLowerCase().endsWith(".jar")){
                         dirPath += File.separator + serverName;
                     }
-                    serverDirPathCatch.put(serverName,dirPath);
+                    serverDirPathCatch.put(serverName + pid,dirPath);
                 }
             } catch (IOException e) {
                 logger.error("standaloneJar serverDirPath获取异常",e);

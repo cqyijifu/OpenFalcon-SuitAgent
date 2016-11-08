@@ -15,6 +15,7 @@ import com.yiji.falcon.agent.jmx.vo.JMXMetricsValueInfo;
 import com.yiji.falcon.agent.jmx.vo.JMXObjectNameInfo;
 import com.yiji.falcon.agent.plugins.JMXPlugin;
 import com.yiji.falcon.agent.plugins.metrics.MetricsCommon;
+import com.yiji.falcon.agent.plugins.util.MapUtil;
 import com.yiji.falcon.agent.plugins.util.PluginActivateType;
 import com.yiji.falcon.agent.util.CommandUtilForUnix;
 import com.yiji.falcon.agent.util.StringUtils;
@@ -22,7 +23,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.management.MBeanServerConnection;
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -113,8 +113,10 @@ public class ZookeeperPlugin implements JMXPlugin {
      * @param pid
      */
     @Override
-    public void releaseOption(int pid) {
-
+    public void releaseOption(int pid, String serverName) {
+        for (Object k : MapUtil.getSameValueKeys(serverDirPathCatch, serverDirPathCatch.get(StringUtils.getStringByInt(pid) + serverName))) {
+            serverDirPathCatch.remove(String.valueOf(k));
+        }
     }
 
     private FalconReportObject generatorIsLeaderReport(boolean isLeader,String name){
@@ -189,10 +191,6 @@ public class ZookeeperPlugin implements JMXPlugin {
     public String serverPath(int pid, String serverName) {
         String key = StringUtils.getStringByInt(pid) + serverName;
         String dirPath = serverDirPathCatch.get(key);
-        //若缓存的路径不存在，清除
-        if(!StringUtils.isEmpty(dirPath) && !new File(dirPath).exists()){
-            serverDirPathCatch.remove(serverName);
-        }
         if(dirPath == null){
             try {
                 dirPath = CommandUtilForUnix.getCmdDirByPid(pid);

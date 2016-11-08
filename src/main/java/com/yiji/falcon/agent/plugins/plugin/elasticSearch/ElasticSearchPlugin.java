@@ -15,6 +15,7 @@ import com.yiji.falcon.agent.falcon.MetricsType;
 import com.yiji.falcon.agent.jmx.vo.JMXMetricsValueInfo;
 import com.yiji.falcon.agent.plugins.JMXPlugin;
 import com.yiji.falcon.agent.plugins.metrics.MetricsCommon;
+import com.yiji.falcon.agent.plugins.util.MapUtil;
 import com.yiji.falcon.agent.plugins.util.PluginActivateType;
 import com.yiji.falcon.agent.util.CommandUtilForUnix;
 import com.yiji.falcon.agent.util.HttpUtil;
@@ -174,8 +175,12 @@ public class ElasticSearchPlugin implements JMXPlugin {
      * @param pid
      */
     @Override
-    public void releaseOption(int pid) {
+    public void releaseOption(int pid, String serverName) {
         ElasticSearchConfig.removeCache(pid);
+        String key = StringUtils.getStringByInt(pid) + serverName;
+        for (Object k : MapUtil.getSameValueKeys(serverDirPathCatch, serverDirPathCatch.get(key))) {
+            serverDirPathCatch.remove(String.valueOf(k));
+        }
     }
 
     /**
@@ -249,10 +254,6 @@ public class ElasticSearchPlugin implements JMXPlugin {
     public String serverPath(int pid, String serverName) {
         String key = StringUtils.getStringByInt(pid) + serverName;
         String dirPath = serverDirPathCatch.get(key);
-        //若缓存的路径不存在，清除
-        if(!StringUtils.isEmpty(dirPath) && !new File(dirPath).exists()){
-            serverDirPathCatch.remove(serverName);
-        }
         if(dirPath == null){
             try {
                 dirPath = CommandUtilForUnix.getCmdDirByPid(pid);

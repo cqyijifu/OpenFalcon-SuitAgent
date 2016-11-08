@@ -36,7 +36,6 @@ public class JMXConnection {
     private static final Logger log = LoggerFactory.getLogger(JMXConnection.class);
     private static final Map<String,JMXConnectionInfo> connectCacheLibrary = new HashMap<>();//JMX的连接缓存
     private static final Map<String,Integer> serverConnectCount = new HashMap<>();//记录服务应有的JMX连接数
-    private static final List<JMXConnector> closeRecord = new ArrayList<>();
 
     private String serverName;
 
@@ -92,11 +91,13 @@ public class JMXConnection {
      * @throws IOException
      */
     public static void close() {
-        for (JMXConnector jmxConnector : closeRecord) {
-            try {
-                jmxConnector.close();
-            } catch (IOException e) {
-                log.warn("",e);
+        for (JMXConnectionInfo jmxConnectionInfo : connectCacheLibrary.values()) {
+            JMXConnector jmxConnector = jmxConnectionInfo.getJmxConnector();
+            if(jmxConnector != null){
+                try {
+                    jmxConnector.close();
+                } catch (IOException ignored) {
+                }
             }
         }
     }
@@ -199,7 +200,16 @@ public class JMXConnection {
 
             //清除当前连接池中的连接
             List<String> removeKey = connectCacheLibrary.keySet().stream().filter(key -> key.contains(serverName)).collect(Collectors.toList());
-            removeKey.forEach(connectCacheLibrary::remove);
+            removeKey.forEach(key -> {
+                try {
+                    JMXConnector jmxConnector = connectCacheLibrary.get(key).getJmxConnector();
+                    if(jmxConnector != null){
+                        jmxConnector.close();
+                    }
+                    connectCacheLibrary.remove(key);
+                } catch (IOException ignored) {
+                }
+            });
 
             //重新设置服务应有连接数
             int count = 0;
@@ -257,6 +267,7 @@ public class JMXConnection {
      */
     private JMXConnectionInfo initJMXConnectionInfo(JMXConnector connector,VirtualMachineDescriptor desc) throws IOException {
         JMXConnectionInfo jmxConnectionInfo = new JMXConnectionInfo();
+        jmxConnectionInfo.setJmxConnector(connector);
         jmxConnectionInfo.setCacheKeyId(desc.id());
         jmxConnectionInfo.setConnectionServerName(serverName);
         jmxConnectionInfo.setConnectionQualifiedServerName(desc.displayName());
@@ -265,8 +276,6 @@ public class JMXConnection {
         jmxConnectionInfo.setPid(Integer.parseInt(desc.id()));
 
         connectCacheLibrary.put(serverName + desc.id(),jmxConnectionInfo);
-        //添加关闭集合
-        closeRecord.add(connector);
         return jmxConnectionInfo;
     }
 
