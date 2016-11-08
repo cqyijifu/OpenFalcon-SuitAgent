@@ -2,7 +2,7 @@
  * www.yiji.com Inc.
  * Copyright (c) 2016 All Rights Reserved
  */
-package com.yiji.falcon.agent.plugins.util;
+package com.yiji.falcon.agent.util;
 /*
  * 修订记录:
  * guqiu@yiji.com 2016-11-08 14:59 创建
@@ -17,6 +17,12 @@ import java.util.Map;
  */
 public class MapUtil {
 
+    /**
+     * 获取指定Map的拥有相同Value的key集合
+     * @param map
+     * @param value
+     * @return
+     */
     public static List<Object> getSameValueKeys(Map map,Object value){
         List<Object> keys = new ArrayList<>();
         if(value != null){

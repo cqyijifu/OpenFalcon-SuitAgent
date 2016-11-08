@@ -11,7 +11,7 @@ package com.yiji.falcon.agent.plugins.plugin.tomcat;
 import com.yiji.falcon.agent.falcon.FalconReportObject;
 import com.yiji.falcon.agent.jmx.vo.JMXMetricsValueInfo;
 import com.yiji.falcon.agent.plugins.JMXPlugin;
-import com.yiji.falcon.agent.plugins.util.MapUtil;
+import com.yiji.falcon.agent.util.MapUtil;
 import com.yiji.falcon.agent.plugins.util.PluginActivateType;
 import com.yiji.falcon.agent.util.CommandUtilForUnix;
 import com.yiji.falcon.agent.util.StringUtils;
