@@ -38,6 +38,7 @@ public class TomcatPlugin implements JMXPlugin {
     private String jmxServerName;
     private int step;
     private PluginActivateType pluginActivateType;
+    private static String lastAgentSignName = "";
 
     /**
      * 插件初始化操作
@@ -148,10 +149,11 @@ public class TomcatPlugin implements JMXPlugin {
                     }
                 }
             }
-            return StringUtils.isEmpty(name.toString()) ? serverDirName(pid) : name.toString() + "-" +serverDirName(pid);
+            lastAgentSignName =  StringUtils.isEmpty(name.toString()) ? serverDirName(pid) : name.toString() + "-" +serverDirName(pid);
+            return lastAgentSignName;
         } catch (Exception e) {
-            log.error("设置JMX name 失败",e);
-            return "";
+            log.error("设置JMX name 失败，返回最后的agentSignName:{}",lastAgentSignName);
+            return lastAgentSignName;
         }
     }
 

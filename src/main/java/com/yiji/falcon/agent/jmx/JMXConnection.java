@@ -206,8 +206,10 @@ public class JMXConnection {
                     if(jmxConnector != null){
                         jmxConnector.close();
                     }
-                    connectCacheLibrary.remove(key);
+
                 } catch (IOException ignored) {
+                }finally {
+                    connectCacheLibrary.remove(key);
                 }
             });
 
@@ -223,7 +225,7 @@ public class JMXConnection {
                 }
                 try {
                     initJMXConnectionInfo(getJMXConnector(jmxConnectUrlInfo),desc);
-                    log.debug("应用 {} JMX 连接已建立,将在下一周期获取Metrics值时生效",serverName);
+                    log.info("应用 {} JMX 连接已建立,将在下一周期获取Metrics值时生效",serverName);
                     count++;
                 } catch (IOException e) {
                     log.error("JMX 连接获取异常",e);

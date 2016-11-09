@@ -44,6 +44,7 @@ public class ElasticSearchPlugin implements JMXPlugin {
     private PluginActivateType pluginActivateType;
     private String pluginDir;
     private final static String metricsConfFile = "elasticSearchMetricsConf.yml";
+    private static String lastAgentSignName = "";
 
     /**
      * 自定义的监控属性的监控值基础配置名
@@ -80,10 +81,11 @@ public class ElasticSearchPlugin implements JMXPlugin {
     @Override
     public String agentSignName(MBeanServerConnection mBeanServerConnection, int pid) {
         try {
-            return String.format("%d", ElasticSearchConfig.getHttpPort(pid));
+            lastAgentSignName = String.format("%d", ElasticSearchConfig.getHttpPort(pid));
+            return lastAgentSignName;
         } catch (IOException e) {
-            logger.error("获取elasticSearch的名称异常",e);
-            return "";
+            logger.error("获取elasticSearch的名称异常,返回最后的AgentSignName：{}",lastAgentSignName);
+            return lastAgentSignName;
         }
     }
 

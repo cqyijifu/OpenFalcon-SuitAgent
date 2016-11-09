@@ -38,6 +38,7 @@ public class ZookeeperPlugin implements JMXPlugin {
     private String jmxServerName;
     private int step;
     private PluginActivateType pluginActivateType;
+    private static String lastAgentSignName = "";
 
     /**
      * 自定义的监控属性的监控值基础配置名
@@ -72,10 +73,11 @@ public class ZookeeperPlugin implements JMXPlugin {
     @Override
     public String agentSignName(MBeanServerConnection mBeanServerConnection, int pid) {
         try {
-            return String.valueOf(ZKConfig.getClientPort(pid));
+            lastAgentSignName = String.valueOf(ZKConfig.getClientPort(pid));
+            return lastAgentSignName;
         } catch (IOException e) {
-            log.error("获取zookeeper clientPort 信息失败",e);
-            return "";
+            log.error("获取zookeeper clientPort 信息失败 ，返回最后的AgentSignName：{}",lastAgentSignName);
+            return lastAgentSignName;
         }
     }
 

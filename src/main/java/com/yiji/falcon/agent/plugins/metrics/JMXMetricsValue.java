@@ -186,7 +186,8 @@ public class JMXMetricsValue extends MetricsCommon {
                 }
 
                 requestObject.appendTags(getTags(name, jmxPlugin, jmxPlugin.serverName(), MetricsType.JMX_OBJECT_CONF)).appendTags(jmxMetricsConfiguration.getTag());
-                String dirName = jmxPlugin.serverDirName(metricsValueInfo.getJmxConnectionInfo().getPid());
+                String dirName = getServerDirName(metricsValueInfo.getJmxConnectionInfo().getPid(),
+                        metricsValueInfo.getJmxConnectionInfo().getConnectionServerName());
                 if (!StringUtils.isEmpty(dirName)) {
                     requestObject.appendTags("dir=" + dirName);
                 }
@@ -235,6 +236,30 @@ public class JMXMetricsValue extends MetricsCommon {
         return keys;
     }
 
+    private String getServerDirPath(int pid,String serverName){
+        String key = serverName + pid;
+        String serverDirPath = getCacheValue(serverDirPathCatch.get(key));
+        if(serverDirPath == null){
+            serverDirPath = jmxPlugin.serverPath(pid,serverName);
+            if(!StringUtils.isEmpty(serverDirPath)){
+                serverDirPathCatch.put(key,setCacheValue(serverDirPath));
+            }
+        }
+        return serverDirPath;
+    }
+
+    private String getServerDirName(int pid,String serverName){
+        String key = serverName + pid;
+        String dirName = getCacheValue(serverDirNameCatch.get(key));
+        if(dirName == null){
+            dirName = jmxPlugin.serverDirName(pid);
+            if(!StringUtils.isEmpty(dirName)){
+                serverDirNameCatch.put(key,setCacheValue(dirName));
+            }
+        }
+        return dirName;
+    }
+
     /**
      * 获取所有的监控值报告
      *
@@ -255,13 +280,7 @@ public class JMXMetricsValue extends MetricsCommon {
             JMXConnectionInfo jmxConnectionInfo = metricsValueInfo.getJmxConnectionInfo();
             String key = jmxConnectionInfo.getConnectionServerName() + jmxConnectionInfo.getPid();
             if (jmxConnectionInfo.getPid() != 0 && jmxConnectionInfo.getConnectionServerName() != null) {
-                String serverDirPath = getCacheValue(serverDirPathCatch.get(key));
-                if(serverDirPath == null){
-                    serverDirPath = jmxPlugin.serverPath(jmxConnectionInfo.getPid(), jmxConnectionInfo.getConnectionServerName());
-                    if(!StringUtils.isEmpty(serverDirPath)){
-                        serverDirPathCatch.put(key,setCacheValue(serverDirPath));
-                    }
-                }
+                String serverDirPath = getServerDirPath(jmxConnectionInfo.getPid(),jmxConnectionInfo.getConnectionServerName());
                 if (!StringUtils.isEmpty(serverDirPath)) {
                     if (serverDirPath.contains(" ")) {
                         log.warn("发现路径: {} 有空格,请及时处理,否则Agent可能会工作不正常", serverDirPath);
@@ -273,7 +292,7 @@ public class JMXMetricsValue extends MetricsCommon {
                             JMXConnection.removeConnectCache(jmxConnectionInfo.getConnectionServerName(), jmxConnectionInfo.getPid());
                             try {
                                 jmxConnectionInfo.getJmxConnector().close();
-                            } catch (IOException ignored) {
+                            } catch (Exception ignored) {
                             }
 
                             //清理缓存数据
@@ -292,13 +311,7 @@ public class JMXMetricsValue extends MetricsCommon {
             if(jmxConnectionInfo.getmBeanServerConnection() != null
                     && jmxConnectionInfo.getCacheKeyId() != null
                     && jmxConnectionInfo.getConnectionQualifiedServerName() != null){
-                String dirName = getCacheValue(serverDirNameCatch.get(key));
-                if(dirName == null){
-                    dirName = jmxPlugin.serverDirName(jmxConnectionInfo.getPid());
-                    if(!StringUtils.isEmpty(dirName)){
-                        serverDirNameCatch.put(key,setCacheValue(dirName));
-                    }
-                }
+                String dirName = getServerDirName(jmxConnectionInfo.getPid(),jmxConnectionInfo.getConnectionServerName());
                 if (!jmxConnectionInfo.isValid()) {
                     //该连接不可用,添加该 jmx不可用的监控报告
                     FalconReportObject reportObject = generatorVariabilityReport(false, jmxConnectionInfo.getName(), jmxPlugin.step(), jmxPlugin, jmxPlugin.serverName());
@@ -408,7 +421,8 @@ public class JMXMetricsValue extends MetricsCommon {
                 falconReportObject.setTimestamp(System.currentTimeMillis() / 1000);
                 falconReportObject.setObjectName(objectNameInfo.getObjectName());
                 falconReportObject.appendTags(getTags(name, jmxPlugin, jmxPlugin.serverName(), MetricsType.JMX_OBJECT_IN_BUILD));
-                String dirName = jmxPlugin.serverDirName(metricsValueInfo.getJmxConnectionInfo().getPid());
+                String dirName = getServerDirName(metricsValueInfo.getJmxConnectionInfo().getPid(),
+                        metricsValueInfo.getJmxConnectionInfo().getConnectionServerName());
                 if (!StringUtils.isEmpty(dirName)) {
                     falconReportObject.appendTags("dir=" + dirName);
                 }
