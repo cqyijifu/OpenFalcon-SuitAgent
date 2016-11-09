@@ -216,6 +216,26 @@ public class JMXMetricsValue extends MetricsCommon {
     }
 
     /**
+     * 获取缓存中，超时的key
+     * @param map
+     * @return
+     */
+    private List<String> getTimeoutCacheKeys(ConcurrentHashMap<String,String> map){
+        List<String> keys = new ArrayList<>();
+        long now = System.currentTimeMillis();
+        for (Map.Entry<String, String> entry : map.entrySet()) {
+            long cacheTime = getCacheTime(entry.getValue());
+            if(cacheTime == 0){
+                keys.add(entry.getKey());
+            }else if(now - cacheTime >= 2 * 24 * 60 * 60 * 1000){
+                //超时2天
+                keys.add(entry.getKey());
+            }
+        }
+        return keys;
+    }
+
+    /**
      * 获取所有的监控值报告
      *
      * @return
@@ -225,16 +245,22 @@ public class JMXMetricsValue extends MetricsCommon {
     public Collection<FalconReportObject> getReportObjects() {
         Set<FalconReportObject> result = new HashSet<>();
 
+        //清除过期的缓存
+        getTimeoutCacheKeys(serverDirNameCatch).forEach(serverDirNameCatch::remove);
+        getTimeoutCacheKeys(serverDirPathCatch).forEach(serverDirPathCatch::remove);
+
         for (JMXMetricsValueInfo metricsValueInfo : jmxMetricsValueInfos) {
 
             //JMX 服务是否已被停掉的检查
             JMXConnectionInfo jmxConnectionInfo = metricsValueInfo.getJmxConnectionInfo();
+            String key = jmxConnectionInfo.getConnectionServerName() + jmxConnectionInfo.getPid();
             if (jmxConnectionInfo.getPid() != 0 && jmxConnectionInfo.getConnectionServerName() != null) {
-                String key = jmxConnectionInfo.getConnectionServerName() + jmxConnectionInfo.getPid();
-                String serverDirPath = serverDirPathCatch.get(key);
+                String serverDirPath = getCacheValue(serverDirPathCatch.get(key));
                 if(serverDirPath == null){
                     serverDirPath = jmxPlugin.serverPath(jmxConnectionInfo.getPid(), jmxConnectionInfo.getConnectionServerName());
-                    serverDirPathCatch.put(key,serverDirPath);
+                    if(!StringUtils.isEmpty(serverDirPath)){
+                        serverDirPathCatch.put(key,setCacheValue(serverDirPath));
+                    }
                 }
                 if (!StringUtils.isEmpty(serverDirPath)) {
                     if (serverDirPath.contains(" ")) {
@@ -254,7 +280,7 @@ public class JMXMetricsValue extends MetricsCommon {
                             for (Object k : MapUtil.getSameValueKeys(serverDirPathCatch, serverDirPathCatch.get(key))) {
                                 serverDirPathCatch.remove(String.valueOf(k));
                             }
-                            for (Object k : MapUtil.getSameValueKeys(serverDirNameCatch, serverDirNameCatch.get(StringUtils.getStringByInt(jmxConnectionInfo.getPid())))) {
+                            for (Object k : MapUtil.getSameValueKeys(serverDirNameCatch, serverDirNameCatch.get(key))) {
                                 serverDirNameCatch.remove(String.valueOf(k));
                             }
                             continue;
@@ -266,9 +292,12 @@ public class JMXMetricsValue extends MetricsCommon {
             if(jmxConnectionInfo.getmBeanServerConnection() != null
                     && jmxConnectionInfo.getCacheKeyId() != null
                     && jmxConnectionInfo.getConnectionQualifiedServerName() != null){
-                String dirName = serverDirNameCatch.get(StringUtils.getStringByInt(jmxConnectionInfo.getPid()));
+                String dirName = getCacheValue(serverDirNameCatch.get(key));
                 if(dirName == null){
                     dirName = jmxPlugin.serverDirName(jmxConnectionInfo.getPid());
+                    if(!StringUtils.isEmpty(dirName)){
+                        serverDirNameCatch.put(key,setCacheValue(dirName));
+                    }
                 }
                 if (!jmxConnectionInfo.isValid()) {
                     //该连接不可用,添加该 jmx不可用的监控报告
@@ -308,6 +337,46 @@ public class JMXMetricsValue extends MetricsCommon {
         }
 
         return result;
+    }
+
+    /**
+     * 设置缓存值，添加时间戳
+     * @param value
+     * @return
+     */
+    private String setCacheValue(String value){
+        if(!StringUtils.isEmpty(value)){
+            return String.format("@%d@%s",System.currentTimeMillis(),value);
+        }
+        return value;
+    }
+
+    /**
+     * 获取缓存值，去除时间戳
+     * @param value
+     * @return
+     */
+    private String getCacheValue(String value){
+        if(!StringUtils.isEmpty(value)){
+            return value.replaceAll("@\\d*@","");
+        }
+        return value;
+    }
+
+    /**
+     * 获取缓存值中的时间戳
+     * @param value
+     * @return
+     */
+    private long getCacheTime(String value){
+        try {
+            if(value != null){
+                return Long.parseLong(value.replace(getCacheValue(value),"").replace("@",""));
+            }
+        } catch (Exception e) {
+            return 0;
+        }
+        return 0;
     }
 
     /**
