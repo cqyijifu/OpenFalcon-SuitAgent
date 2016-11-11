@@ -186,11 +186,11 @@ public class JMXMetricsValue extends MetricsCommon {
                 }
 
                 requestObject.appendTags(getTags(name, jmxPlugin, jmxPlugin.serverName(), MetricsType.JMX_OBJECT_CONF)).appendTags(jmxMetricsConfiguration.getTag());
-//                String dirName = getServerDirName(metricsValueInfo.getJmxConnectionInfo().getPid(),
-//                        metricsValueInfo.getJmxConnectionInfo().getConnectionServerName());
-//                if (!StringUtils.isEmpty(dirName)) {
-//                    requestObject.appendTags("dir=" + dirName);
-//                }
+                String dirName = getServerDirName(metricsValueInfo.getJmxConnectionInfo().getPid(),
+                        metricsValueInfo.getJmxConnectionInfo().getConnectionServerName());
+                if (!StringUtils.isEmpty(dirName)) {
+                    requestObject.appendTags("dir=" + dirName);
+                }
 
                 //监控值重复性判断
                 FalconReportObject reportInRepeat = repeat.get(jmxMetricsConfiguration.getMetrics());
@@ -311,15 +311,15 @@ public class JMXMetricsValue extends MetricsCommon {
             if(jmxConnectionInfo.getmBeanServerConnection() != null
                     && jmxConnectionInfo.getCacheKeyId() != null
                     && jmxConnectionInfo.getConnectionQualifiedServerName() != null){
-//                String dirName = getServerDirName(jmxConnectionInfo.getPid(),jmxConnectionInfo.getConnectionServerName());
+                String dirName = getServerDirName(jmxConnectionInfo.getPid(),jmxConnectionInfo.getConnectionServerName());
                 if (!jmxConnectionInfo.isValid()) {
                     //该连接不可用,添加该 jmx不可用的监控报告
                     FalconReportObject reportObject = generatorVariabilityReport(false, jmxConnectionInfo.getName(), jmxPlugin.step(), jmxPlugin, jmxPlugin.serverName());
-//                    if (jmxConnectionInfo.getPid() != 0) {
-//                        if (!StringUtils.isEmpty(dirName)) {
-//                            reportObject.appendTags("dir=" + dirName);
-//                        }
-//                    }
+                    if (jmxConnectionInfo.getPid() != 0) {
+                        if (!StringUtils.isEmpty(dirName)) {
+                            reportObject.appendTags("dir=" + dirName);
+                        }
+                    }
                     result.add(reportObject);
                 } else {
                     Set<KitObjectNameMetrics> kitObjectNameMetricsSet = new HashSet<>();
@@ -338,9 +338,9 @@ public class JMXMetricsValue extends MetricsCommon {
                     Collection<FalconReportObject> inbuilt = jmxPlugin.inbuiltReportObjectsForValid(metricsValueInfo);
                     if (inbuilt != null && !inbuilt.isEmpty()) {
                         for (FalconReportObject reportObject : inbuilt) {
-//                            if (!StringUtils.isEmpty(dirName)) {
-//                                reportObject.appendTags("dir=" + dirName);
-//                            }
+                            if (!StringUtils.isEmpty(dirName)) {
+                                reportObject.appendTags("dir=" + dirName);
+                            }
                             result.add(reportObject);
                         }
                     }
@@ -421,11 +421,11 @@ public class JMXMetricsValue extends MetricsCommon {
                 falconReportObject.setTimestamp(System.currentTimeMillis() / 1000);
                 falconReportObject.setObjectName(objectNameInfo.getObjectName());
                 falconReportObject.appendTags(getTags(name, jmxPlugin, jmxPlugin.serverName(), MetricsType.JMX_OBJECT_IN_BUILD));
-//                String dirName = getServerDirName(metricsValueInfo.getJmxConnectionInfo().getPid(),
-//                        metricsValueInfo.getJmxConnectionInfo().getConnectionServerName());
-//                if (!StringUtils.isEmpty(dirName)) {
-//                    falconReportObject.appendTags("dir=" + dirName);
-//                }
+                String dirName = getServerDirName(metricsValueInfo.getJmxConnectionInfo().getPid(),
+                        metricsValueInfo.getJmxConnectionInfo().getConnectionServerName());
+                if (!StringUtils.isEmpty(dirName)) {
+                    falconReportObject.appendTags("dir=" + dirName);
+                }
 
                 if ("java.lang:type=Memory".equals(objectNameInfo.getObjectName().toString())) {
 

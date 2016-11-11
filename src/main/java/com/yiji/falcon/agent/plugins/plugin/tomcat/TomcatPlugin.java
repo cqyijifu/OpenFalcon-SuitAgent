@@ -183,12 +183,13 @@ public class TomcatPlugin implements JMXPlugin {
 
     @Override
     public String serverDirName(int pid) {
-        String dirName = "";
-        String dirPath = serverPath(pid,"");
-        if(dirPath != null){
-            dirName = dirPath.replace("/bin","");
-            dirName = dirName.substring(dirName.lastIndexOf("/") + 1);
-        }
-        return dirName;
+//        String dirName = "";
+//        String dirPath = serverPath(pid,"");
+//        if(dirPath != null){
+//            dirName = dirPath.replace("/bin","");
+//            dirName = dirName.substring(dirName.lastIndexOf("/") + 1);
+//        }
+//        return dirName;
+        return null;
     }
 }
