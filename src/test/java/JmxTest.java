@@ -30,6 +30,12 @@ import java.util.concurrent.TimeUnit;
 public class JmxTest {
 
     @Test
+    public void test(){
+        String s = "agentSignName=8002-apache-tomcat-7.0.39-ylt";
+        System.out.println(s.matches("agentSignName=\\{\\w*-*\\d*-*\\w*-*\\}*" + "apache-tomcat-7.0.39-ylt"));
+    }
+
+    @Test
     public void vms(){
         List<VirtualMachineDescriptor> vms = VirtualMachine.list();
         for (VirtualMachineDescriptor vm : vms) {

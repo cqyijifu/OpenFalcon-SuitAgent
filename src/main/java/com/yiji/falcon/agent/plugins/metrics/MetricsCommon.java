@@ -189,9 +189,9 @@ public abstract class MetricsCommon {
             boolean isOK = false;
             for (String key : mockService.keySet()) {
                 String targetType = "service.type=" + key;
-                String tag = falconReportObject.getTags();
-                if(!StringUtils.isEmpty(tag)){
-                    if(tag.contains(targetType)){
+                String tags = falconReportObject.getTags();
+                if(!StringUtils.isEmpty(tags)){
+                    if(tags.contains(targetType)){
                         Set<String> mockServices = mockService.get(key);
                         for (String targetService : mockServices) {
                             //判断Mock有效性
@@ -201,9 +201,7 @@ public abstract class MetricsCommon {
                                 break;
                             }
 
-                            String agentSign = ",agentSignName=" + targetService;
-                            String service = "service=" + targetService;
-                            if(tag.contains(agentSign) || tag.contains(service)){
+                            if(hasMock(tags,targetService)){
                                 //添加mock的停机时间
                                 addMockValidShutdownTime(key,targetService);
                                 logger.info("mock服务 {}:{} 的 availability",targetType,targetService);
@@ -232,6 +230,27 @@ public abstract class MetricsCommon {
         }
 
         return falconReportObject;
+    }
+
+    private static boolean hasMock(String tags,String targetService){
+        boolean mock = false;
+        if (!StringUtils.isEmpty(tags)){
+            String[] tagArray = tags.split(",");
+            for (String tag : tagArray) {
+                if(tag.contains("=")){
+                    String[] ss = tag.trim().split("=");
+                    String tagName = ss[0].trim();
+                    String tagValue = ss[1].trim();
+                    if("agentSignName".equals(tagName) || "service".equals(tagName)){
+                        if(tagValue.contains(targetService)){
+                            mock = true;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        return mock;
     }
 
     /**
