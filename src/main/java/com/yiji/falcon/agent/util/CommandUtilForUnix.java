@@ -121,7 +121,11 @@ public class CommandUtilForUnix {
                     logger.debug("process destroyForcibly");
                    process.destroyForcibly();
                 }
-                return new ExecuteResult(resultMsg.length() > 0 ,process.exitValue() == 0,String.valueOf(resultMsg.toString()));
+                boolean exeSuccess = process.exitValue() == 0;
+                if(!exeSuccess){
+                    logger.error("命令 {} 执行错误：{}",cmd,resultMsg.toString());
+                }
+                return new ExecuteResult(resultMsg.length() > 0 ,exeSuccess,String.valueOf(resultMsg.toString()));
             }else{
                 logger.error("Unknown Result Type Mapper",result);
                 return new ExecuteResult(resultMsg.length() > 0,false,resultMsg.toString());
