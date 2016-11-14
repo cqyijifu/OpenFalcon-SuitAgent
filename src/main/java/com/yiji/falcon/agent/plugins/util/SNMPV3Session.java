@@ -36,12 +36,11 @@ public class SNMPV3Session {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     //信息缓存
-    private ConcurrentHashMap<String,Object> infoCache = new ConcurrentHashMap<>();
-    private final String cacheKey_equipmentName = "equipmentName";
-    private final String cacheKey_equipmentNameDone = "equipmentNameDone";
-    private final String cacheKey_sysDesc = "sysDesc";
-    private final String cacheKey_sysVendor = "sysVendor";
-    private final String cacheKey_version = "version";
+    private static final ConcurrentHashMap<String,Object> infoCache = new ConcurrentHashMap<>();
+    private static final String cacheKey_equipmentName = "equipmentName";
+    private static final String cacheKey_sysDesc = "sysDesc";
+    private static final String cacheKey_sysVendor = "sysVendor";
+    private static final String cacheKey_version = "version";
 
     private Snmp snmp;
     private UserTarget target;
@@ -110,6 +109,10 @@ public class SNMPV3Session {
         }
     }
 
+    private String getInfoCacheKey(){
+        return this.getUserInfo().getAddress() + "-" + this.getUserInfo().getPort();
+    }
+
     /**
      * 获取设备名称
      * ip-vendor-version
@@ -117,25 +120,23 @@ public class SNMPV3Session {
      * @return
      */
     public String getEquipmentName() {
+        String key = getInfoCacheKey() + cacheKey_equipmentName;
 
-        if("true".equals(infoCache.get(cacheKey_equipmentNameDone))){
+        if(infoCache.get(key) != null){
             //已有有效的设备名称缓存,直接返回
-            return (String) infoCache.get(cacheKey_equipmentName);
+            return (String) infoCache.get(getInfoCacheKey());
         }
         String prefix = this.getUserInfo().getAddress() + "-" + this.getUserInfo().getPort();
         try {
             if(isValid()){
                 String name = prefix + "-" + getSysVendor() + "-" + getSysVersion();
-                infoCache.put(cacheKey_equipmentName,name);
-                infoCache.put(cacheKey_equipmentNameDone,"true");
+                infoCache.put(key,name);
                 return name;
             }else{
-                infoCache.put(cacheKey_equipmentNameDone,"false");
                 return prefix;
             }
         } catch (IOException e) {
             logger.error("设备描述信息获取失败",e);
-            infoCache.put(cacheKey_equipmentNameDone,"false");
             return prefix;
         }
     }
@@ -147,12 +148,13 @@ public class SNMPV3Session {
      * @throws IOException
      */
     public String getSysDesc() throws IOException {
-        String sysDesc = (String) infoCache.get(cacheKey_sysDesc);
+        String key = getInfoCacheKey() + cacheKey_sysDesc;
+        String sysDesc = (String) infoCache.get(key);
         if(sysDesc != null){
             return sysDesc;
         }
         sysDesc = this.get(SNMPHelper.sysDescOid).get(0).getVariable().toString();
-        infoCache.put(cacheKey_sysDesc,sysDesc);
+        infoCache.put(key,sysDesc);
         return sysDesc;
     }
 
@@ -162,12 +164,13 @@ public class SNMPV3Session {
      * @throws IOException
      */
     public VendorType getSysVendor() throws IOException {
-        VendorType sysVendor = (VendorType) infoCache.get(cacheKey_sysVendor);
+        String key = getInfoCacheKey() + cacheKey_sysVendor;
+        VendorType sysVendor = (VendorType) infoCache.get(key);
         if(sysVendor != null){
             return sysVendor;
         }
         sysVendor = SNMPHelper.getVendorBySysDesc(getSysDesc());
-        infoCache.put(cacheKey_sysVendor,sysVendor);
+        infoCache.put(key,sysVendor);
         return sysVendor;
     }
 
@@ -177,12 +180,13 @@ public class SNMPV3Session {
      * @throws IOException
      */
     public float getSysVersion() throws IOException {
-        Float version = (Float) infoCache.get(cacheKey_version);
+        String key = getInfoCacheKey() + cacheKey_version;
+        Float version = (Float) infoCache.get(key);
         if(version != null){
             return version;
         }
         version = SNMPHelper.getVersionBySysDesc(getSysDesc());
-        infoCache.put(cacheKey_version,version);
+        infoCache.put(key,version);
         return version;
     }
 
