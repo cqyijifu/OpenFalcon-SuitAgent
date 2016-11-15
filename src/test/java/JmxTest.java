@@ -16,6 +16,7 @@ import javax.management.ReflectionException;
 import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -39,8 +40,9 @@ public class JmxTest {
     public void vms(){
         List<VirtualMachineDescriptor> vms = VirtualMachine.list();
         for (VirtualMachineDescriptor vm : vms) {
-            if(vm.displayName().contains("com.yiji.falcon.agent.Agent")){
-                System.out.println(vm.id());
+            File file = new File(vm.displayName());
+            if(file.exists()){
+                System.out.println(vm);
             }
         }
     }

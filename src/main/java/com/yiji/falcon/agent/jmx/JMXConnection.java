@@ -9,11 +9,13 @@ import com.sun.tools.attach.VirtualMachineDescriptor;
 import com.yiji.falcon.agent.config.AgentConfiguration;
 import com.yiji.falcon.agent.jmx.vo.JMXConnectionInfo;
 import com.yiji.falcon.agent.util.StringUtils;
+import org.apache.commons.lang.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXServiceURL;
+import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -78,9 +80,16 @@ public class JMXConnection {
         if(!StringUtils.isEmpty(serverName)){
             List<VirtualMachineDescriptor> vms = VirtualMachine.list();
             for (VirtualMachineDescriptor desc : vms) {
-                if(desc.displayName().contains(serverName)){
+                File file = new File(desc.displayName());
+                if(file.exists()){
+                    //java -jar 形式启动的Java应用
+                    if(file.toPath().getFileName().toString().equals(serverName)){
+                        return true;
+                    }
+                }else if(desc.displayName().contains(serverName)){
                     return true;
                 }
+
             }
         }
         return false;
@@ -111,7 +120,13 @@ public class JMXConnection {
         List<VirtualMachineDescriptor> vmDescList = new ArrayList<>();
         List<VirtualMachineDescriptor> vms = VirtualMachine.list();
         for (VirtualMachineDescriptor desc : vms) {
-            if(desc.displayName().contains(serverName)){
+            File file = new File(desc.displayName());
+            if(file.exists()){
+                //java -jar 形式启动的Java应用
+                if(file.toPath().getFileName().toString().equals(serverName)){
+                    vmDescList.add(desc);
+                }
+            }else if(desc.displayName().contains(serverName)){
                 vmDescList.add(desc);
             }
         }
@@ -133,7 +148,7 @@ public class JMXConnection {
 
         List<JMXConnectionInfo> connections = connectCacheLibrary.entrySet().
                 stream().
-                filter(entry -> entry.getKey().contains(serverName)).
+                filter(entry -> NumberUtils.isNumber(entry.getKey().replace(serverName,""))).
                 map(Map.Entry::getValue).
                 collect(Collectors.toList());
 
@@ -199,7 +214,7 @@ public class JMXConnection {
         if(targetDesc.size() >= getServerConnectCount(serverName)){
 
             //清除当前连接池中的连接
-            List<String> removeKey = connectCacheLibrary.keySet().stream().filter(key -> key.contains(serverName)).collect(Collectors.toList());
+            List<String> removeKey = connectCacheLibrary.keySet().stream().filter(key -> NumberUtils.isNumber(key.replace(serverName,""))).collect(Collectors.toList());
             removeKey.forEach(key -> {
                 try {
                     JMXConnector jmxConnector = connectCacheLibrary.get(key).getJmxConnector();

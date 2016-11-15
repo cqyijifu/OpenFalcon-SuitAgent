@@ -118,50 +118,49 @@ public class StandaloneJarPlugin implements JMXPlugin {
          * 以下为重庆易极付公司（笨熊科技）的YijiBoot应用特有的健康检查监控
          */
         List<FalconReportObject> reportObjects = new ArrayList<>();
-        String jmxServerNames = jmxServerName();
-        StringTokenizer st = new StringTokenizer(jmxServerNames,",",false);
-        while( st.hasMoreElements() ){
-            String jarName = st.nextToken();
-            if(!StringUtils.isEmpty(jarName) && jarName.toLowerCase().endsWith(".jar")){
-                String appName = jarName.replace(".jar","").replace(".JAR","");
-                String portFile = String.format("/var/log/webapps/%s/app.httpport",appName);
-                String port = FileUtil.getTextFileContent(portFile).trim();
-                if(!StringUtils.isEmpty(port)){
-                    try {
-                        String httpUrl = String.format("http://%s:%s/mgt/health", InetAddress.getLocalHost().getHostAddress(),port);
-                        HttpResult httpResult = HttpUtil.get(httpUrl);
-                        if(httpResult.getStatus() >= 400){
-                            logger.error("YijiBoot应用健康状况获取失败:http请求失败 {}",httpResult);
-                        }else{
-                            FalconReportObject falconReportObject = new FalconReportObject();
-                            MetricsCommon.setReportCommonValue(falconReportObject,step);
-                            falconReportObject.setCounterType(CounterType.GAUGE);
-                            falconReportObject.setTimestamp(System.currentTimeMillis() / 1000);
-                            falconReportObject.appendTags(MetricsCommon.getTags(jarName,this,serverName(), MetricsType.JMX_OBJECT_IN_BUILD));
 
-                            String jsonStr = httpResult.getResult();
-                            JSONObject jsonObject = JSON.parseObject(jsonStr);
-                            Map<String,Object> map = new HashMap<>();
-                            JSONUtil.jsonToMap(map,jsonObject,"health");
-                            for (Map.Entry<String, Object> entry : map.entrySet()) {
-                                String value = String.valueOf(entry.getValue());
-                                if("UP".equals(value)){
-                                    falconReportObject.setMetric(entry.getKey().replace("/","."));
-                                    falconReportObject.setValue("1");
-                                    reportObjects.add(falconReportObject.clone());
-                                }else if ("DOWN".equals(value)){
-                                    falconReportObject.setMetric(entry.getKey().replace("/","."));
-                                    falconReportObject.setValue("0");
-                                    reportObjects.add(falconReportObject.clone());
-                                }
+        String jarName = metricsValueInfo.getJmxConnectionInfo().getConnectionServerName();
+
+        if(!StringUtils.isEmpty(jarName) && jarName.toLowerCase().endsWith(".jar")){
+            String appName = jarName.replace(".jar","").replace(".JAR","");
+            String portFile = String.format("/var/log/webapps/%s/app.httpport",appName);
+            String port = FileUtil.getTextFileContent(portFile).trim();
+            if(!StringUtils.isEmpty(port)){
+                try {
+                    String httpUrl = String.format("http://%s:%s/mgt/health", InetAddress.getLocalHost().getHostAddress(),port);
+                    HttpResult httpResult = HttpUtil.get(httpUrl);
+                    if(httpResult.getStatus() >= 400){
+                        logger.error("YijiBoot应用健康状况获取失败:http请求失败 {}",httpResult);
+                    }else{
+                        FalconReportObject falconReportObject = new FalconReportObject();
+                        MetricsCommon.setReportCommonValue(falconReportObject,step);
+                        falconReportObject.setCounterType(CounterType.GAUGE);
+                        falconReportObject.setTimestamp(System.currentTimeMillis() / 1000);
+                        falconReportObject.appendTags(MetricsCommon.getTags(jarName,this,serverName(), MetricsType.JMX_OBJECT_IN_BUILD));
+
+                        String jsonStr = httpResult.getResult();
+                        JSONObject jsonObject = JSON.parseObject(jsonStr);
+                        Map<String,Object> map = new HashMap<>();
+                        JSONUtil.jsonToMap(map,jsonObject,"health");
+                        for (Map.Entry<String, Object> entry : map.entrySet()) {
+                            String value = String.valueOf(entry.getValue());
+                            if("UP".equals(value)){
+                                falconReportObject.setMetric(entry.getKey().replace("/","."));
+                                falconReportObject.setValue("1");
+                                reportObjects.add(falconReportObject.clone());
+                            }else if ("DOWN".equals(value)){
+                                falconReportObject.setMetric(entry.getKey().replace("/","."));
+                                falconReportObject.setValue("0");
+                                reportObjects.add(falconReportObject.clone());
                             }
                         }
-                    } catch (Exception e) {
-                        logger.error("YijiBoot应用健康状况获取异常",e);
                     }
+                } catch (Exception e) {
+                    logger.error("YijiBoot应用健康状况获取异常",e);
                 }
             }
         }
+
 
         return reportObjects;
     }
