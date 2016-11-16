@@ -11,6 +11,7 @@ package com.yiji.falcon.agent.plugins.plugin.tcp;
 import com.yiji.falcon.agent.falcon.CounterType;
 import com.yiji.falcon.agent.plugins.DetectPlugin;
 import com.yiji.falcon.agent.plugins.Plugin;
+import com.yiji.falcon.agent.plugins.util.TagsCacheUtil;
 import com.yiji.falcon.agent.vo.detect.DetectResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +21,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.*;
-import java.util.stream.Collectors;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author guqiu@yiji.com
@@ -30,7 +31,8 @@ public class TcpPlugin implements DetectPlugin {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private int step;
-    private Set<String> addresses = new HashSet<>();
+    private final Map<String, String> addresses = new HashMap<>();
+    private final ConcurrentHashMap<String, String> tagsCache = new ConcurrentHashMap<>();
 
     /**
      * 监控的具体服务的agentSignName tag值
@@ -41,9 +43,9 @@ public class TcpPlugin implements DetectPlugin {
     @Override
     public String agentSignName(String address) {
         String adder;
-        if(address.contains("[") && address.contains("]")){
-            adder = address.substring(0,address.indexOf("["));
-        }else{
+        if (address.contains("[") && address.contains("]")) {
+            adder = address.substring(0, address.indexOf("["));
+        } else {
             adder = address;
         }
         return adder;
@@ -57,25 +59,20 @@ public class TcpPlugin implements DetectPlugin {
      */
     @Override
     public DetectResult detectResult(String address) {
-        String adder,tags = "";
-        if(address.contains("[") && address.contains("]")){
-            adder = address.substring(0,address.indexOf("["));
-            tags = address.substring(address.indexOf("[") + 1,address.lastIndexOf("]"));
-            tags = tags.replace(";",",");
-        }else{
-            adder = address;
-        }
+        Map<String,String> map = TagsCacheUtil.getTags(addresses,tagsCache,address);
+        String adds = map.get("adds");
+        String tags = map.get("tags");
 
         String ipAddr = "";
         int port = 80;
-        String[] ss = adder.split(":");
-        if(ss.length == 1){
+        String[] ss = adds.split(":");
+        if (ss.length == 1) {
             ipAddr = ss[0];
-        }else if(ss.length == 2){
+        } else if (ss.length == 2) {
             ipAddr = ss[0];
             port = Integer.parseInt(ss[1]);
-        }else{
-            logger.error("地址配置:{} 非法,请确定是否符合 address:port格式",adder);
+        } else {
+            logger.error("地址配置:{} 非法,请确定是否符合 address:port格式", adds);
             return null;
         }
         DetectResult detectResult = new DetectResult();
@@ -86,26 +83,26 @@ public class TcpPlugin implements DetectPlugin {
 
             long start = System.currentTimeMillis();
             socket = new Socket();
-            socket.connect(new InetSocketAddress(InetAddress.getByName(ipAddr),port),5000);
-            if(socket.isConnected()){
+            socket.connect(new InetSocketAddress(InetAddress.getByName(ipAddr), port), 5000);
+            if (socket.isConnected()) {
                 isAva = true;
-            }else{
+            } else {
                 logger.warn("tcp地址:{} 连接失败");
             }
 
             long time = System.currentTimeMillis() - start;
 
             detectResult.setSuccess(isAva);
-            if(isAva){
+            if (isAva) {
                 detectResult.setMetricsList(
-                        Collections.singletonList(new DetectResult.Metric("response.time",String.valueOf(time), CounterType.GAUGE,""))
+                        Collections.singletonList(new DetectResult.Metric("response.time", String.valueOf(time), CounterType.GAUGE, ""))
                 );
             }
 
         } catch (IOException e) {
             detectResult.setSuccess(false);
-        }finally {
-            if(socket != null && socket.isConnected()){
+        } finally {
+            if (socket != null && socket.isConnected()) {
                 try {
                     socket.close();
                 } catch (IOException ignored) {
@@ -123,9 +120,10 @@ public class TcpPlugin implements DetectPlugin {
      */
     @Override
     public Collection<String> detectAddressCollection() {
+        TagsCacheUtil.initTagsCache(addresses,tagsCache);
         Set<String> adders = new HashSet<>();
-        for (String address : addresses) {
-            adders.addAll(helpTransformAddressCollection(address,","));
+        for (String address : addresses.values()) {
+            adders.addAll(helpTransformAddressCollection(address, ","));
         }
         return adders;
     }
@@ -143,7 +141,9 @@ public class TcpPlugin implements DetectPlugin {
     public void init(Map<String, String> properties) {
         this.step = Integer.parseInt(properties.get("step"));
         Set<String> keys = properties.keySet();
-        addresses.addAll(keys.stream().filter(key -> key != null).filter(key -> key.contains("address")).map(properties::get).collect(Collectors.toList()));
+        keys.stream().filter(key -> key != null).filter(key -> key.contains("address")).forEach(key -> {
+            addresses.put(key, properties.get(key));
+        });
     }
 
     /**

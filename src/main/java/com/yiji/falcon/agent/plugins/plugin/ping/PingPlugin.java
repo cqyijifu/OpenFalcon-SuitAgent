@@ -11,6 +11,7 @@ package com.yiji.falcon.agent.plugins.plugin.ping;
 import com.yiji.falcon.agent.falcon.CounterType;
 import com.yiji.falcon.agent.plugins.DetectPlugin;
 import com.yiji.falcon.agent.plugins.Plugin;
+import com.yiji.falcon.agent.plugins.util.TagsCacheUtil;
 import com.yiji.falcon.agent.util.CommandUtilForUnix;
 import com.yiji.falcon.agent.util.Maths;
 import com.yiji.falcon.agent.vo.detect.DetectResult;
@@ -19,7 +20,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.stream.Collectors;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author guqiu@yiji.com
@@ -29,7 +30,8 @@ public class PingPlugin implements DetectPlugin {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private int step;
-    private Set<String> addresses = new HashSet<>();
+    private final Map<String,String> addresses = new HashMap<>();
+    private final ConcurrentHashMap<String,String> tagsCache = new ConcurrentHashMap<>();
 
     /**
      * 监控的具体服务的agentSignName tag值
@@ -56,19 +58,14 @@ public class PingPlugin implements DetectPlugin {
      */
     @Override
     public DetectResult detectResult(String address) {
-        String adds;
-        String tags = "";
-        if(address.contains("[") && address.contains("]")){
-            adds = address.substring(0,address.indexOf("["));
-            tags = address.substring(address.indexOf("[") + 1,address.lastIndexOf("]"));
-            tags = tags.replace(";",",");
-        }else{
-            adds = address;
-        }
+        Map<String,String> map = TagsCacheUtil.getTags(addresses,tagsCache,address);
+        String adds = map.get("adds");
+        String tags = map.get("tags");
+
         int pingCount = 5;
         try {
             DetectResult result = new DetectResult();
-            result.setCommonTag(tags);
+            result.setCommonTag(tags == null ? "" : tags);
             CommandUtilForUnix.PingResult pingResult = CommandUtilForUnix.ping(adds,pingCount);
             if(pingResult.resultCode == -2){
                 //命令执行失败
@@ -103,8 +100,9 @@ public class PingPlugin implements DetectPlugin {
      */
     @Override
     public Collection<String> detectAddressCollection() {
+        TagsCacheUtil.initTagsCache(addresses,tagsCache);
         Set<String> adders = new HashSet<>();
-        for (String address : addresses) {
+        for (String address : addresses.values()) {
             adders.addAll(helpTransformAddressCollection(address,","));
         }
         return adders;
@@ -123,7 +121,9 @@ public class PingPlugin implements DetectPlugin {
     public void init(Map<String, String> properties) {
         step = Integer.parseInt(properties.get("step"));
         Set<String> keys = properties.keySet();
-        addresses.addAll(keys.stream().filter(key -> key != null).filter(key -> key.contains("address")).map(properties::get).collect(Collectors.toList()));
+        keys.stream().filter(key -> key != null).filter(key -> key.contains("address")).forEach(key -> {
+            addresses.put(key,properties.get(key));
+        });
     }
 
     /**

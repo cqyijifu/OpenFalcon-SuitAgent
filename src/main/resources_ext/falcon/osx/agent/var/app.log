@@ -1,2 +1,2 @@
-2016/09/26 16:10:49 cfg.go:121: read config file: cfg.json successfully
-2016/09/26 16:10:49 http.go:74: listening :1988
+2016/11/01 14:02:24 cfg.go:121: read config file: cfg.json successfully
+2016/11/01 14:02:24 http.go:74: listening :1988

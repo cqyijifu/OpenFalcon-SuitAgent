@@ -11,6 +11,7 @@ package com.yiji.falcon.agent.plugins.plugin.http;
 import com.yiji.falcon.agent.falcon.CounterType;
 import com.yiji.falcon.agent.plugins.DetectPlugin;
 import com.yiji.falcon.agent.plugins.Plugin;
+import com.yiji.falcon.agent.plugins.util.TagsCacheUtil;
 import com.yiji.falcon.agent.util.HttpUtil;
 import com.yiji.falcon.agent.util.StringUtils;
 import com.yiji.falcon.agent.vo.HttpResult;
@@ -19,7 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
-import java.util.stream.Collectors;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author guqiu@yiji.com
@@ -29,8 +30,8 @@ public class HttpPlugin implements DetectPlugin {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private int step;
-    private Set<String> addresses = new HashSet<>();
-
+    private final Map<String,String> addresses = new HashMap<>();
+    private final ConcurrentHashMap<String,String> tagsCache = new ConcurrentHashMap<>();
     /**
      * 插件初始化操作
      * 该方法将会在插件运行前进行调用
@@ -44,8 +45,9 @@ public class HttpPlugin implements DetectPlugin {
     public void init(Map<String, String> properties) {
         step = Integer.parseInt(properties.get("step"));
         Set<String> keys = properties.keySet();
-        addresses.addAll(keys.stream().filter(key -> key != null).filter(key -> key.contains("address")).map(properties::get).collect(Collectors.toList()));
-    }
+        keys.stream().filter(key -> key != null).filter(key -> key.contains("address")).forEach(key -> {
+            addresses.put(key,properties.get(key));
+        });    }
 
     /**
      * 该插件监控的服务名
@@ -115,16 +117,11 @@ public class HttpPlugin implements DetectPlugin {
      */
     @Override
     public DetectResult detectResult(String address) {
-        String adder,tags = "";
-        if(address.contains("[") && address.contains("]")){
-            adder = address.substring(0,address.indexOf("["));
-            tags = address.substring(address.indexOf("[") + 1,address.lastIndexOf("]"));
-            tags = tags.replace(";",",");
-        }else{
-            adder = address;
-        }
+        Map<String,String> map = TagsCacheUtil.getTags(addresses,tagsCache,address);
+        String adds = map.get("adds");
+        String tags = map.get("tags");
 
-        AddressParse.Address addObj = AddressParse.parseAddress(adder);
+        AddressParse.Address addObj = AddressParse.parseAddress(adds);
         if(addObj != null && !StringUtils.isEmpty(addObj.url)){
             String url = addObj.url;
             DetectResult detectResult = new DetectResult();
@@ -148,7 +145,7 @@ public class HttpPlugin implements DetectPlugin {
                         detectResult.setSuccess(false);
                     }
                 }else{
-                    logger.error("请求协议值非法,只能是get或post。您的参数为:{}",adder);
+                    logger.error("请求协议值非法,只能是get或post。您的参数为:{}",adds);
                 }
 
                 detectResult.setSuccess(isAva);
@@ -163,7 +160,7 @@ public class HttpPlugin implements DetectPlugin {
                 }
 
             }else{
-                logger.error("请求协议值非法,只能是http或https。您的参数为:{}",adder);
+                logger.error("请求协议值非法,只能是http或https。您的参数为:{}",adds);
                 return null;
             }
 
@@ -180,8 +177,9 @@ public class HttpPlugin implements DetectPlugin {
      */
     @Override
     public Collection<String> detectAddressCollection() {
+        TagsCacheUtil.initTagsCache(addresses,tagsCache);
         Set<String> adders = new HashSet<>();
-        for (String address : addresses) {
+        for (String address : addresses.values()) {
             adders.addAll(helpTransformAddressCollection(address,","));
         }
         return adders;
