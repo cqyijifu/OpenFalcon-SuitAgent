@@ -124,7 +124,10 @@ public class StandaloneJarPlugin implements JMXPlugin {
         if(!StringUtils.isEmpty(jarName) && jarName.toLowerCase().endsWith(".jar")){
             String appName = jarName.replace(".jar","").replace(".JAR","");
             String portFile = String.format("/var/log/webapps/%s/app.httpport",appName);
-            String port = FileUtil.getTextFileContent(portFile).trim();
+            String port = "";
+            if(new File(portFile).exists()){
+                port = FileUtil.getTextFileContent(portFile).trim();
+            }
             if(!StringUtils.isEmpty(port)){
                 try {
                     String httpUrl = String.format("http://%s:%s/mgt/health", InetAddress.getLocalHost().getHostAddress(),port);
