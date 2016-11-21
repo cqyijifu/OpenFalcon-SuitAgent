@@ -56,7 +56,7 @@ public class DockerMetrics {
      * 数据采集
      * @return
      */
-    public List<CollectObject> getMetrics() throws IOException, InterruptedException {
+    public List<CollectObject> getMetrics() throws IOException {
         List<CollectObject> collectObjectList = new ArrayList<>();
         JSONObject containers = dockerRemoteUtil.getContainersJSON();
         JSONObject machineInfo = dockerRemoteUtil.getMachineInfo();
@@ -81,10 +81,22 @@ public class DockerMetrics {
                 containerNameCache.add(containerName);
             }
 
-            collectObjectList.addAll(getCpuMetrics(containerName,container));
-            collectObjectList.addAll(getMemMetrics(containerName,container,machineInfo));
+            try {
+                collectObjectList.addAll(getCpuMetrics(containerName,container));
+            } catch (Exception e) {
+                logger.error("Docker CPU数据采集异常",e);
+            }
+            try {
+                collectObjectList.addAll(getMemMetrics(containerName,container,machineInfo));
+            } catch (Exception e) {
+                logger.error("Docker 内存数据采集异常",e);
+            }
             collectObjectList.addAll(getNetMetrics(containerName,container));
-            collectObjectList.add(containerAppMetrics(containerName,containerId));
+            try {
+                collectObjectList.add(containerAppMetrics(containerName,containerId));
+            } catch (Exception e) {
+                logger.error("Docker 容器应用数据采集异常",e);
+            }
         }
 
         //容器可用性
@@ -152,7 +164,8 @@ public class DockerMetrics {
      * 0 ：转换失败
      */
     private long transNanoseconds(String timestamp){
-        if(timestamp.matches("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{6,}Z")){
+        timestamp = timestamp.replace("Z","").replaceAll("\\+\\d{2}:\\d{2}","");
+        if(timestamp.matches("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{6,}")){
             String picoseconds = timestamp.substring(20, timestamp.length() - 1);
             String dateTime = timestamp.substring(0,10) + " " + timestamp.substring(11,19);
             Date date = DateUtil.getParrtenDate(dateTime,"yyyy-MM-dd HH:mm:ss");
@@ -163,7 +176,7 @@ public class DockerMetrics {
                 return Long.parseLong(String.valueOf(microseconds / 1000) + picoseconds.substring(0,6));
             }
         }else {
-            logger.error("转换的时间不符合格式 \\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{6,}Z : {}",timestamp);
+            logger.error("转换的时间不符合格式 \\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{6,} : {}",timestamp);
         }
 
         return 0;

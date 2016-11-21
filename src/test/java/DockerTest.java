@@ -73,21 +73,20 @@ public class DockerTest{
 
     @Test
     public void time(){
-        String timestamp ="2016-09-20T03:12:33.10444672Z";
-        if(timestamp.matches("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{6,}Z")){
+        String timestamp ="2016-11-21T15:51:28.552405049+08:00";
+        timestamp = timestamp.replace("Z","").replaceAll("\\+\\d{2}:\\d{2}","");
+        if(timestamp.matches("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{6,}")){
             String picoseconds = timestamp.substring(20, timestamp.length() - 1);
-            System.out.println(picoseconds);
             String dateTime = timestamp.substring(0,10) + " " + timestamp.substring(11,19);
-
             Date date = DateUtil.getParrtenDate(dateTime,"yyyy-MM-dd HH:mm:ss");
 
-            assert date != null;
-            long microseconds = date.getTime();
-            System.out.println("原Date转换纳秒 " + microseconds * 1000);
-
-            String trans = String.valueOf(microseconds / 1000) + picoseconds.substring(0,6);
-
-            System.out.println("转换后的纳秒   " + trans);
+            if(date != null){
+                long microseconds = date.getTime();
+                // 转换为纳秒：取日期精确到秒 + UTC时间秒后面的前6位
+                System.out.println(Long.parseLong(String.valueOf(microseconds / 1000) + picoseconds.substring(0,6)));
+            }
+        }else {
+            logger.error("转换的时间不符合格式 \\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{6,}Z : {}",timestamp);
         }
     }
 
