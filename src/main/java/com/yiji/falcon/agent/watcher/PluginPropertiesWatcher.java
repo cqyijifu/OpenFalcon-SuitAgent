@@ -10,11 +10,13 @@ package com.yiji.falcon.agent.watcher;
 
 import com.yiji.falcon.agent.plugins.Plugin;
 import com.yiji.falcon.agent.plugins.util.PluginLibraryHelper;
+import com.yiji.falcon.agent.util.WatchServiceUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.nio.file.*;
+import java.nio.file.WatchEvent;
+import java.nio.file.WatchKey;
+import java.nio.file.WatchService;
 
 import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 
@@ -39,17 +41,9 @@ public class PluginPropertiesWatcher extends Thread{
 
     @Override
     public void run() {
-        WatchService watchService;
+        WatchService watchService = WatchServiceUtil.watchModify(pluginDir);
         WatchKey key;
-        try {
-            watchService = FileSystems.getDefault().newWatchService();
-            Path dir = FileSystems.getDefault().getPath(pluginDir);
-            key = dir.register(watchService, ENTRY_MODIFY);
-        } catch (IOException e) {
-            logger.error("插件配置文件监听异常",e);
-            return;
-        }
-        while (true){
+        while (watchService != null){
             try {
                 key = watchService.take();
                 for (WatchEvent<?> watchEvent : key.pollEvents()) {
