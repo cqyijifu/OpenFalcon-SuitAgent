@@ -66,7 +66,7 @@ public class DockerMetrics {
         boolean saveContainerName = containerNameCache.isEmpty();
         for (String key : keys) {
             JSONObject container = containers.getJSONObject(key);
-            String containerId = key.replace("/docker/","");
+            String containerId = container.getString("id");
             JSONArray aliases = container.getJSONArray("aliases");
             String containerName = "";
             for (Object aliase : aliases) {
