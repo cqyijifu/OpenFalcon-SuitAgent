@@ -43,11 +43,11 @@ public class TomcatPlugin implements JMXPlugin {
     /**
      * 插件初始化操作
      * 该方法将会在插件运行前进行调用
-     * @param properties
-     * 包含的配置:
-     * 1、插件目录绝对路径的(key 为 pluginDir),可利用此属性进行插件自定制资源文件读取
-     * 2、插件指定的配置文件的全部配置信息(参见 {@link com.yiji.falcon.agent.plugins.Plugin#configFileName()} 接口项)
-     * 3、授权配置项(参见 {@link com.yiji.falcon.agent.plugins.Plugin#authorizationKeyPrefix()} 接口项
+     *
+     * @param properties 包含的配置:
+     *                   1、插件目录绝对路径的(key 为 pluginDir),可利用此属性进行插件自定制资源文件读取
+     *                   2、插件指定的配置文件的全部配置信息(参见 {@link com.yiji.falcon.agent.plugins.Plugin#configFileName()} 接口项)
+     *                   3、授权配置项(参见 {@link com.yiji.falcon.agent.plugins.Plugin#authorizationKeyPrefix()} 接口项
      */
     @Override
     public void init(Map<String, String> properties) {
@@ -135,26 +135,37 @@ public class TomcatPlugin implements JMXPlugin {
             Set<ObjectInstance> beanSet = mBeanServerConnection.queryMBeans(null, null);
             for (ObjectInstance mbean : beanSet) {
                 ObjectName objectName = mbean.getObjectName();
-                if(objectName.toString().contains("Catalina:type=Connector")){
+                if (objectName.toString().contains("Catalina:type=Connector")) {
                     for (MBeanAttributeInfo mBeanAttributeInfo : mBeanServerConnection.getMBeanInfo(objectName).getAttributes()) {
                         String key = mBeanAttributeInfo.getName();
-                        if("port".equals(key)){
-                            String value = mBeanServerConnection.getAttribute(mbean.getObjectName(),key).toString();
-                            if("".equals(name.toString())){
+                        if ("port".equals(key)) {
+                            String value = mBeanServerConnection.getAttribute(mbean.getObjectName(), key).toString();
+                            if ("".equals(name.toString())) {
                                 name.append(value);
-                            }else{
+                            } else {
                                 name.append("-").append(value);
                             }
                         }
                     }
                 }
             }
-            lastAgentSignName =  StringUtils.isEmpty(name.toString()) ? serverDirName(pid) : name.toString() + "-" +serverDirName(pid);
+            String dirName = getServerDirName(pid);
+            lastAgentSignName = StringUtils.isEmpty(name.toString()) ? dirName : name.toString() + "-" + dirName;
             return lastAgentSignName;
         } catch (Exception e) {
-            log.error("设置JMX name 失败，返回最后的agentSignName:{}",lastAgentSignName);
+            log.error("设置JMX name 失败，返回最后的agentSignName:{}", lastAgentSignName);
             return lastAgentSignName;
         }
+    }
+
+    private String getServerDirName(int pid) {
+        String dirName = "";
+        String dirPath = serverPath(pid, "");
+        if (dirPath != null) {
+            dirName = dirPath.replace("/bin", "");
+            dirName = dirName.substring(dirName.lastIndexOf("/") + 1);
+        }
+        return dirName;
     }
 
     /**
@@ -176,20 +187,13 @@ public class TomcatPlugin implements JMXPlugin {
         try {
             dirPath = CommandUtilForUnix.getCmdDirByPid(pid);
         } catch (IOException e) {
-            log.error("tomcat serverDirPath获取异常",e);
+            log.error("tomcat serverDirPath获取异常", e);
         }
         return dirPath;
     }
 
     @Override
     public String serverDirName(int pid) {
-//        String dirName = "";
-//        String dirPath = serverPath(pid,"");
-//        if(dirPath != null){
-//            dirName = dirPath.replace("/bin","");
-//            dirName = dirName.substring(dirName.lastIndexOf("/") + 1);
-//        }
-//        return dirName;
         return null;
     }
 }
