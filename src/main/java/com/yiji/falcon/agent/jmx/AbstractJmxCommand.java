@@ -51,8 +51,8 @@ public class AbstractJmxCommand {
      * 返回查找的JMX连接地址对象或查找失败返回Null
      */
     public static JMXConnectUrlInfo findJMXRemoteUrlByProcessId(int pid, String ip){
-        String cmd = "ps aux | grep " + pid;
         logger.info("JMX Remote Target Pid:{}", pid);
+        String cmd = "ps aux | grep " + pid;
         String jmxPortOpt = "-Dcom.sun.management.jmxremote.port";
         String authPortOpt = "-Dcom.sun.management.jmxremote.authenticate";
         String jmxRemoteAccessOpt = "-Dcom.sun.management.jmxremote.access.file";

@@ -14,6 +14,7 @@ import javax.management.MBeanAttributeInfo;
 import javax.management.ObjectInstance;
 import javax.management.ObjectName;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /*
  * 修订记录:
@@ -55,6 +56,14 @@ public class JMXManager {
                 try {
                     List<JMXObjectNameInfo> objectNameList = new ArrayList<>();//该jmx连接下的所有ObjectName值信息
                     Set<ObjectInstance> beanSet = connectionInfo.getmBeanServerConnection().queryMBeans(null, null);
+                    if("org.apache.catalina.startup.Bootstrap".equals(serverName)){
+                        //若tomcat服务器运行了springMVC的应用，必须要过滤有以下字符串的mBean，否则可能会导致tomcat中的应用启动失败
+                        beanSet = beanSet.stream()
+                                .filter(mbean ->
+                                        !(mbean.getObjectName().toString().contains("j2eeType=Servlet")
+                                                && mbean.getObjectName().toString().contains("name=springMVC")))
+                                .collect(Collectors.toSet());
+                    }
                     for (ObjectInstance mbean : beanSet) {
                         ObjectName objectName = mbean.getObjectName();
 
