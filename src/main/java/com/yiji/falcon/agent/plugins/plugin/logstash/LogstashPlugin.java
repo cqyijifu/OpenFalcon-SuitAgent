@@ -9,6 +9,7 @@ package com.yiji.falcon.agent.plugins.plugin.logstash;
  */
 
 import com.yiji.falcon.agent.falcon.FalconReportObject;
+import com.yiji.falcon.agent.jmx.vo.JMXConnectionInfo;
 import com.yiji.falcon.agent.jmx.vo.JMXMetricsValueInfo;
 import com.yiji.falcon.agent.plugins.JMXPlugin;
 import com.yiji.falcon.agent.plugins.util.PluginActivateType;
@@ -16,7 +17,6 @@ import com.yiji.falcon.agent.util.CommandUtilForUnix;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.management.MBeanServerConnection;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -62,12 +62,12 @@ public class LogstashPlugin implements JMXPlugin {
      * 如该服务运行的端口号等
      * 若不需要指定则可返回null
      *
-     * @param mBeanServerConnection 该服务连接的mBeanServerConnection对象
+     * @param jmxConnectionInfo 该服务连接的jmx对象
      * @param pid                   该服务当前运行的进程id
      * @return
      */
     @Override
-    public String agentSignName(MBeanServerConnection mBeanServerConnection, int pid) {
+    public String agentSignName(JMXConnectionInfo jmxConnectionInfo, int pid) {
         return null;
     }
 

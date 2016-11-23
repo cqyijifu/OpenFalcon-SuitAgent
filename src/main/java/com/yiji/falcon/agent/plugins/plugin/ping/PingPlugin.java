@@ -11,7 +11,7 @@ package com.yiji.falcon.agent.plugins.plugin.ping;
 import com.yiji.falcon.agent.falcon.CounterType;
 import com.yiji.falcon.agent.plugins.DetectPlugin;
 import com.yiji.falcon.agent.plugins.Plugin;
-import com.yiji.falcon.agent.plugins.util.TagsCacheUtil;
+import com.yiji.falcon.agent.plugins.util.CacheUtil;
 import com.yiji.falcon.agent.util.CommandUtilForUnix;
 import com.yiji.falcon.agent.util.Maths;
 import com.yiji.falcon.agent.vo.detect.DetectResult;
@@ -58,7 +58,7 @@ public class PingPlugin implements DetectPlugin {
      */
     @Override
     public DetectResult detectResult(String address) {
-        Map<String,String> map = TagsCacheUtil.getTags(addresses,tagsCache,address);
+        Map<String,String> map = CacheUtil.getTags(addresses,tagsCache,address);
         String adds = map.get("adds");
         String tags = map.get("tags");
 
@@ -100,7 +100,7 @@ public class PingPlugin implements DetectPlugin {
      */
     @Override
     public Collection<String> detectAddressCollection() {
-        TagsCacheUtil.initTagsCache(addresses,tagsCache);
+        CacheUtil.initTagsCache(addresses,tagsCache);
         Set<String> adders = new HashSet<>();
         for (String address : addresses.values()) {
             adders.addAll(helpTransformAddressCollection(address,","));

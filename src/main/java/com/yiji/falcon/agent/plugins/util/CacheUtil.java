@@ -10,15 +10,81 @@ package com.yiji.falcon.agent.plugins.util;
 
 import com.yiji.falcon.agent.util.StringUtils;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author guqiu@yiji.com
  */
-public class TagsCacheUtil {
+public class CacheUtil {
 
+    /**
+     * 获取缓存中，超时的key
+     * @param map
+     * @return
+     */
+    public static List<String> getTimeoutCacheKeys(ConcurrentHashMap<String,String> map){
+        List<String> keys = new ArrayList<>();
+        long now = System.currentTimeMillis();
+        for (Map.Entry<String, String> entry : map.entrySet()) {
+            long cacheTime = getCacheTime(entry.getValue());
+            if(cacheTime == 0){
+                keys.add(entry.getKey());
+            }else if(now - cacheTime >= 2 * 24 * 60 * 60 * 1000){
+                //超时2天
+                keys.add(entry.getKey());
+            }
+        }
+        return keys;
+    }
+
+    /**
+     * 设置缓存值，添加时间戳
+     * @param value
+     * @return
+     */
+    public static String setCacheValue(String value){
+        if(!StringUtils.isEmpty(value)){
+            return String.format("@%d@%s",System.currentTimeMillis(),value);
+        }
+        return value;
+    }
+
+    /**
+     * 获取缓存值，去除时间戳
+     * @param value
+     * @return
+     */
+    public static String getCacheValue(String value){
+        if(!StringUtils.isEmpty(value)){
+            return value.replaceAll("@\\d*@","");
+        }
+        return value;
+    }
+
+    /**
+     * 获取缓存值中的时间戳
+     * @param value
+     * @return
+     */
+    private static long getCacheTime(String value){
+        try {
+            if(value != null){
+                return Long.parseLong(value.replace(getCacheValue(value),"").replace("@",""));
+            }
+        } catch (Exception e) {
+            return 0;
+        }
+        return 0;
+    }
+
+    /**
+     * 从行默认tag缓存中获取tag
+     * @param addresses
+     * @param tagsCache
+     * @param address
+     * @return
+     */
     public static Map<String,String> getTags(Map<String,String> addresses,Map<String,String> tagsCache,String address){
         Map<String,String> map = new HashMap<>();
         String adds;
@@ -34,7 +100,7 @@ public class TagsCacheUtil {
             tags = tags.replace(";",",");
         }else{
             // ip 形式的，获取 行默认tag
-            tags = TagsCacheUtil.getTagFromTagsCacheByAddress(addresses,tagsCache,address);
+            tags = CacheUtil.getTagFromTagsCacheByAddress(addresses,tagsCache,address);
             adds = address;
         }
         map.put("adds",adds);
@@ -53,6 +119,11 @@ public class TagsCacheUtil {
         return null;
     }
 
+    /**
+     * 初始化行默认tag缓存
+     * @param addresses
+     * @param tagsCache
+     */
     public static void initTagsCache(Map<String,String> addresses,Map<String,String> tagsCache){
         addresses.keySet().forEach(key -> {
             String value = addresses.get(key);

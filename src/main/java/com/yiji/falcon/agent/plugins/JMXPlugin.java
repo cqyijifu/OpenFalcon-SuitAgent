@@ -9,6 +9,7 @@ package com.yiji.falcon.agent.plugins;
  */
 
 import com.yiji.falcon.agent.falcon.FalconReportObject;
+import com.yiji.falcon.agent.jmx.vo.JMXConnectionInfo;
 import com.yiji.falcon.agent.jmx.vo.JMXMetricsValueInfo;
 
 import javax.management.MBeanServerConnection;
@@ -40,13 +41,13 @@ public interface JMXPlugin extends Plugin{
      * {jmxServerName} - 代表直接使用当前服务的jmxServerName
      * 如该服务运行的端口号等
      * 若不需要指定则可返回null
-     * @param mBeanServerConnection
-     * 该服务连接的mBeanServerConnection对象
+     * @param jmxConnectionInfo
+     * 该服务连接的jmx对象信息
      * @param pid
      * 该服务当前运行的进程id
      * @return
      */
-    String agentSignName(MBeanServerConnection mBeanServerConnection, int pid);
+    String agentSignName(JMXConnectionInfo jmxConnectionInfo, int pid);
 
     /**
      * 插件监控的服务正常运行时的內建监控报告

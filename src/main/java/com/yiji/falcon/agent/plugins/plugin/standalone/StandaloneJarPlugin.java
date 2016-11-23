@@ -13,6 +13,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.yiji.falcon.agent.falcon.CounterType;
 import com.yiji.falcon.agent.falcon.FalconReportObject;
 import com.yiji.falcon.agent.falcon.MetricsType;
+import com.yiji.falcon.agent.jmx.vo.JMXConnectionInfo;
 import com.yiji.falcon.agent.jmx.vo.JMXMetricsValueInfo;
 import com.yiji.falcon.agent.plugins.JMXPlugin;
 import com.yiji.falcon.agent.plugins.metrics.MetricsCommon;
@@ -22,7 +23,6 @@ import com.yiji.falcon.agent.vo.HttpResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.management.MBeanServerConnection;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -95,12 +95,12 @@ public class StandaloneJarPlugin implements JMXPlugin {
      * 如该服务运行的端口号等
      * 若不需要指定则可返回null
      *
-     * @param mBeanServerConnection 该服务连接的mBeanServerConnection对象
+     * @param jmxConnectionInfo 该服务连接的jmx对象
      * @param pid                   该服务当前运行的进程id
      * @return
      */
     @Override
-    public String agentSignName(MBeanServerConnection mBeanServerConnection, int pid) {
+    public String agentSignName(JMXConnectionInfo jmxConnectionInfo, int pid) {
         return "{jmxServerName}";
     }
 

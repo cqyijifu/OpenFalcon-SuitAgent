@@ -9,8 +9,10 @@ package com.yiji.falcon.agent.plugins.plugin.tomcat;
  */
 
 import com.yiji.falcon.agent.falcon.FalconReportObject;
+import com.yiji.falcon.agent.jmx.vo.JMXConnectionInfo;
 import com.yiji.falcon.agent.jmx.vo.JMXMetricsValueInfo;
 import com.yiji.falcon.agent.plugins.JMXPlugin;
+import com.yiji.falcon.agent.plugins.util.CacheUtil;
 import com.yiji.falcon.agent.plugins.util.PluginActivateType;
 import com.yiji.falcon.agent.util.CommandUtilForUnix;
 import com.yiji.falcon.agent.util.StringUtils;
@@ -26,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author guqiu@yiji.com
@@ -38,7 +41,7 @@ public class TomcatPlugin implements JMXPlugin {
     private String jmxServerName;
     private int step;
     private PluginActivateType pluginActivateType;
-    private static String lastAgentSignName = "";
+    private static final ConcurrentHashMap<String,String> agentSignNameCache = new ConcurrentHashMap<>();
 
     /**
      * 插件初始化操作
@@ -124,37 +127,47 @@ public class TomcatPlugin implements JMXPlugin {
      * 如该服务运行的端口号等
      * 若不需要指定则可返回null
      *
-     * @param mBeanServerConnection 该服务连接的mBeanServerConnection对象
+     * @param jmxConnectionInfo 该服务连接的jmx对象
      * @param pid                   该服务当前运行的进程id
      * @return
      */
     @Override
-    public String agentSignName(MBeanServerConnection mBeanServerConnection, int pid) {
+    public String agentSignName(JMXConnectionInfo jmxConnectionInfo, int pid) {
+
         try {
-            StringBuilder name = new StringBuilder();
-            Set<ObjectInstance> beanSet = mBeanServerConnection.queryMBeans(null, null);
-            for (ObjectInstance mbean : beanSet) {
-                ObjectName objectName = mbean.getObjectName();
-                if (objectName.toString().contains("Catalina:type=Connector")) {
-                    for (MBeanAttributeInfo mBeanAttributeInfo : mBeanServerConnection.getMBeanInfo(objectName).getAttributes()) {
-                        String key = mBeanAttributeInfo.getName();
-                        if ("port".equals(key)) {
-                            String value = mBeanServerConnection.getAttribute(mbean.getObjectName(), key).toString();
-                            if ("".equals(name.toString())) {
-                                name.append(value);
-                            } else {
-                                name.append("-").append(value);
+            //清除过期的缓存
+            CacheUtil.getTimeoutCacheKeys(agentSignNameCache).forEach(agentSignNameCache::remove);
+            String cacheKey = pid + "";
+            String agentSignName = CacheUtil.getCacheValue(agentSignNameCache.get(cacheKey));
+            if(StringUtils.isEmpty(agentSignName)){
+                MBeanServerConnection mBeanServerConnection = jmxConnectionInfo.getmBeanServerConnection();
+                StringBuilder name = new StringBuilder();
+                Set<ObjectInstance> beanSet = mBeanServerConnection.queryMBeans(null, null);
+                for (ObjectInstance mbean : beanSet) {
+                    ObjectName objectName = mbean.getObjectName();
+                    if (objectName.toString().contains("Catalina:type=Connector")) {
+                        for (MBeanAttributeInfo mBeanAttributeInfo : mBeanServerConnection.getMBeanInfo(objectName).getAttributes()) {
+                            String key = mBeanAttributeInfo.getName();
+                            if ("port".equals(key)) {
+                                String value = mBeanServerConnection.getAttribute(mbean.getObjectName(), key).toString();
+                                if ("".equals(name.toString())) {
+                                    name.append(value);
+                                } else {
+                                    name.append("-").append(value);
+                                }
                             }
                         }
                     }
                 }
+                String dirName = getServerDirName(pid);
+                agentSignName = StringUtils.isEmpty(name.toString()) ? dirName : name.toString() + "-" + dirName;
+                agentSignNameCache.put(cacheKey,CacheUtil.setCacheValue(agentSignName));
             }
-            String dirName = getServerDirName(pid);
-            lastAgentSignName = StringUtils.isEmpty(name.toString()) ? dirName : name.toString() + "-" + dirName;
-            return lastAgentSignName;
+
+            return agentSignName;
         } catch (Exception e) {
-            log.error("设置JMX name 失败，返回最后的agentSignName:{}", lastAgentSignName);
-            return lastAgentSignName;
+            log.error("agentSignName获取失败", e);
+            return "";
         }
     }
 

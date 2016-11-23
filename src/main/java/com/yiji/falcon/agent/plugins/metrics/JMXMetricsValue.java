@@ -13,6 +13,7 @@ import com.yiji.falcon.agent.jmx.vo.JMXConnectionInfo;
 import com.yiji.falcon.agent.jmx.vo.JMXMetricsValueInfo;
 import com.yiji.falcon.agent.jmx.vo.JMXObjectNameInfo;
 import com.yiji.falcon.agent.plugins.JMXPlugin;
+import com.yiji.falcon.agent.plugins.util.CacheUtil;
 import com.yiji.falcon.agent.util.MapUtil;
 import com.yiji.falcon.agent.util.Maths;
 import com.yiji.falcon.agent.util.StringUtils;
@@ -216,33 +217,14 @@ public class JMXMetricsValue extends MetricsCommon {
         return result;
     }
 
-    /**
-     * 获取缓存中，超时的key
-     * @param map
-     * @return
-     */
-    private List<String> getTimeoutCacheKeys(ConcurrentHashMap<String,String> map){
-        List<String> keys = new ArrayList<>();
-        long now = System.currentTimeMillis();
-        for (Map.Entry<String, String> entry : map.entrySet()) {
-            long cacheTime = getCacheTime(entry.getValue());
-            if(cacheTime == 0){
-                keys.add(entry.getKey());
-            }else if(now - cacheTime >= 2 * 24 * 60 * 60 * 1000){
-                //超时2天
-                keys.add(entry.getKey());
-            }
-        }
-        return keys;
-    }
 
     private String getServerDirPath(int pid,String serverName){
         String key = serverName + pid;
-        String serverDirPath = getCacheValue(serverDirPathCatch.get(key));
+        String serverDirPath = CacheUtil.getCacheValue(serverDirPathCatch.get(key));
         if(serverDirPath == null){
             serverDirPath = jmxPlugin.serverPath(pid,serverName);
             if(!StringUtils.isEmpty(serverDirPath)){
-                serverDirPathCatch.put(key,setCacheValue(serverDirPath));
+                serverDirPathCatch.put(key,CacheUtil.setCacheValue(serverDirPath));
             }
         }
         return serverDirPath;
@@ -250,11 +232,11 @@ public class JMXMetricsValue extends MetricsCommon {
 
     private String getServerDirName(int pid,String serverName){
         String key = serverName + pid;
-        String dirName = getCacheValue(serverDirNameCatch.get(key));
+        String dirName = CacheUtil.getCacheValue(serverDirNameCatch.get(key));
         if(dirName == null){
             dirName = jmxPlugin.serverDirName(pid);
             if(!StringUtils.isEmpty(dirName)){
-                serverDirNameCatch.put(key,setCacheValue(dirName));
+                serverDirNameCatch.put(key,CacheUtil.setCacheValue(dirName));
             }
         }
         return dirName;
@@ -271,8 +253,8 @@ public class JMXMetricsValue extends MetricsCommon {
         Set<FalconReportObject> result = new HashSet<>();
 
         //清除过期的缓存
-        getTimeoutCacheKeys(serverDirNameCatch).forEach(serverDirNameCatch::remove);
-        getTimeoutCacheKeys(serverDirPathCatch).forEach(serverDirPathCatch::remove);
+        CacheUtil.getTimeoutCacheKeys(serverDirNameCatch).forEach(serverDirNameCatch::remove);
+        CacheUtil.getTimeoutCacheKeys(serverDirPathCatch).forEach(serverDirPathCatch::remove);
 
         for (JMXMetricsValueInfo metricsValueInfo : jmxMetricsValueInfos) {
 
@@ -350,46 +332,6 @@ public class JMXMetricsValue extends MetricsCommon {
         }
 
         return result;
-    }
-
-    /**
-     * 设置缓存值，添加时间戳
-     * @param value
-     * @return
-     */
-    private String setCacheValue(String value){
-        if(!StringUtils.isEmpty(value)){
-            return String.format("@%d@%s",System.currentTimeMillis(),value);
-        }
-        return value;
-    }
-
-    /**
-     * 获取缓存值，去除时间戳
-     * @param value
-     * @return
-     */
-    private String getCacheValue(String value){
-        if(!StringUtils.isEmpty(value)){
-            return value.replaceAll("@\\d*@","");
-        }
-        return value;
-    }
-
-    /**
-     * 获取缓存值中的时间戳
-     * @param value
-     * @return
-     */
-    private long getCacheTime(String value){
-        try {
-            if(value != null){
-                return Long.parseLong(value.replace(getCacheValue(value),"").replace("@",""));
-            }
-        } catch (Exception e) {
-            return 0;
-        }
-        return 0;
     }
 
     /**
