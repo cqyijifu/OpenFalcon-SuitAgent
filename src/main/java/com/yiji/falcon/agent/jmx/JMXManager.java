@@ -60,8 +60,7 @@ public class JMXManager {
                         //若tomcat服务器运行了springMVC的应用，必须要过滤有以下字符串的mBean，否则可能会导致tomcat中的应用启动失败
                         beanSet = beanSet.stream()
                                 .filter(mbean ->
-                                        !(mbean.getObjectName().toString().contains("j2eeType=Servlet")
-                                                && mbean.getObjectName().toString().contains("name=springMVC")))
+                                        !(mbean.getObjectName().toString().contains("j2eeType=Servlet")))
                                 .collect(Collectors.toSet());
                     }
                     for (ObjectInstance mbean : beanSet) {
