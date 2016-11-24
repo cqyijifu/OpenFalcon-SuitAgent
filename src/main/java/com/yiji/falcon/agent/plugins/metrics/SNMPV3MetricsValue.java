@@ -157,7 +157,7 @@ public class SNMPV3MetricsValue extends MetricsCommon {
             for (IfStatVO statVO : statVOs) {
                 FalconReportObject reportObject = new FalconReportObject();
                 MetricsCommon.setReportCommonValue(reportObject, plugin.step());
-                reportObject.appendTags(MetricsCommon.getTags(session.getEquipmentName(), plugin, plugin.serverName(), MetricsType.SNMP_COMMON_IN_BUILD));
+                reportObject.appendTags(MetricsCommon.getTags(session.getAgentSignName(), plugin, plugin.serverName(), MetricsType.SNMP_COMMON_IN_BUILD));
                 reportObject.setCounterType(CounterType.COUNTER);
                 String endPoint = userInfo.getEndPoint();
                 if (!StringUtils.isEmpty(endPoint)) {
@@ -231,7 +231,7 @@ public class SNMPV3MetricsValue extends MetricsCommon {
     public FalconReportObject ping(SNMPV3Session session, int count) {
         FalconReportObject reportObject = new FalconReportObject();
         MetricsCommon.setReportCommonValue(reportObject, plugin.step());
-        reportObject.appendTags(MetricsCommon.getTags(session.getEquipmentName(), plugin, plugin.serverName(), MetricsType.SNMP_COMMON_IN_BUILD));
+        reportObject.appendTags(MetricsCommon.getTags(session.getAgentSignName(), plugin, plugin.serverName(), MetricsType.SNMP_COMMON_IN_BUILD));
         reportObject.setCounterType(CounterType.GAUGE);
         reportObject.setMetric("pingAvgTime");
         reportObject.setTimestamp(System.currentTimeMillis() / 1000);
@@ -301,7 +301,7 @@ public class SNMPV3MetricsValue extends MetricsCommon {
     private List<FalconReportObject> getReports(SNMPV3Session session){
         List<FalconReportObject> temp = new ArrayList<>();
         if(!session.isValid()){
-            temp.add(MetricsCommon.generatorVariabilityReport(false, session.getEquipmentName(), plugin.step(), plugin, plugin.serverName()));
+            temp.add(MetricsCommon.generatorVariabilityReport(false, session.getAgentSignName(), plugin.step(), plugin, plugin.serverName()));
         }else{
             //ping报告
             FalconReportObject reportObject = ping(session, 5);
@@ -311,7 +311,7 @@ public class SNMPV3MetricsValue extends MetricsCommon {
             try {
                 temp.addAll(getIfStatReports(session));
                 //添加可用性报告
-                temp.add(MetricsCommon.generatorVariabilityReport(true, session.getEquipmentName(), plugin.step(), plugin, plugin.serverName()));
+                temp.add(MetricsCommon.generatorVariabilityReport(true, session.getAgentSignName(), plugin.step(), plugin, plugin.serverName()));
                 //添加插件报告
                 Collection<FalconReportObject> inBuildReports = plugin.inbuiltReportObjectsForValid(session);
                 if (inBuildReports != null && !inBuildReports.isEmpty()) {
@@ -319,7 +319,7 @@ public class SNMPV3MetricsValue extends MetricsCommon {
                 }
             } catch (Exception e) {
                 logger.error("设备 {} 通过SNMP获取监控数据发生异常,push 该设备不可用报告", session.toString(), e);
-                temp.add(MetricsCommon.generatorVariabilityReport(false, session.getEquipmentName(), plugin.step(), plugin, plugin.serverName()));
+                temp.add(MetricsCommon.generatorVariabilityReport(false, session.getAgentSignName(), plugin.step(), plugin, plugin.serverName()));
             }
         }
 

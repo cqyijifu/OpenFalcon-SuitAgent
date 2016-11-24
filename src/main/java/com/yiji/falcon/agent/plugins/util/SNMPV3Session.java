@@ -37,7 +37,7 @@ public class SNMPV3Session {
 
     //信息缓存
     private static final ConcurrentHashMap<String,Object> infoCache = new ConcurrentHashMap<>();
-    private static final String cacheKey_equipmentName = "equipmentName";
+//    private static final String cacheKey_equipmentName = "equipmentName";
     private static final String cacheKey_sysDesc = "sysDesc";
     private static final String cacheKey_sysVendor = "sysVendor";
     private static final String cacheKey_version = "version";
@@ -119,26 +119,28 @@ public class SNMPV3Session {
      *
      * @return
      */
-    public String getEquipmentName() {
-        String key = getInfoCacheKey() + cacheKey_equipmentName;
-
-        if(infoCache.get(key) != null){
-            //已有有效的设备名称缓存,直接返回
-            return (String) infoCache.get(getInfoCacheKey());
-        }
-        String prefix = this.getUserInfo().getAddress() + "-" + this.getUserInfo().getPort();
-        try {
-            if(isValid()){
-                String name = prefix + "-" + getSysVendor() + "-" + getSysVersion();
-                infoCache.put(key,name);
-                return name;
-            }else{
-                return prefix;
-            }
-        } catch (IOException e) {
-            logger.error("设备描述信息获取失败",e);
-            return prefix;
-        }
+    public String getAgentSignName() {
+        //去掉agentSignName，使用配置（authorization.properties）中的自定义endPoint来识别设备
+        return "";
+//        String key = getInfoCacheKey() + cacheKey_equipmentName;
+//
+//        if(infoCache.get(key) != null){
+//            //已有有效的设备名称缓存,直接返回
+//            return (String) infoCache.get(getInfoCacheKey());
+//        }
+//        String prefix = this.getUserInfo().getAddress() + "-" + this.getUserInfo().getPort();
+//        try {
+//            if(isValid()){
+//                String name = prefix + "-" + getSysVendor() + "-" + getSysVersion();
+//                infoCache.put(key,name);
+//                return name;
+//            }else{
+//                return prefix;
+//            }
+//        } catch (IOException e) {
+//            logger.error("设备描述信息获取失败",e);
+//            return prefix;
+//        }
     }
 
     /**

@@ -180,7 +180,7 @@ public class SwitchPlugin implements SNMPV3Plugin{
             if(collectObject != null){
                 FalconReportObject reportObject = new FalconReportObject();
                 MetricsCommon.setReportCommonValue(reportObject, this.step());
-                reportObject.appendTags(MetricsCommon.getTags(collectObject.getSession().getEquipmentName(), this, this.serverName(), MetricsType.SNMP_Plugin_IN_BUILD));
+                reportObject.appendTags(MetricsCommon.getTags(collectObject.getSession().getAgentSignName(), this, this.serverName(), MetricsType.SNMP_Plugin_IN_BUILD));
                 reportObject.setCounterType(CounterType.GAUGE);
                 reportObject.setMetric(collectObject.getMetrics());
                 reportObject.setValue(collectObject.getValue());
