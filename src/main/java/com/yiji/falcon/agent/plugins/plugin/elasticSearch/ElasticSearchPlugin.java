@@ -12,7 +12,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.yiji.falcon.agent.falcon.CounterType;
 import com.yiji.falcon.agent.falcon.FalconReportObject;
 import com.yiji.falcon.agent.falcon.MetricsType;
-import com.yiji.falcon.agent.jmx.vo.JMXConnectionInfo;
 import com.yiji.falcon.agent.jmx.vo.JMXMetricsValueInfo;
 import com.yiji.falcon.agent.plugins.JMXPlugin;
 import com.yiji.falcon.agent.plugins.metrics.MetricsCommon;
@@ -74,12 +73,12 @@ public class ElasticSearchPlugin implements JMXPlugin {
      * 如该服务运行的端口号等
      * 若不需要指定则可返回null
      *
-     * @param jmxConnectionInfo 该服务连接的jmx对象
+     * @param jmxMetricsValueInfo 该服务连接的jmx对象
      * @param pid                   该服务当前运行的进程id
      * @return
      */
     @Override
-    public String agentSignName(JMXConnectionInfo jmxConnectionInfo, int pid) {
+    public String agentSignName(JMXMetricsValueInfo jmxMetricsValueInfo, int pid) {
         try {
             lastAgentSignName = String.format("%d", ElasticSearchConfig.getHttpPort(pid));
             return lastAgentSignName;

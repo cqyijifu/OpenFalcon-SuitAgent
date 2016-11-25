@@ -42,7 +42,7 @@ public class JMXPluginJob implements Job {
 
             //设置agentSignName
             for (JMXMetricsValueInfo jmxMetricsValueInfo : jmxMetricsValueInfos) {
-                String agentSignName = jmxPlugin.agentSignName(jmxMetricsValueInfo.getJmxConnectionInfo(),
+                String agentSignName = jmxPlugin.agentSignName(jmxMetricsValueInfo,
                         jmxMetricsValueInfo.getJmxConnectionInfo().getPid());
                 if ("{jmxServerName}".equals(agentSignName)) {
                     //设置变量

@@ -19,7 +19,7 @@ public class JMXObjectNameInfo {
     /**
      * 此jmx 连接下的 objectName 的所有监控值
      */
-    private Map<String,String> metricsValue;
+    private Map<String,Object> metricsValue;
     /**
      * JMX ObjectName
      */
@@ -57,11 +57,11 @@ public class JMXObjectNameInfo {
         this.jmxConnectionInfo = jmxConnectionInfo;
     }
 
-    public Map<String, String> getMetricsValue() {
+    public Map<String, Object> getMetricsValue() {
         return metricsValue;
     }
 
-    public void setMetricsValue(Map<String, String> metricsValue) {
+    public void setMetricsValue(Map<String, Object> metricsValue) {
         this.metricsValue = metricsValue;
     }
 }

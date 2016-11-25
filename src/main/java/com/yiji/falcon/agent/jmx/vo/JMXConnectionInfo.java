@@ -4,6 +4,7 @@
  */
 package com.yiji.falcon.agent.jmx.vo;
 
+import com.yiji.falcon.agent.jmx.JMXManager;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 
@@ -106,6 +107,10 @@ public class JMXConnectionInfo {
         this.valid = valid;
     }
 
+    /**
+     * 注：请勿使用此对象进行JMX连接交互操作，可能会在JMX维护时发生java.io.IOException: The client has been closed异常 （{@link JMXManager#getJmxMetricValue(java.lang.String)} 方法除外）
+     * @return
+     */
     public MBeanServerConnection getmBeanServerConnection() {
         return mBeanServerConnection;
     }

@@ -229,6 +229,7 @@ public abstract class MetricsCommon {
             }
         }
 
+        logger.info("Variability ：{}",falconReportObject);
         return falconReportObject;
     }
 

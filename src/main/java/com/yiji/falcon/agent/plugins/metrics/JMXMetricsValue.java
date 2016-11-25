@@ -131,7 +131,7 @@ public class JMXMetricsValue extends MetricsCommon {
         Set<KitObjectNameMetrics> kitObjectNameMetricsSet = new HashSet<>();
         for (JMXObjectNameInfo jmxObjectNameInfo : jmxObjectNameInfos) {
             String objectName = jmxObjectNameInfo.getObjectName().toString();
-            Map<String, String> metricsMap = jmxObjectNameInfo.getMetricsValue();
+            Map<String, Object> metricsMap = jmxObjectNameInfo.getMetricsValue();
             if (objectName.contains(metricsConfiguration.getObjectName())) {
                 if (metricsMap.get(metricsConfiguration.getMetrics()) != null ||
                         metricsMap.get(metricsConfiguration.getAlias()) != null) {
@@ -161,7 +161,7 @@ public class JMXMetricsValue extends MetricsCommon {
         for (KitObjectNameMetrics kitObjectNameMetrics : kitObjectNameMetricses) {
             JMXObjectNameInfo jmxObjectNameInfo = kitObjectNameMetrics.jmxObjectNameInfo;
             JMXMetricsConfiguration jmxMetricsConfiguration = kitObjectNameMetrics.jmxMetricsConfiguration;
-            String metricsValue = jmxObjectNameInfo.getMetricsValue().get(jmxMetricsConfiguration.getMetrics());
+            Object metricsValue = jmxObjectNameInfo.getMetricsValue().get(jmxMetricsConfiguration.getMetrics());
             if (metricsValue != null) {
                 //服务的标识后缀名
                 String name = metricsValueInfo.getJmxConnectionInfo().getName();
@@ -178,7 +178,7 @@ public class JMXMetricsValue extends MetricsCommon {
                 }
                 requestObject.setTimestamp(System.currentTimeMillis() / 1000);
                 requestObject.setObjectName(jmxObjectNameInfo.getObjectName());
-                Object newValue = executeJsExpress(kitObjectNameMetrics.jmxMetricsConfiguration.getValueExpress(), metricsValue);
+                Object newValue = executeJsExpress(kitObjectNameMetrics.jmxMetricsConfiguration.getValueExpress(), metricsValue.toString());
                 if (NumberUtils.isNumber(String.valueOf(newValue).trim())) {
                     requestObject.setValue(String.valueOf(newValue).trim());
                 } else {
@@ -371,10 +371,8 @@ public class JMXMetricsValue extends MetricsCommon {
 
                 if ("java.lang:type=Memory".equals(objectNameInfo.getObjectName().toString())) {
 
-                    MemoryUsage heapMemoryUsage = MemoryUsage.from((CompositeDataSupport) objectNameInfo.
-                            getJmxConnectionInfo().getmBeanServerConnection().getAttribute(objectNameInfo.getObjectName(), "HeapMemoryUsage"));
-                    MemoryUsage nonHeapMemoryUsage = MemoryUsage.from((CompositeDataSupport) objectNameInfo.
-                            getJmxConnectionInfo().getmBeanServerConnection().getAttribute(objectNameInfo.getObjectName(), "NonHeapMemoryUsage"));
+                    MemoryUsage heapMemoryUsage = MemoryUsage.from((CompositeDataSupport) objectNameInfo.getMetricsValue().get("HeapMemoryUsage"));
+                    MemoryUsage nonHeapMemoryUsage = MemoryUsage.from((CompositeDataSupport) objectNameInfo.getMetricsValue().get("NonHeapMemoryUsage"));
 
                     falconReportObject.setMetric(getMetricsName("HeapMemoryCommitted"));
                     falconReportObject.setValue(String.valueOf(heapMemoryUsage.getCommitted()));
@@ -424,8 +422,7 @@ public class JMXMetricsValue extends MetricsCommon {
                     }
 
                 }else if("java.lang:type=MemoryPool,name=Metaspace".equals(objectNameInfo.getObjectName().toString())){
-                    MemoryUsage metaspaceUsage = MemoryUsage.from((CompositeDataSupport) objectNameInfo.
-                            getJmxConnectionInfo().getmBeanServerConnection().getAttribute(objectNameInfo.getObjectName(), "Usage"));
+                    MemoryUsage metaspaceUsage = MemoryUsage.from((CompositeDataSupport) objectNameInfo.getMetricsValue().get("Usage"));
 
                     falconReportObject.setMetric(getMetricsName("MetaspaceMemoryCommitted"));
                     falconReportObject.setValue(String.valueOf(metaspaceUsage.getCommitted()));
@@ -456,7 +453,7 @@ public class JMXMetricsValue extends MetricsCommon {
             }
 
         } catch (Exception e) {
-            log.error("获取jmx 内置监控数据异常", e);
+            log.error("获取 {} jmx 内置监控数据异常",metricsValueInfo.getJmxConnectionInfo().getName() ,e.getMessage());
         }
         return result;
     }

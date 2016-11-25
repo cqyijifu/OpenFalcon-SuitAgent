@@ -70,10 +70,10 @@ public class JMXManager {
 
                         jmxObjectNameInfo.setObjectName(objectName);
                         jmxObjectNameInfo.setJmxConnectionInfo(connectionInfo);
-                        Map<String,String> map = new HashMap<>();
+                        Map<String,Object> map = new HashMap<>();
                         for (MBeanAttributeInfo mBeanAttributeInfo : connectionInfo.getmBeanServerConnection().getMBeanInfo(objectName).getAttributes()) {
                             try {
-                                String value = connectionInfo.getmBeanServerConnection().getAttribute(mbean.getObjectName(),mBeanAttributeInfo.getName()).toString();
+                                Object value = connectionInfo.getmBeanServerConnection().getAttribute(mbean.getObjectName(),mBeanAttributeInfo.getName());
                                 map.put(mBeanAttributeInfo.getName(),value);
                             } catch (Exception ignored) {
                             }
