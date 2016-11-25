@@ -75,10 +75,6 @@ public class AbstractJmxCommand {
                 String passwordFile = getConfigValueByCmdKey(msg,jmxRemotePasswordOpt);
                 boolean isAuth = "true".equalsIgnoreCase(getConfigValueByCmdKey(msg,authPortOpt));
 
-                if(port.equals("4445")){
-                    port = "4447";
-                }
-
                 remoteUrlInfo.setRemoteUrl("service:jmx:rmi:///jndi/rmi://" + ip + ":" + port + "/jmxrmi");
                 remoteUrlInfo.setAuthentication(isAuth);
 
