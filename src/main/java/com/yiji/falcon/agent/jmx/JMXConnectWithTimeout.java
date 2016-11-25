@@ -42,7 +42,7 @@ public class JMXConnectWithTimeout {
      * @return
      * @throws IOException
      */
-    public static JMXConnector connectWithTimeout( final JMXServiceURL url,String jmxUser,String jmxPassword, long timeout, TimeUnit unit) throws IOException {
+    public static JMXConnector connectWithTimeout( final JMXServiceURL url,String jmxUser,String jmxPassword, long timeout, TimeUnit unit) throws Exception {
         final BlockingQueue<Object> blockingQueue = new ArrayBlockingQueue<>(1);
         ExecuteThreadUtil.execute(() -> {
             try {
@@ -68,14 +68,15 @@ public class JMXConnectWithTimeout {
             throw new SocketTimeoutException("Connect timed out: " + url);
         if (result instanceof JMXConnector)
             return (JMXConnector) result;
-        try {
-            throw (Throwable) result;
-        } catch (IOException | RuntimeException | Error e) {
-            throw e;
-        } catch (Throwable e) {
-            // In principle this can't happen but we wrap it anyway
-            throw new IOException(e.toString(), e);
+        if(result instanceof String){
+            if("".equals(result)){
+
+            }
         }
+        if(result instanceof Throwable){
+            throw new IOException("JMX Connect Failed : " + url,((Throwable) result));
+        }
+        return null;
     }
 
 }

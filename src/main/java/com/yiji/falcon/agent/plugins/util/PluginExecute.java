@@ -12,7 +12,6 @@ import com.yiji.falcon.agent.common.AgentJobHelper;
 import com.yiji.falcon.agent.plugins.*;
 import com.yiji.falcon.agent.plugins.job.DetectPluginJob;
 import com.yiji.falcon.agent.plugins.job.JDBCPluginJob;
-import com.yiji.falcon.agent.plugins.job.JMXPluginJob;
 import com.yiji.falcon.agent.plugins.job.SNMPPluginJob;
 import com.yiji.falcon.agent.util.StringUtils;
 import org.quartz.JobDataMap;
@@ -65,9 +64,8 @@ public class PluginExecute {
                         AgentJobHelper.pluginWorkForJMX(pluginName,
                                 jmxPlugin.activateType(),
                                 jmxPlugin.step(),
-                                JMXPluginJob.class,
                                 pluginName,
-                                jmxServerName,
+                                jmxPlugin.serverName() + "-" + jmxServerName,
                                 jmxServerName,
                                 jobDataMap);
                     }

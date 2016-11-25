@@ -116,7 +116,7 @@ public class JMXConnection {
      * @param serverName
      * @return
      */
-    private List<VirtualMachineDescriptor> getVmDescByServerName(String serverName){
+    public static List<VirtualMachineDescriptor> getVmDescByServerName(String serverName){
         List<VirtualMachineDescriptor> vmDescList = new ArrayList<>();
         List<VirtualMachineDescriptor> vms = VirtualMachine.list();
         for (VirtualMachineDescriptor desc : vms) {
@@ -164,16 +164,20 @@ public class JMXConnection {
                 try {
                     connections.add(initJMXConnectionInfo(getJMXConnector(jmxConnectUrlInfo),desc));
                     log.debug("应用 {} JMX 连接已建立",serverName);
-                    count++;
+
                 } catch (Exception e) {
-                    log.error("JMX 连接获取异常",e);
+                    log.error("JMX 连接获取异常:{}",e.getMessage());
+                    //JMX连接获取失败，添加该服务JMX的不可用记录，用于上报不可用记录
+                    initBadJMXConnect(desc);
                 }
+                //该服务应有的数量++
+                count++;
             }
 
             if(count > 0){
                 serverConnectCount.put(serverName,count);
             }else{
-                //对应的ServerName的JMX连接获取失败，返回JMX连接失败
+                //对应的ServerName的JMX连接获取失败，返回该服务JMX连接失败，用于上报不可用记录
                 JMXConnectionInfo jmxConnectionInfo = new JMXConnectionInfo();
                 jmxConnectionInfo.setValid(false);
                 jmxConnectionInfo.setName(serverName);
@@ -186,7 +190,7 @@ public class JMXConnection {
         return connections;
     }
 
-    private JMXConnector getJMXConnector(JMXConnectUrlInfo jmxConnectUrlInfo) throws IOException {
+    private JMXConnector getJMXConnector(JMXConnectUrlInfo jmxConnectUrlInfo) throws Exception {
         JMXServiceURL url = new JMXServiceURL(jmxConnectUrlInfo.getRemoteUrl());
         JMXConnector connector;
         if(jmxConnectUrlInfo.isAuthentication()){
@@ -241,10 +245,12 @@ public class JMXConnection {
                 try {
                     initJMXConnectionInfo(getJMXConnector(jmxConnectUrlInfo),desc);
                     log.info("应用 {} JMX 连接已建立,将在下一周期获取Metrics值时生效",serverName);
-                    count++;
-                } catch (IOException e) {
-                    log.error("JMX 连接获取异常",e);
+                } catch (Exception e) {
+                    log.error("JMX 连接获取异常:{}",e.getMessage());
+                    //JMX连接获取失败，添加该服务JMX的不可用记录，用于上报不可用记录
+                    initBadJMXConnect(desc);
                 }
+                count++;
             }
             serverConnectCount.put(serverName,count);
         }
@@ -294,6 +300,18 @@ public class JMXConnection {
 
         connectCacheLibrary.put(serverName + desc.id(),jmxConnectionInfo);
         return jmxConnectionInfo;
+    }
+
+    /**
+     * 连接失败的JMX的初始化动作
+     * @param desc
+     */
+    private void initBadJMXConnect(VirtualMachineDescriptor desc){
+        JMXConnectionInfo jmxConnectionInfo = new JMXConnectionInfo();
+        jmxConnectionInfo.setValid(false);
+        jmxConnectionInfo.setName(serverName);
+        jmxConnectionInfo.setPid(Integer.parseInt(desc.id()));
+        connectCacheLibrary.put(serverName + desc.id(),jmxConnectionInfo);
     }
 
 }

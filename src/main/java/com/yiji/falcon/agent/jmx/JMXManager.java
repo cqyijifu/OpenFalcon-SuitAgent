@@ -73,8 +73,9 @@ public class JMXManager {
                         Map<String,Object> map = new HashMap<>();
                         for (MBeanAttributeInfo mBeanAttributeInfo : connectionInfo.getmBeanServerConnection().getMBeanInfo(objectName).getAttributes()) {
                             try {
-                                Object value = connectionInfo.getmBeanServerConnection().getAttribute(mbean.getObjectName(),mBeanAttributeInfo.getName());
-                                map.put(mBeanAttributeInfo.getName(),value);
+                                map.put(mBeanAttributeInfo.getName(),
+                                        connectionInfo.getmBeanServerConnection().getAttribute(mbean.getObjectName(),mBeanAttributeInfo.getName())
+                                );
                             } catch (Exception ignored) {
                             }
                         }

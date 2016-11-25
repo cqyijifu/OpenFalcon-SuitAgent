@@ -9,6 +9,7 @@ import com.yiji.falcon.agent.jmx.JMXConnection;
 import com.yiji.falcon.agent.plugins.DetectPlugin;
 import com.yiji.falcon.agent.plugins.JDBCPlugin;
 import com.yiji.falcon.agent.plugins.SNMPV3Plugin;
+import com.yiji.falcon.agent.plugins.job.JMXPluginJob;
 import com.yiji.falcon.agent.plugins.metrics.SNMPV3MetricsValue;
 import com.yiji.falcon.agent.plugins.util.PluginActivateType;
 import com.yiji.falcon.agent.plugins.util.SNMPV3Session;
@@ -86,24 +87,23 @@ public class AgentJobHelper {
      * @param pluginName
      * @param pluginActivateType
      * @param step
-     * @param jobClazz
      * @param desc
      * @param serverName
      * @param jmxServerName
      * @param jobDataMap
      * @throws SchedulerException
      */
-    public synchronized static void pluginWorkForJMX(String pluginName, PluginActivateType pluginActivateType, int step, Class<? extends Job> jobClazz, String desc, String serverName,String jmxServerName, JobDataMap jobDataMap) throws SchedulerException {
+    public synchronized static void pluginWorkForJMX(String pluginName, PluginActivateType pluginActivateType, int step, String desc, String serverName,String jmxServerName, JobDataMap jobDataMap) throws SchedulerException {
         //只有指定job未启动过的情况下才进行work开启
         if(!isHasWorked(serverName)){
             if(pluginActivateType == PluginActivateType.AUTO){
                 if(JMXConnection.hasJMXServerInLocal(jmxServerName)){
                     //开启服务监控
                     log.info("发现服务 {} , 启动插件 {} ",serverName,pluginName);
-                    doJob(jobClazz,desc,step,jobDataMap,serverName);
+                    doJob(JMXPluginJob.class,desc,step,jobDataMap,serverName);
                 }
             }else if(pluginActivateType == PluginActivateType.FORCE){
-                doJob(jobClazz,desc,step,jobDataMap,serverName);
+                doJob(JMXPluginJob.class,desc,step,jobDataMap,serverName);
             }
         }
     }

@@ -5,6 +5,7 @@
 
 import com.sun.tools.attach.VirtualMachine;
 import com.sun.tools.attach.VirtualMachineDescriptor;
+import com.yiji.falcon.agent.jmx.JMXConnection;
 import com.yiji.falcon.agent.util.CommandUtilForUnix;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -38,12 +39,9 @@ public class JmxTest {
 
     @Test
     public void vms(){
-        List<VirtualMachineDescriptor> vms = VirtualMachine.list();
+        List<VirtualMachineDescriptor> vms = JMXConnection.getVmDescByServerName("org.apache.catalina.startup.Bootstrap");
         for (VirtualMachineDescriptor vm : vms) {
-            File file = new File(vm.displayName());
-            if(file.exists()){
-                System.out.println(vm);
-            }
+            System.out.println(vm);
         }
     }
 

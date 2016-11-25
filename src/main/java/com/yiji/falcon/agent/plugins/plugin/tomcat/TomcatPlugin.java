@@ -136,15 +136,17 @@ public class TomcatPlugin implements JMXPlugin {
             String agentSignName = CacheUtil.getCacheValue(agentSignNameCache.get(cacheKey));
             if(StringUtils.isEmpty(agentSignName)){
                 StringBuilder name = new StringBuilder();
-                for (JMXObjectNameInfo jmxObjectNameInfo : jmxMetricsValueInfo.getJmxObjectNameInfoList()) {
-                    if(jmxObjectNameInfo.getObjectName().toString().contains("Catalina:type=Connector")){
-                        for (Map.Entry<String, Object> entry : jmxObjectNameInfo.getMetricsValue().entrySet()) {
-                            if("port".equals(entry.getKey())){
-                                String value = entry.getValue().toString();
-                                if ("".equals(name.toString())) {
-                                    name.append(value);
-                                } else {
-                                    name.append("-").append(value);
+                if(jmxMetricsValueInfo.getJmxObjectNameInfoList() != null){
+                    for (JMXObjectNameInfo jmxObjectNameInfo : jmxMetricsValueInfo.getJmxObjectNameInfoList()) {
+                        if(jmxObjectNameInfo.getObjectName().toString().contains("Catalina:type=Connector")){
+                            for (Map.Entry<String, Object> entry : jmxObjectNameInfo.getMetricsValue().entrySet()) {
+                                if("port".equals(entry.getKey())){
+                                    String value = entry.getValue().toString();
+                                    if ("".equals(name.toString())) {
+                                        name.append(value);
+                                    } else {
+                                        name.append("-").append(value);
+                                    }
                                 }
                             }
                         }
