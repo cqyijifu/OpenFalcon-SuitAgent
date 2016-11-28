@@ -158,6 +158,9 @@ public class JMXConnection {
                 JMXConnectUrlInfo jmxConnectUrlInfo = getConnectorAddress(desc);
                 if (jmxConnectUrlInfo == null) {
                     log.error("应用 {} 的JMX连接URL获取失败",desc.displayName());
+                    //对应的ServerName的JMX连接获取失败，返回该服务JMX连接失败，用于上报不可用记录
+                    connections.add(initBadJMXConnect(desc));
+                    count++;
                     continue;
                 }
 
@@ -168,7 +171,7 @@ public class JMXConnection {
                 } catch (Exception e) {
                     log.error("JMX 连接获取异常:{}",e.getMessage());
                     //JMX连接获取失败，添加该服务JMX的不可用记录，用于上报不可用记录
-                    initBadJMXConnect(desc);
+                    connections.add(initBadJMXConnect(desc));
                 }
                 //该服务应有的数量++
                 count++;
@@ -240,6 +243,9 @@ public class JMXConnection {
                 JMXConnectUrlInfo jmxConnectUrlInfo = getConnectorAddress(desc);
                 if (jmxConnectUrlInfo == null) {
                     log.error("应用{}的JMX连接URL获取失败",serverName);
+                    //对应的ServerName的JMX连接获取失败，返回该服务JMX连接失败，用于上报不可用记录
+                    initBadJMXConnect(desc);
+                    count++;
                     continue;
                 }
                 try {
@@ -306,12 +312,13 @@ public class JMXConnection {
      * 连接失败的JMX的初始化动作
      * @param desc
      */
-    private void initBadJMXConnect(VirtualMachineDescriptor desc){
+    private JMXConnectionInfo initBadJMXConnect(VirtualMachineDescriptor desc){
         JMXConnectionInfo jmxConnectionInfo = new JMXConnectionInfo();
         jmxConnectionInfo.setValid(false);
         jmxConnectionInfo.setName(serverName);
         jmxConnectionInfo.setPid(Integer.parseInt(desc.id()));
         connectCacheLibrary.put(serverName + desc.id(),jmxConnectionInfo);
+        return jmxConnectionInfo;
     }
 
 }

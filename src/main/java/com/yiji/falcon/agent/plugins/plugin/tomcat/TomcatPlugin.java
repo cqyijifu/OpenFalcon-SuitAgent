@@ -19,6 +19,7 @@ import com.yiji.falcon.agent.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -170,11 +171,11 @@ public class TomcatPlugin implements JMXPlugin {
     }
 
     private String getServerDirName(int pid) {
-        String dirName = "";
-        String dirPath = serverPath(pid, "");
-        if (dirPath != null) {
-            dirName = dirPath.replace("/bin", "");
-            dirName = dirName.substring(dirName.lastIndexOf("/") + 1);
+        String dirName = serverPath(pid, "");;
+        if (dirName != null) {
+            if(dirName.contains(File.separator)){
+                dirName = dirName.substring(dirName.lastIndexOf(File.separator) + 1);
+            }
         }
         return dirName;
     }
@@ -196,7 +197,16 @@ public class TomcatPlugin implements JMXPlugin {
     public String serverPath(int pid, String serverName) {
         String dirPath = "";
         try {
-            dirPath = CommandUtilForUnix.getCmdDirByPid(pid);
+            String cmd = "ps aux | grep " + pid;
+            CommandUtilForUnix.ExecuteResult executeResult = CommandUtilForUnix.execWithReadTimeLimit(cmd,false,7);
+            String msg = executeResult.msg;
+            String[] ss = msg.split("\\s+");
+            for (String s1 : ss) {
+                if(s1 != null && s1.contains("catalina.base=")){
+                    dirPath = s1.split("=")[1];
+
+                }
+            }
         } catch (IOException e) {
             log.error("tomcat serverDirPath获取异常", e);
         }

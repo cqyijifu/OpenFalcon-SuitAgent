@@ -24,19 +24,7 @@ import java.util.StringTokenizer;
 /**
  * @author guqiu@yiji.com
  */
-public class CommandTest {
-
-    static {
-        System.setProperty("agent.home.dir", "/Users/QianL/Documents/develop/falcon-agent/Falcon-SuitAgent/target");
-        System.setProperty("agent.falcon.dir", "/Users/QianL/Documents/develop/falcon-agent/Falcon-SuitAgent/target");
-        System.setProperty("agent.falcon.conf.dir", "/Users/QianL/Documents/develop/falcon-agent/Falcon-SuitAgent/target");
-        System.setProperty("agent.plugin.conf.dir", "/Users/QianL/Documents/develop/falcon-agent/Falcon-SuitAgent/target");
-        System.setProperty("agent.jmx.metrics.common.path", "/Users/QianL/Documents/develop/falcon-agent/Falcon-SuitAgent/src/main/resources_ext/conf/jmx/common.properties");
-        System.setProperty("agent.quartz.conf.path", "/Users/QianL/Documents/develop/falcon-agent/Falcon-SuitAgent/src/main/resources_ext/conf/quartz.properties");
-        System.setProperty("authorization.conf.path", "/Users/QianL/Documents/develop/falcon-agent/Falcon-SuitAgent/src/main/resources_ext/conf/authorization.properties");
-        System.setProperty("agent.conf.path", "/Users/QianL/Documents/develop/falcon-agent/Falcon-SuitAgent/src/main/resources_ext/conf/agent.properties");
-        PropertyConfigurator.configure("/Users/QianL/Documents/develop/falcon-agent/Falcon-SuitAgent/src/main/resources_ext/conf/log4j.properties");
-    }
+public class CommandTest extends BaseTest{
 
     @Test
     public void pushDate() throws InterruptedException {

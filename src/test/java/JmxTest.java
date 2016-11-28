@@ -3,7 +3,6 @@
  * Created by QianLong on 16/4/25.
  */
 
-import com.sun.tools.attach.VirtualMachine;
 import com.sun.tools.attach.VirtualMachineDescriptor;
 import com.yiji.falcon.agent.jmx.JMXConnection;
 import com.yiji.falcon.agent.util.CommandUtilForUnix;
@@ -24,17 +23,27 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Created by QianLong on 16/4/25.
  */
-public class JmxTest {
+public class JmxTest extends BaseTest{
 
     @Test
-    public void test(){
-        String s = "agentSignName=8002-apache-tomcat-7.0.39-ylt";
-        System.out.println(s.matches("agentSignName=\\{\\w*-*\\d*-*\\w*-*\\}*" + "apache-tomcat-7.0.39-ylt"));
+    public void test() throws IOException {
+        CommandUtilForUnix.ExecuteResult executeResult = CommandUtilForUnix.execWithReadTimeLimit("ps aux | grep 9401",false,7);
+        String msg = executeResult.msg;
+        String[] ss = msg.split("\\s+");
+        for (String s1 : ss) {
+            if(s1 != null && s1.contains("catalina.base=")){
+                String dirName = s1.split("=")[1];
+                System.out.println(dirName);
+                if(dirName.contains(File.separator)){
+                    dirName = dirName.substring(dirName.lastIndexOf(File.separator) + 1);
+                }
+                System.out.println(dirName);
+            }
+        }
     }
 
     @Test
