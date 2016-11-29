@@ -45,7 +45,8 @@ public enum MetricsType {
     /**
      * 插件內建的SNMP监控值
      */
-    SNMP_Plugin_IN_BUILD("snmpPluginInBuild");
+    SNMP_Plugin_IN_BUILD("snmpPluginInBuild"),
+    DETECT("detect");
 
     private String typeName;
 

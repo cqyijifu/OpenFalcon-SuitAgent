@@ -67,7 +67,7 @@ public class DetectMetricsValue extends MetricsCommon {
                             reportObject.setValue(metric.value);
                             reportObject.setTimestamp(System.currentTimeMillis() / 1000);
                             //打默认tag
-                            reportObject.appendTags(MetricsCommon.getTags(detectPlugin.agentSignName(address),detectPlugin,detectPlugin.serverName(), MetricsType.SQL_CONF))
+                            reportObject.appendTags(MetricsCommon.getTags(detectPlugin.agentSignName(address),detectPlugin,detectPlugin.serverName(), MetricsType.DETECT))
                                     //打该监控值指定的tag
                                     .appendTags(metric.tags);
                             MetricsCommon.setReportCommonValue(reportObject,detectPlugin.step());
