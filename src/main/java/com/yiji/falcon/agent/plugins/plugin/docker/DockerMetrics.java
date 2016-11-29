@@ -119,39 +119,41 @@ public class DockerMetrics {
         if(hasCpu){
             JSONArray stats = container.getJSONArray("stats");
             int count = stats.size();
-            JSONObject stat = stats.getJSONObject(count - 2);
-            String timestamp = stat.getString("timestamp");
-            long time = transNanoseconds(timestamp);
+            if(count >= 2){
+                JSONObject stat = stats.getJSONObject(count - 2);
+                String timestamp = stat.getString("timestamp");
+                long time = transNanoseconds(timestamp);
 
-            JSONObject stat2 = stats.getJSONObject(count - 1);
-            String timestamp2 = stat2.getString("timestamp");
-            long time2 = transNanoseconds(timestamp2);
+                JSONObject stat2 = stats.getJSONObject(count - 1);
+                String timestamp2 = stat2.getString("timestamp");
+                long time2 = transNanoseconds(timestamp2);
 
-            if(time == 0 || time2 == 0){
-                logger.error("CPU利用率采集失败，时间钟转换失败");
-                return new ArrayList<>();
+                if(time == 0 || time2 == 0){
+                    logger.error("CPU利用率采集失败，时间钟转换失败");
+                    return new ArrayList<>();
+                }
+
+                JSONObject cpu = stat.getJSONObject("cpu");
+                JSONObject usage = cpu.getJSONObject("usage");
+
+                JSONObject cpu2 = stat2.getJSONObject("cpu");
+                JSONObject usage2 = cpu2.getJSONObject("usage");
+
+                long totalTime = time2 - time;
+
+                long total = usage.getLong("total");
+                long user = usage.getLong("user");
+                long system = usage.getLong("system");
+
+                long total2 = usage2.getLong("total");
+                long user2 = usage2.getLong("user");
+                long system2 = usage2.getLong("system");
+
+                // 皮秒级别进行计算
+                collectObjectList.add(new CollectObject(containerName,"total.cpu.usage.rate",String.valueOf(Maths.div(total2 - total,totalTime * 1000,5) * 100),""));
+                collectObjectList.add(new CollectObject(containerName,"user.cpu.usage.rate",String.valueOf(Maths.div(user2 - user,totalTime * 1000,5) * 100),""));
+                collectObjectList.add(new CollectObject(containerName,"system.cpu.usage.rate",String.valueOf(Maths.div(system2 - system,totalTime * 1000,5) * 100),""));
             }
-
-            JSONObject cpu = stat.getJSONObject("cpu");
-            JSONObject usage = cpu.getJSONObject("usage");
-
-            JSONObject cpu2 = stat2.getJSONObject("cpu");
-            JSONObject usage2 = cpu2.getJSONObject("usage");
-
-            long totalTime = time2 - time;
-
-            long total = usage.getLong("total");
-            long user = usage.getLong("user");
-            long system = usage.getLong("system");
-
-            long total2 = usage2.getLong("total");
-            long user2 = usage2.getLong("user");
-            long system2 = usage2.getLong("system");
-
-            // 皮秒级别进行计算
-            collectObjectList.add(new CollectObject(containerName,"total.cpu.usage.rate",String.valueOf(Maths.div(total2 - total,totalTime * 1000,5) * 100),""));
-            collectObjectList.add(new CollectObject(containerName,"user.cpu.usage.rate",String.valueOf(Maths.div(user2 - user,totalTime * 1000,5) * 100),""));
-            collectObjectList.add(new CollectObject(containerName,"system.cpu.usage.rate",String.valueOf(Maths.div(system2 - system,totalTime * 1000,5) * 100),""));
         }
 
         return collectObjectList;
