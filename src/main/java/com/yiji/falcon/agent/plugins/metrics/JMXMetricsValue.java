@@ -238,6 +238,27 @@ public class JMXMetricsValue extends MetricsCommon {
     }
 
     /**
+     * 清除JMX连接
+     * @param jmxConnectionInfo
+     */
+    private void removeJMXConnectCache(JMXConnectionInfo jmxConnectionInfo){
+        String key = jmxConnectionInfo.getConnectionServerName() + jmxConnectionInfo.getPid();
+        JMXConnection.removeConnectCache(jmxConnectionInfo.getConnectionServerName(), jmxConnectionInfo.getPid());
+        try {
+            jmxConnectionInfo.getJmxConnector().close();
+        } catch (Exception ignored) {
+        }
+
+        //清理缓存数据
+        for (Object k : MapUtil.getSameValueKeys(serverDirPathCatch, serverDirPathCatch.get(key))) {
+            serverDirPathCatch.remove(String.valueOf(k));
+        }
+        for (Object k : MapUtil.getSameValueKeys(serverDirNameCatch, serverDirNameCatch.get(key))) {
+            serverDirNameCatch.remove(String.valueOf(k));
+        }
+    }
+
+    /**
      * 获取所有的监控值报告
      *
      * @return
@@ -251,11 +272,14 @@ public class JMXMetricsValue extends MetricsCommon {
         CacheUtil.getTimeoutCacheKeys(serverDirNameCatch).forEach(serverDirNameCatch::remove);
         CacheUtil.getTimeoutCacheKeys(serverDirPathCatch).forEach(serverDirPathCatch::remove);
 
+        //JMX连接清除检查处理
         for (JMXMetricsValueInfo metricsValueInfo : jmxMetricsValueInfos) {
-
-            //JMX 服务是否已被停掉的检查
             JMXConnectionInfo jmxConnectionInfo = metricsValueInfo.getJmxConnectionInfo();
-            String key = jmxConnectionInfo.getConnectionServerName() + jmxConnectionInfo.getPid();
+            if(StringUtils.isEmpty(jmxConnectionInfo.getName())){
+                //清除没有agentSignName的JMX连接
+                removeJMXConnectCache(jmxConnectionInfo);
+                continue;
+            }
             if (jmxConnectionInfo.getPid() != 0 && jmxConnectionInfo.getConnectionServerName() != null) {
                 String serverDirPath = getServerDirPath(jmxConnectionInfo.getPid(),jmxConnectionInfo.getConnectionServerName());
                 if (!StringUtils.isEmpty(serverDirPath)) {
@@ -266,19 +290,7 @@ public class JMXMetricsValue extends MetricsCommon {
                         File file = new File(serverDirPath);
                         if (!file.exists()) {
                             //JMX服务目录不存在,清除连接,跳过此次监控
-                            JMXConnection.removeConnectCache(jmxConnectionInfo.getConnectionServerName(), jmxConnectionInfo.getPid());
-                            try {
-                                jmxConnectionInfo.getJmxConnector().close();
-                            } catch (Exception ignored) {
-                            }
-
-                            //清理缓存数据
-                            for (Object k : MapUtil.getSameValueKeys(serverDirPathCatch, serverDirPathCatch.get(key))) {
-                                serverDirPathCatch.remove(String.valueOf(k));
-                            }
-                            for (Object k : MapUtil.getSameValueKeys(serverDirNameCatch, serverDirNameCatch.get(key))) {
-                                serverDirNameCatch.remove(String.valueOf(k));
-                            }
+                            removeJMXConnectCache(jmxConnectionInfo);
                             continue;
                         }
                     }

@@ -52,7 +52,7 @@ public class AbstractJmxCommand {
      */
     public static JMXConnectUrlInfo findJMXRemoteUrlByProcessId(int pid, String ip){
         logger.info("JMX Remote Target Pid:{}", pid);
-        String cmd = "ps aux | grep " + pid;
+        String cmd = "ps u -p " + pid;
         String jmxPortOpt = "-Dcom.sun.management.jmxremote.port";
         String authPortOpt = "-Dcom.sun.management.jmxremote.authenticate";
         String jmxRemoteAccessOpt = "-Dcom.sun.management.jmxremote.access.file";

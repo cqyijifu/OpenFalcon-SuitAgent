@@ -197,14 +197,13 @@ public class TomcatPlugin implements JMXPlugin {
     public String serverPath(int pid, String serverName) {
         String dirPath = "";
         try {
-            String cmd = "ps aux | grep " + pid;
+            String cmd = "ps u -p " + pid;
             CommandUtilForUnix.ExecuteResult executeResult = CommandUtilForUnix.execWithReadTimeLimit(cmd,false,7);
             String msg = executeResult.msg;
             String[] ss = msg.split("\\s+");
             for (String s1 : ss) {
                 if(s1 != null && s1.contains("catalina.base=")){
                     dirPath = s1.split("=")[1];
-
                 }
             }
         } catch (IOException e) {

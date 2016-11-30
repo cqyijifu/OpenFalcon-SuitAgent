@@ -133,6 +133,8 @@ public class JMXConnection {
         return vmDescList;
     }
 
+
+
     /**
      * 获取JMX连接
      * @return
@@ -152,8 +154,9 @@ public class JMXConnection {
                 map(Map.Entry::getValue).
                 collect(Collectors.toList());
 
-        if(connections.isEmpty()){ //JMX连接池为空,进行连接获取
+        if(connections.isEmpty() || connections.size() < vmDescList.size()){ //JMX连接池为空,进行连接获取
             int count = 0;
+            connections.clear();
             for (VirtualMachineDescriptor desc : vmDescList) {
                 JMXConnectUrlInfo jmxConnectUrlInfo = getConnectorAddress(desc);
                 if (jmxConnectUrlInfo == null) {
@@ -186,8 +189,11 @@ public class JMXConnection {
                 jmxConnectionInfo.setName(serverName);
                 connections.add(jmxConnectionInfo);
             }
-        }else if(connections.size() != vmDescList.size()){//若探测的JMX连接与连接池中的数量不一致,执行reset处理逻辑,reset后的结果,将在下一次取监控时生效
-            resetMBeanConnection();
+        }
+
+        //若当前应有的服务实例记录值比获取到的记录值小，重新设置
+        if(getServerConnectCount(serverName) < vmDescList.size()){
+            serverConnectCount.put(serverName,vmDescList.size());
         }
 
         return connections;
@@ -261,6 +267,11 @@ public class JMXConnection {
             serverConnectCount.put(serverName,count);
         }
 
+        //若当前应有的服务实例记录值比获取到的记录值小，重新设置
+        if(getServerConnectCount(serverName) < targetDesc.size()){
+            serverConnectCount.put(serverName,targetDesc.size());
+        }
+
     }
 
 
@@ -315,7 +326,7 @@ public class JMXConnection {
     private JMXConnectionInfo initBadJMXConnect(VirtualMachineDescriptor desc){
         JMXConnectionInfo jmxConnectionInfo = new JMXConnectionInfo();
         jmxConnectionInfo.setValid(false);
-        jmxConnectionInfo.setName(serverName);
+        jmxConnectionInfo.setConnectionServerName(serverName);
         jmxConnectionInfo.setPid(Integer.parseInt(desc.id()));
         connectCacheLibrary.put(serverName + desc.id(),jmxConnectionInfo);
         return jmxConnectionInfo;

@@ -31,7 +31,7 @@ public class JmxTest extends BaseTest{
 
     @Test
     public void test() throws IOException {
-        CommandUtilForUnix.ExecuteResult executeResult = CommandUtilForUnix.execWithReadTimeLimit("ps aux | grep 9401",false,7);
+        CommandUtilForUnix.ExecuteResult executeResult = CommandUtilForUnix.execWithReadTimeLimit("ps au -p 29125",false,7);
         String msg = executeResult.msg;
         String[] ss = msg.split("\\s+");
         for (String s1 : ss) {
