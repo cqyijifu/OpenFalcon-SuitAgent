@@ -90,6 +90,8 @@ public class JMXManager {
                     validCount++;
                 } catch (Exception e) {
                     //jmx 连接取值异常,设置jmx连接为不可用状态,将会在下一次获取连接时进行维护
+                    log.error("JMX取值异常：{}",e.getMessage());
+                    log.debug("JMX取值异常",e);
                     connectionInfo.setValid(false);
                 }finally {
                     //设置返回对象-添加监控值对象
