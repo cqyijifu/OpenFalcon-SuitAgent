@@ -157,6 +157,7 @@ public class JMXConnection {
         if(connections.isEmpty() || connections.size() < vmDescList.size()){ //JMX连接池为空,进行连接获取
             int count = 0;
             connections.clear();
+            clearCache();
             for (VirtualMachineDescriptor desc : vmDescList) {
                 JMXConnectUrlInfo jmxConnectUrlInfo = getConnectorAddress(desc);
                 if (jmxConnectUrlInfo == null) {
@@ -212,6 +213,26 @@ public class JMXConnection {
     }
 
     /**
+     * 清楚连接缓存
+     */
+    private void clearCache(){
+        //清除当前连接池中的连接
+        List<String> removeKey = connectCacheLibrary.keySet().stream().filter(key -> NumberUtils.isNumber(key.replace(serverName,""))).collect(Collectors.toList());
+        removeKey.forEach(key -> {
+            try {
+                JMXConnector jmxConnector = connectCacheLibrary.get(key).getJmxConnector();
+                if(jmxConnector != null){
+                    jmxConnector.close();
+                }
+
+            } catch (IOException ignored) {
+            }finally {
+                connectCacheLibrary.remove(key);
+            }
+        });
+    }
+
+    /**
      * 重置jmx连接
      * @throws IOException
      */
@@ -227,19 +248,7 @@ public class JMXConnection {
         if(targetDesc.size() >= getServerConnectCount(serverName)){
 
             //清除当前连接池中的连接
-            List<String> removeKey = connectCacheLibrary.keySet().stream().filter(key -> NumberUtils.isNumber(key.replace(serverName,""))).collect(Collectors.toList());
-            removeKey.forEach(key -> {
-                try {
-                    JMXConnector jmxConnector = connectCacheLibrary.get(key).getJmxConnector();
-                    if(jmxConnector != null){
-                        jmxConnector.close();
-                    }
-
-                } catch (IOException ignored) {
-                }finally {
-                    connectCacheLibrary.remove(key);
-                }
-            });
+            clearCache();
 
             //重新设置服务应有连接数
             int count = 0;
