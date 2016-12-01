@@ -32,7 +32,6 @@ import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.Charset;
 import java.util.Collection;
-import java.util.concurrent.TimeUnit;
 
 /*
  * 修订记录:
