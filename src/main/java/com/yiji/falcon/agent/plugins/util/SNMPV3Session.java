@@ -93,7 +93,7 @@ public class SNMPV3Session {
         target.setVersion(SnmpConstants.version3);
         target.setSecurityLevel(SecurityLevel.AUTH_PRIV);
         target.setAddress(GenericAddress.parse(userInfo.getProtocol() + ":" + userInfo.getAddress() + "/" + userInfo.getPort()));
-        target.setTimeout(1500);
+        target.setTimeout(8000);
         target.setRetries(1);
     }
 
@@ -103,8 +103,10 @@ public class SNMPV3Session {
      */
     public boolean isValid(){
         try {
+            //超时将会返回null
             return SNMPHelper.snmpGet(snmp,target,SNMPHelper.sysDescOid) != null;
         } catch (Exception e) {
+            logger.error("SNMP连接({}:{}-{})可用性检测为失败(不可用)",userInfo.getAddress(),userInfo.getPort(),userInfo.getEndPoint(),e);
             return false;
         }
     }
