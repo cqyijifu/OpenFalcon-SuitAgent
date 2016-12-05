@@ -10,7 +10,6 @@ package com.yiji.falcon.agent.plugins.plugin.tomcat;
 
 import com.yiji.falcon.agent.falcon.FalconReportObject;
 import com.yiji.falcon.agent.jmx.vo.JMXMetricsValueInfo;
-import com.yiji.falcon.agent.jmx.vo.JMXObjectNameInfo;
 import com.yiji.falcon.agent.plugins.JMXPlugin;
 import com.yiji.falcon.agent.plugins.util.CacheUtil;
 import com.yiji.falcon.agent.plugins.util.PluginActivateType;
@@ -136,31 +135,35 @@ public class TomcatPlugin implements JMXPlugin {
             String cacheKey = pid + "";
             String agentSignName = CacheUtil.getCacheValue(agentSignNameCache.get(cacheKey));
             if(StringUtils.isEmpty(agentSignName)){
-                StringBuilder name = new StringBuilder();
-                if(jmxMetricsValueInfo.getJmxObjectNameInfoList() != null){
-                    for (JMXObjectNameInfo jmxObjectNameInfo : jmxMetricsValueInfo.getJmxObjectNameInfoList()) {
-                        if(jmxObjectNameInfo.getObjectName().toString().contains("Catalina:type=Connector")){
-                            for (Map.Entry<String, Object> entry : jmxObjectNameInfo.getMetricsValue().entrySet()) {
-                                if("port".equals(entry.getKey())){
-                                    String value = entry.getValue().toString();
-                                    if ("".equals(name.toString())) {
-                                        name.append(value);
-                                    } else {
-                                        name.append("-").append(value);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+//                StringBuilder name = new StringBuilder();
+//                if(jmxMetricsValueInfo.getJmxObjectNameInfoList() != null){
+//                    for (JMXObjectNameInfo jmxObjectNameInfo : jmxMetricsValueInfo.getJmxObjectNameInfoList()) {
+//                        if(jmxObjectNameInfo.getObjectName().toString().contains("Catalina:type=Connector")){
+//                            for (Map.Entry<String, Object> entry : jmxObjectNameInfo.getMetricsValue().entrySet()) {
+//                                if("port".equals(entry.getKey())){
+//                                    String value = entry.getValue().toString();
+//                                    if ("".equals(name.toString())) {
+//                                        name.append(value);
+//                                    } else {
+//                                        name.append("-").append(value);
+//                                    }
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
 
                 String dirName = getServerDirName(pid);
-                if(StringUtils.isEmpty(dirName)){
-                    agentSignName = name.toString();
-                }else {
-                    agentSignName = name + "-" + dirName;
+                if(!StringUtils.isEmpty(dirName)){
+                    agentSignName = dirName;
                     agentSignNameCache.put(cacheKey,CacheUtil.setCacheValue(agentSignName));
                 }
+//                if(StringUtils.isEmpty(dirName)){
+//                    agentSignName = name.toString();
+//                }else {
+//                    agentSignName = name + "-" + dirName;
+//                    agentSignNameCache.put(cacheKey,CacheUtil.setCacheValue(agentSignName));
+//                }
             }
 
             return agentSignName;

@@ -8,6 +8,8 @@ package com.yiji.falcon.agent.plugins.util;
  * guqiu@yiji.com 2016-07-11 16:29 创建
  */
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.snmp4j.PDU;
 import org.snmp4j.ScopedPDU;
 import org.snmp4j.Snmp;
@@ -27,6 +29,8 @@ import java.util.List;
  * @author guqiu@yiji.com
  */
 public class SNMPHelper {
+
+    private static final Logger logger = LoggerFactory.getLogger(SNMPHelper.class);
 
     /* 公共MIB的接口OID定义 */
     public static final String ifNameOid = "1.3.6.1.2.1.31.1.1.1.1";
@@ -133,7 +137,15 @@ public class SNMPHelper {
         pdu.add(new VariableBinding(new OID(oid)));
 
         ResponseEvent responseEvent = snmp.send(pdu, target);
-        return responseEvent.getResponse();
+        PDU response = responseEvent.getResponse();
+        if(response == null){
+            logger.warn("response null - error:{} peerAddress:{} source:{} request:{}",
+                    responseEvent.getError(),
+                    responseEvent.getPeerAddress(),
+                    responseEvent.getSource(),
+                    responseEvent.getRequest());
+        }
+        return response;
     }
 
     /**

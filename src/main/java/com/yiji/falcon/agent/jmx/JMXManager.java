@@ -4,9 +4,11 @@
  */
 package com.yiji.falcon.agent.jmx;
 
+import com.yiji.falcon.agent.exception.JMXConnectUnavailabilityException;
 import com.yiji.falcon.agent.jmx.vo.JMXConnectionInfo;
 import com.yiji.falcon.agent.jmx.vo.JMXMetricsValueInfo;
 import com.yiji.falcon.agent.jmx.vo.JMXObjectNameInfo;
+import com.yiji.falcon.agent.util.ExceptionUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,19 +66,26 @@ public class JMXManager {
                                 .collect(Collectors.toSet());
                     }
                     for (ObjectInstance mbean : beanSet) {
-                        ObjectName objectName = mbean.getObjectName();
-
+                        Map<String,Object> map = new HashMap<>();
                         JMXObjectNameInfo jmxObjectNameInfo = new JMXObjectNameInfo();
-
+                        ObjectName objectName = mbean.getObjectName();
                         jmxObjectNameInfo.setObjectName(objectName);
                         jmxObjectNameInfo.setJmxConnectionInfo(connectionInfo);
-                        Map<String,Object> map = new HashMap<>();
-                        for (MBeanAttributeInfo mBeanAttributeInfo : connectionInfo.getmBeanServerConnection().getMBeanInfo(objectName).getAttributes()) {
-                            try {
+                        try {
+                            for (MBeanAttributeInfo mBeanAttributeInfo : connectionInfo.getmBeanServerConnection().getMBeanInfo(objectName).getAttributes()) {
                                 map.put(mBeanAttributeInfo.getName(),
                                         connectionInfo.getmBeanServerConnection().getAttribute(mbean.getObjectName(),mBeanAttributeInfo.getName())
                                 );
-                            } catch (Exception ignored) {
+                            }
+                        } catch (Exception e) {
+                            List<Throwable> throwables = ExceptionUtil.getExceptionCauses(e);
+                            for (Throwable throwable : throwables) {
+                                if (throwable != null &&
+                                        throwable.getClass() == java.net.ConnectException.class){
+                                    //JMX连接异常，报告不可用,将会在下一次获取连接时进行维护
+                                    log.error("Get MBean Info Exception(Effect availability To false)",e);
+                                    throw new JMXConnectUnavailabilityException(e);
+                                }
                             }
                         }
 
@@ -86,13 +95,12 @@ public class JMXManager {
 
                     //设置监控值对象
                     jmxMetricsValueInfo.setJmxObjectNameInfoList(objectNameList);
-
                     validCount++;
                 } catch (Exception e) {
-                    //jmx 连接取值异常,设置jmx连接为不可用状态,将会在下一次获取连接时进行维护
-                    log.error("JMX取值异常：{}",e.getMessage());
-                    log.debug("JMX取值异常",e);
-                    connectionInfo.setValid(false);
+                    if (e instanceof JMXConnectUnavailabilityException){
+                        // JMX连接异常，报告不可用,将会在下一次获取连接时进行维护
+                        connectionInfo.setValid(false);
+                    }
                 }finally {
                     //设置返回对象-添加监控值对象
                     jmxMetricsValueInfo.setJmxConnectionInfo(connectionInfo);
