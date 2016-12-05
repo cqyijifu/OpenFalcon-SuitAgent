@@ -267,7 +267,7 @@ public class JMXConnection {
                     initJMXConnectionInfo(getJMXConnector(jmxConnectUrlInfo),desc);
                     log.info("应用 {} JMX 连接已建立,将在下一周期获取Metrics值时生效",serverName);
                 } catch (Exception e) {
-                    log.error("JMX 连接获取异常:{}",e.getMessage());
+                    log.error("JMX 连接获取异常:{}",e);
                     //JMX连接获取失败，添加该服务JMX的不可用记录，用于上报不可用记录
                     initBadJMXConnect(desc);
                 }
