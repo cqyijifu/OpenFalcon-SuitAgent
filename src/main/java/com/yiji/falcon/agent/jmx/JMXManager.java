@@ -42,6 +42,7 @@ public class JMXManager {
                 && !mbeanConns.get(0).isValid()
                 && mbeanConns.get(0).getmBeanServerConnection() == null
                 && mbeanConns.get(0).getConnectionQualifiedServerName() == null
+                && mbeanConns.get(0).getConnectionServerName() == null
                 && mbeanConns.get(0).getCacheKeyId() == null){
             log.error("SuitAgent启动时应用 {} jmx连接失败,请检查应用是否已启动",serverName);
             JMXMetricsValueInfo jmxMetricsValueInfo = new JMXMetricsValueInfo();

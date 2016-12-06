@@ -187,7 +187,6 @@ public class JMXConnection {
                 //对应的ServerName的JMX连接获取失败，返回该服务JMX连接失败，用于上报不可用记录
                 JMXConnectionInfo jmxConnectionInfo = new JMXConnectionInfo();
                 jmxConnectionInfo.setValid(false);
-                jmxConnectionInfo.setName(serverName);
                 connections.add(jmxConnectionInfo);
             }
         }
@@ -336,6 +335,7 @@ public class JMXConnection {
         JMXConnectionInfo jmxConnectionInfo = new JMXConnectionInfo();
         jmxConnectionInfo.setValid(false);
         jmxConnectionInfo.setConnectionServerName(serverName);
+        jmxConnectionInfo.setConnectionQualifiedServerName(desc.displayName());
         jmxConnectionInfo.setPid(Integer.parseInt(desc.id()));
         connectCacheLibrary.put(serverName + desc.id(),jmxConnectionInfo);
         return jmxConnectionInfo;
