@@ -8,6 +8,7 @@ package com.yiji.falcon.agent.plugins.util;
  * guqiu@yiji.com 2016-07-11 16:29 创建
  */
 
+import com.yiji.falcon.agent.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.snmp4j.PDU;
 import org.snmp4j.ScopedPDU;
@@ -232,6 +233,9 @@ public class SNMPHelper {
      * @return
      */
     public static VendorType getVendorBySysDesc(String sysDesc) {
+        if(StringUtils.isEmpty(sysDesc)){
+            return null;
+        }
         String sysDescLower = sysDesc.toLowerCase();
 
         if (sysDescLower.contains("cisco nx-os")) {
@@ -311,6 +315,9 @@ public class SNMPHelper {
      * @return
      */
     public static float getVersionBySysDesc(String sysDesc) {
+        if(StringUtils.isEmpty(sysDesc)){
+            return 0;
+        }
         float version = 0;
         String versionStr = "";
         String[] ss = sysDesc.split("\\s+");

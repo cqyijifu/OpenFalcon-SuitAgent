@@ -187,6 +187,7 @@ public class JMXConnection {
                 JMXConnectionInfo jmxConnectionInfo = new JMXConnectionInfo();
                 jmxConnectionInfo.setValid(false);
                 connections.add(jmxConnectionInfo);
+                serverConnectCount.put(serverName,1);
             }
         }
 

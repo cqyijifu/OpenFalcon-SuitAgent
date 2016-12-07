@@ -36,7 +36,9 @@ class SwitchMemoryStatCollect {
      */
     static CollectObject getMemoryStat(SNMPV3Session session) throws IOException {
         VendorType vendor = session.getSysVendor();
-
+        if(vendor == null){
+            return null;
+        }
         String oid = "";
 
         switch (vendor) {

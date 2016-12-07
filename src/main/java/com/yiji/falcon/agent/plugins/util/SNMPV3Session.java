@@ -155,14 +155,21 @@ public class SNMPV3Session {
         if(sysDesc != null){
             return sysDesc;
         }
-        sysDesc = this.get(SNMPHelper.sysDescOid).get(0).getVariable().toString();
-        infoCache.put(key,sysDesc);
-        return sysDesc;
+        PDU pdu = this.get(SNMPHelper.sysDescOid);
+        if(pdu != null){
+            sysDesc = pdu.get(0).getVariable().toString();
+            infoCache.put(key,sysDesc);
+            return sysDesc;
+        }else {
+            return "";
+        }
+
     }
 
     /**
      * 获取设备的供应商
      * @return
+     * null : 获取失败
      * @throws IOException
      */
     public VendorType getSysVendor() throws IOException {
@@ -172,6 +179,9 @@ public class SNMPV3Session {
             return sysVendor;
         }
         sysVendor = SNMPHelper.getVendorBySysDesc(getSysDesc());
+        if(sysVendor == null){
+            return null;
+        }
         infoCache.put(key,sysVendor);
         return sysVendor;
     }
@@ -179,6 +189,7 @@ public class SNMPV3Session {
     /**
      * 获取设备版本
      * @return
+     * 0 : 获取失败
      * @throws IOException
      */
     public float getSysVersion() throws IOException {
@@ -188,6 +199,9 @@ public class SNMPV3Session {
             return version;
         }
         version = SNMPHelper.getVersionBySysDesc(getSysDesc());
+        if(version == 0){
+            return 0;
+        }
         infoCache.put(key,version);
         return version;
     }

@@ -34,7 +34,9 @@ class SwitchCPUStatCollect {
      */
     static CollectObject getCPUStat(SNMPV3Session session) throws IOException {
         VendorType vendor = session.getSysVendor();
-
+        if(vendor == null){
+            return null;
+        }
         String method = "get";
         String oid = "";
 
