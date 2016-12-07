@@ -19,8 +19,7 @@ import com.yiji.falcon.agent.util.CommandUtilForUnix;
 import com.yiji.falcon.agent.util.StringUtils;
 import com.yiji.falcon.agent.vo.snmp.IfStatVO;
 import com.yiji.falcon.agent.vo.snmp.SNMPV3UserInfo;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.snmp4j.PDU;
 import org.snmp4j.smi.VariableBinding;
 
@@ -33,9 +32,8 @@ import static com.yiji.falcon.agent.plugins.util.SNMPHelper.ignoreIfName;
 /**
  * @author guqiu@yiji.com
  */
+@Slf4j
 public class SNMPV3MetricsValue extends MetricsCommon {
-
-    private static final Logger logger = LoggerFactory.getLogger(SNMPV3MetricsValue.class);
 
     private SNMPV3Plugin plugin;
 
@@ -249,7 +247,7 @@ public class SNMPV3MetricsValue extends MetricsCommon {
             }
             reportObject.setValue(pingResult.avgTime + "");
         } catch (IOException e) {
-            logger.error("Ping {} 命令执行异常", address, e);
+            log.error("Ping {} 命令执行异常", address, e);
             return null;
         }
         return reportObject;
@@ -268,12 +266,12 @@ public class SNMPV3MetricsValue extends MetricsCommon {
         try {
             sessionList = getSessions();
         } catch (IOException e) {
-            logger.warn("获取SNMP连接发生异常,push allUnVariability不可用报告", e);
+            log.warn("获取SNMP连接发生异常,push allUnVariability不可用报告", e);
             result.add(MetricsCommon.generatorVariabilityReport(false, "allUnVariability", plugin.step(), plugin, plugin.serverName()));
             return result;
 
         } catch (AgentArgumentException e) {
-            logger.error("监控参数异常:{},忽略此监控上报", e.getErr(), e);
+            log.error("监控参数异常:{},忽略此监控上报", e.getErr(), e);
             return result;
         }
 
@@ -285,7 +283,7 @@ public class SNMPV3MetricsValue extends MetricsCommon {
             try {
                 session.close();
             } catch (Exception e) {
-                logger.error("SNMP Session Close Exception",e);
+                log.error("SNMP Session Close Exception",e);
             }
         }
 //        for (Future<List<FalconReportObject>> future : futureList) {
@@ -294,7 +292,7 @@ public class SNMPV3MetricsValue extends MetricsCommon {
 //                    result.addAll(future.get());
 //                }
 //            } catch (Exception e) {
-//                logger.error("SNMP采集异常，target：{}",e);
+//                log.error("SNMP采集异常，target：{}",e);
 //            }
 //        }
 
@@ -321,7 +319,7 @@ public class SNMPV3MetricsValue extends MetricsCommon {
                     temp.addAll(inBuildReports);
                 }
             } catch (Exception e) {
-                logger.error("设备 {} 通过SNMP获取监控数据发生异常,push 该设备不可用报告", session.toString(), e);
+                log.error("设备 {} 通过SNMP获取监控数据发生异常,push 该设备不可用报告", session.toString(), e);
                 temp.add(MetricsCommon.generatorVariabilityReport(false, session.getAgentSignName(), plugin.step(), plugin, plugin.serverName()));
             }
         }

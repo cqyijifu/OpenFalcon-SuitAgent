@@ -18,9 +18,8 @@ import com.yiji.falcon.agent.util.SchedulerUtil;
 import com.yiji.falcon.agent.util.StringUtils;
 import com.yiji.falcon.agent.vo.sceduler.ScheduleJobResult;
 import com.yiji.falcon.agent.vo.sceduler.ScheduleJobStatus;
+import lombok.extern.slf4j.Slf4j;
 import org.quartz.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.util.Collection;
@@ -37,9 +36,8 @@ import static org.quartz.TriggerBuilder.newTrigger;
 /**
  * @author guqiu@yiji.com
  */
+@Slf4j
 public class AgentJobHelper {
-
-    private static final Logger log = LoggerFactory.getLogger(AgentJobHelper.class);
 
     //正在work的job记录
     private static final ConcurrentSkipListSet<String> worked = new ConcurrentSkipListSet<>();

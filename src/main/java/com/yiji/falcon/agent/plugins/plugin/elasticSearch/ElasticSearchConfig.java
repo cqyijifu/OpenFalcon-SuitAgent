@@ -8,10 +8,9 @@ import com.alibaba.fastjson.JSONObject;
 import com.yiji.falcon.agent.util.CommandUtilForUnix;
 import com.yiji.falcon.agent.util.HttpUtil;
 import com.yiji.falcon.agent.util.StringUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.ho.yaml.Yaml;
 import org.ho.yaml.exception.YamlException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -31,9 +30,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * 自动读取es的服务器配置文件
  * @author guqiu@yiji.com
  */
+@Slf4j
 public class ElasticSearchConfig {
-
-    private static final Logger log = LoggerFactory.getLogger(ElasticSearchConfig.class);
 
     private static final ConcurrentHashMap<String,Map<String,Object>> cache = new ConcurrentHashMap<>();
 

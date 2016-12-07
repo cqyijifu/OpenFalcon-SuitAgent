@@ -13,8 +13,7 @@ import com.yiji.falcon.agent.config.AgentConfiguration;
 import com.yiji.falcon.agent.plugins.*;
 import com.yiji.falcon.agent.util.PropertiesUtil;
 import com.yiji.falcon.agent.util.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.util.*;
@@ -24,12 +23,11 @@ import java.util.stream.Collectors;
  * 插件库
  * @author guqiu@yiji.com
  */
+@Slf4j
 public class PluginLibraryHelper {
 
     private final static Set<Plugin> plugins = new HashSet<>();
     private final static List<String> pluginNames = new ArrayList<>();
-
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
 
@@ -177,15 +175,15 @@ public class PluginLibraryHelper {
 
                     String avaStr = pluginAvailable(plugin);
                     if(avaStr != null){
-                        logger.warn("插件 {} 无效 : {}",clazz.getName(),avaStr);
+                        log.warn("插件 {} 无效 : {}",clazz.getName(),avaStr);
                         continue;
                     }
                     plugins.add(plugin);
-                    logger.info("成功注册插件:{},启动方式:{}",clazzName,plugin.activateType().getDesc());
+                    log.info("成功注册插件:{},启动方式:{}",clazzName,plugin.activateType().getDesc());
                 }
             }
         } catch (Exception e) {
-            logger.error("插件注册异常",e);
+            log.error("插件注册异常",e);
         }
     }
 
@@ -212,7 +210,7 @@ public class PluginLibraryHelper {
                 return String.format("插件 {%s} 的serverName不能为空",plugin.getClass().getName());
             }
         } catch (Exception e) {
-            logger.warn("插件无效",e);
+            log.warn("插件无效",e);
             return null;
         }
 

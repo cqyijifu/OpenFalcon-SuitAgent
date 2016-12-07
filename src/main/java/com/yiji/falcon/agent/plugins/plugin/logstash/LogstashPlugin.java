@@ -13,8 +13,7 @@ import com.yiji.falcon.agent.jmx.vo.JMXMetricsValueInfo;
 import com.yiji.falcon.agent.plugins.JMXPlugin;
 import com.yiji.falcon.agent.plugins.util.PluginActivateType;
 import com.yiji.falcon.agent.util.CommandUtilForUnix;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -24,9 +23,8 @@ import java.util.Map;
 /**
  * @author guqiu@yiji.com
  */
+@Slf4j
 public class LogstashPlugin implements JMXPlugin {
-
-    private final Logger log = LoggerFactory.getLogger(this.getClass());
 
     private String basePropertiesKey;
     private String jmxServerName;

@@ -10,8 +10,7 @@ package com.yiji.falcon.agent.web;
 
 import com.yiji.falcon.agent.config.AgentConfiguration;
 import com.yiji.falcon.agent.plugins.metrics.MetricsCommon;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -20,9 +19,8 @@ import java.util.List;
 /**
  * @author guqiu@yiji.com
  */
+@Slf4j
 public class Response {
-
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private static final int BUFFER_SIZE = 1024;
     Request request;

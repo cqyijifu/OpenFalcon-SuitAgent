@@ -13,23 +13,20 @@ import com.yiji.falcon.agent.plugins.DetectPlugin;
 import com.yiji.falcon.agent.plugins.Plugin;
 import com.yiji.falcon.agent.util.CommandUtilForUnix;
 import com.yiji.falcon.agent.vo.detect.DetectResult;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 /**
  * 易极付服务器的NTP监控
  * @author guqiu@yiji.com
  */
+@Slf4j
 public class YijiNTPPlugin implements DetectPlugin {
-
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private int step;
     private String address;
@@ -59,11 +56,11 @@ public class YijiNTPPlugin implements DetectPlugin {
         try {
             executeResult = CommandUtilForUnix.execWithReadTimeLimit(cmd,false,15);
         } catch (IOException e) {
-            logger.error("命令{}执行异常",cmd,e);
+            log.error("命令{}执行异常",cmd,e);
         }
 
         if(executeResult == null || !executeResult.isSuccess){
-            logger.error("命令{}执行失败",cmd);
+            log.error("命令{}执行失败",cmd);
             detectResult.setSuccess(false);
         }else{
             String msg = executeResult.msg;

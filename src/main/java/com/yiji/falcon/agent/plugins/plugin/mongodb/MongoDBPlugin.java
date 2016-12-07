@@ -17,19 +17,17 @@ import com.yiji.falcon.agent.util.CommandUtilForUnix;
 import com.yiji.falcon.agent.util.JSONUtil;
 import com.yiji.falcon.agent.util.StringUtils;
 import com.yiji.falcon.agent.vo.detect.DetectResult;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.math.NumberUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author guqiu@yiji.com
  */
+@Slf4j
 public class MongoDBPlugin implements DetectPlugin {
 
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private int step;
 
     /**
@@ -113,7 +111,7 @@ public class MongoDBPlugin implements DetectPlugin {
             CommandUtilForUnix.ExecuteResult executeResult = CommandUtilForUnix.execWithReadTimeLimit("echo 'db.serverStatus()' | " + address,false,7);
             if(!StringUtils.isEmpty(executeResult.msg)){
                 String msg = executeResult.msg;
-                logger.debug(msg);
+                log.debug(msg);
                 int startSymbol = msg.indexOf("{");
                 int endSymbol = msg.lastIndexOf("}");
                 if(startSymbol != -1 && endSymbol != -1){
@@ -141,7 +139,7 @@ public class MongoDBPlugin implements DetectPlugin {
                 }
             }
         } catch (Exception e) {
-            logger.error("MongoDB监控异常",e);
+            log.error("MongoDB监控异常",e);
         }
 
         return detectResult;

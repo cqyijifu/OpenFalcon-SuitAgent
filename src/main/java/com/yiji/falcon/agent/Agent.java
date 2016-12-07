@@ -13,13 +13,12 @@ import com.yiji.falcon.agent.vo.HttpResult;
 import com.yiji.falcon.agent.watcher.ConfDirWatcher;
 import com.yiji.falcon.agent.watcher.PluginPropertiesWatcher;
 import com.yiji.falcon.agent.web.HttpServer;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.log4j.PropertyConfigurator;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.SchedulerFactory;
 import org.quartz.impl.DirectSchedulerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -42,13 +41,12 @@ import java.util.Collection;
  * agent服务
  * @author guqiu@yiji.com
  */
+@Slf4j
 public class Agent extends Thread{
 
     public static final PrintStream OUT = System.out;
     public static final PrintStream ERR = System.err;
     public static int falconAgentPid = 0;
-
-    private static final Logger log = LoggerFactory.getLogger(Agent.class);
 
     private ServerSocketChannel serverSocketChannel;
     private HttpServer httpServer = null;

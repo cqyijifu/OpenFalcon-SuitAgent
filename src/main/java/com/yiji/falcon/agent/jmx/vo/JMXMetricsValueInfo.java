@@ -4,8 +4,9 @@
  */
 package com.yiji.falcon.agent.jmx.vo;
 
+import lombok.Data;
+
 import java.util.List;
-import java.util.Map;
 
 /*
  * 修订记录:
@@ -16,6 +17,7 @@ import java.util.Map;
  * JMX mBean值的info类
  * @author guqiu@yiji.com
  */
+@Data
 public class JMXMetricsValueInfo {
 
     /**
@@ -28,27 +30,4 @@ public class JMXMetricsValueInfo {
      */
     private JMXConnectionInfo jmxConnectionInfo;
 
-    @Override
-    public String toString() {
-        return "JMXMetricsValueInfo{" +
-                "jmxObjectNameInfoList=" + jmxObjectNameInfoList +
-                ", jmxConnectionInfo=" + jmxConnectionInfo +
-                '}';
-    }
-
-    public JMXConnectionInfo getJmxConnectionInfo() {
-        return jmxConnectionInfo;
-    }
-
-    public void setJmxConnectionInfo(JMXConnectionInfo jmxConnectionInfo) {
-        this.jmxConnectionInfo = jmxConnectionInfo;
-    }
-
-    public List<JMXObjectNameInfo> getJmxObjectNameInfoList() {
-        return jmxObjectNameInfoList;
-    }
-
-    public void setJmxObjectNameInfoList(List<JMXObjectNameInfo> jmxObjectNameInfoList) {
-        this.jmxObjectNameInfoList = jmxObjectNameInfoList;
-    }
 }

@@ -4,8 +4,7 @@
  */
 package com.yiji.falcon.agent.util;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -19,9 +18,8 @@ import java.util.List;
 /**
  * @author guqiu@yiji.com
  */
+@Slf4j
 public class FileUtil {
-
-    private static final Logger log = LoggerFactory.getLogger(FileUtil.class);
 
     /**
      * 判断传入的文件是否存在

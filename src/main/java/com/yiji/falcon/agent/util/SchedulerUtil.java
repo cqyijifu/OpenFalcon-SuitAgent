@@ -7,12 +7,11 @@ package com.yiji.falcon.agent.util;
 import com.yiji.falcon.agent.common.SchedulerFactory;
 import com.yiji.falcon.agent.vo.sceduler.ScheduleJobResult;
 import com.yiji.falcon.agent.vo.sceduler.ScheduleJobStatus;
+import lombok.extern.slf4j.Slf4j;
 import org.quartz.JobDetail;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.Trigger;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /*
  * 修订记录:
@@ -23,9 +22,8 @@ import org.slf4j.LoggerFactory;
  * 计划任务辅助工具类
  * @author guqiu@yiji.com
  */
+@Slf4j
 public class SchedulerUtil {
-
-    private static final Logger logger = LoggerFactory.getLogger(SchedulerUtil.class);
 
     /**
      * 执行计划任务
@@ -48,7 +46,7 @@ public class SchedulerUtil {
         Scheduler scheduler  = SchedulerFactory.getScheduler();
         //开始判断是否存在相同的计划任务
         if(scheduler.checkExists(job.getKey())){
-            logger.info("存在相同的计划任务:{}",job.getKey());
+            log.info("存在相同的计划任务:{}",job.getKey());
             scheduler.deleteJob(job.getKey());
             scheduleJobResult.setJobKey(job.getKey());
             scheduleJobResult.setTriggerKey(trigger.getKey());

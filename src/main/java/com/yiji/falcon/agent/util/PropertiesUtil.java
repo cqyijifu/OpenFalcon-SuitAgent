@@ -8,8 +8,7 @@ package com.yiji.falcon.agent.util;
  * guqiu@yiji.com 2016-06-24 16:47 创建
  */
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -22,9 +21,8 @@ import java.util.Properties;
 /**
  * @author guqiu@yiji.com
  */
+@Slf4j
 public class PropertiesUtil {
-
-    private final static Logger log = LoggerFactory.getLogger(PropertiesUtil.class);
 
     /**
      * 从指定properties文件获取所有的配置

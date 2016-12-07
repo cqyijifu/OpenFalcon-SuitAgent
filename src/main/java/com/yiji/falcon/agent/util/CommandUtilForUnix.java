@@ -4,8 +4,7 @@
  */
 package com.yiji.falcon.agent.util;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
@@ -26,9 +25,8 @@ import java.util.concurrent.*;
  * 命令执行
  * @author guqiu@yiji.com
  */
+@Slf4j
 public class CommandUtilForUnix {
-
-    private static final Logger logger = LoggerFactory.getLogger(CommandUtilForUnix.class);
 
     /**
      * 命令执行的返回结果值类
@@ -105,11 +103,11 @@ public class CommandUtilForUnix {
             try {
                 process = exec(resultMsg,execTarget,cmd,cmdSep,maxReadTime, TimeUnit.SECONDS);
             } catch (IOException e) {
-                logger.error("Command '{}' execute exception",cmd,e);
+                log.error("Command '{}' execute exception",cmd,e);
             }
             resultList.add(process);
             if (!blockingQueue.offer(resultList.get(0)))
-                logger.error("阻塞队列插入失败");
+                log.error("阻塞队列插入失败");
         });
 
         try {
@@ -118,20 +116,20 @@ public class CommandUtilForUnix {
                 //命令正常返回
                 Process process = (Process) result;
                 if(process.isAlive()){
-                    logger.debug("process destroyForcibly");
+                    log.debug("process destroyForcibly");
                    process.destroyForcibly();
                 }
                 boolean exeSuccess = process.exitValue() == 0;
                 if(!exeSuccess){
-                    logger.error("命令 {} 执行错误：{}",cmd,resultMsg.toString());
+                    log.error("命令 {} 执行错误：{}",cmd,resultMsg.toString());
                 }
                 return new ExecuteResult(resultMsg.length() > 0 ,exeSuccess,String.valueOf(resultMsg.toString()));
             }else{
-                logger.error("Unknown Result Type Mapper",result);
+                log.error("Unknown Result Type Mapper",result);
                 return new ExecuteResult(resultMsg.length() > 0,false,resultMsg.toString());
             }
         } catch (InterruptedException e) {
-            logger.warn("Command '{}' execute exception",cmd,e);
+            log.warn("Command '{}' execute exception",cmd,e);
             return new ExecuteResult(resultMsg.length() > 0,false,resultMsg.toString());
         }
 
@@ -170,10 +168,10 @@ public class CommandUtilForUnix {
             execTarget = "/bin/sh";
             shList.add(execTarget);
             shList.add("-c");
-            logger.info("执行命令 : {} -c \"{}\"",execTarget,cmd);
+            log.info("执行命令 : {} -c \"{}\"",execTarget,cmd);
         }else{
             shList.add(execTarget);
-            logger.info("执行命令 : {} {}",execTarget,cmd);
+            log.info("执行命令 : {} {}",execTarget,cmd);
         }
         if(cmdSep){
             Collections.addAll(shList, cmd.split("\\s"));
@@ -211,13 +209,13 @@ public class CommandUtilForUnix {
                 readFuture1.get(timeout,timeUnit);
                 readFuture2.get(timeout,timeUnit);
             } catch (Exception e) {
-                logger.info("Command '{}' read timeout {} {}",cmd,timeout,timeUnit.name());
+                log.info("Command '{}' read timeout {} {}",cmd,timeout,timeUnit.name());
             }finally {
                 process.destroy();
                 try {
                     process.waitFor();
                 } catch (InterruptedException e) {
-                    logger.error("",e);
+                    log.error("",e);
                 }
             }
         }
@@ -264,7 +262,7 @@ public class CommandUtilForUnix {
             }
 
             if(times.isEmpty()){
-                logger.warn(String.format("ping 地址 %s 无法连通",address));
+                log.warn(String.format("ping 地址 %s 无法连通",address));
                 pingResult.resultCode = -1;
             }else{
                 float sum = 0;
@@ -277,7 +275,7 @@ public class CommandUtilForUnix {
             }
 
         }else{
-            logger.error("命令{}执行失败",commend);
+            log.error("命令{}执行失败",commend);
             pingResult.resultCode = -2;
         }
 

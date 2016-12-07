@@ -14,21 +14,19 @@ import com.yiji.falcon.agent.jmx.vo.JMXMetricsValueInfo;
 import com.yiji.falcon.agent.plugins.JMXPlugin;
 import com.yiji.falcon.agent.plugins.metrics.JMXMetricsValue;
 import com.yiji.falcon.agent.plugins.metrics.MetricsCommon;
+import lombok.extern.slf4j.Slf4j;
 import org.quartz.Job;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
 /**
  * @author guqiu@yiji.com
  */
+@Slf4j
 public class JMXPluginJob implements Job {
-
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
@@ -55,7 +53,7 @@ public class JMXPluginJob implements Job {
             MetricsCommon jmxMetricsValue = new JMXMetricsValue(jmxPlugin,jmxMetricsValueInfos);
             ReportMetrics.push(jmxMetricsValue.getReportObjects());
         } catch (Exception e) {
-            logger.error("插件 {} 运行异常",pluginName,e);
+            log.error("插件 {} 运行异常",pluginName,e);
         }
     }
 }

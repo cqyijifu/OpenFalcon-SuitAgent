@@ -11,8 +11,7 @@ package com.yiji.falcon.agent.watcher;
 import com.yiji.falcon.agent.plugins.Plugin;
 import com.yiji.falcon.agent.plugins.util.PluginLibraryHelper;
 import com.yiji.falcon.agent.util.WatchServiceUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
@@ -24,9 +23,8 @@ import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
  * 插件配置文件的监听器
  * @author guqiu@yiji.com
  */
+@Slf4j
 public class PluginPropertiesWatcher extends Thread{
-
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private String pluginDir;
 
@@ -52,13 +50,13 @@ public class PluginPropertiesWatcher extends Thread{
                         Plugin plugin = PluginLibraryHelper.getPluginByConfigFileName(fileName);
                         if(plugin != null){
                             plugin.init(PluginLibraryHelper.getPluginConfig(plugin));
-                            logger.info("已完成插件{}的配置重新加载",plugin.pluginName());
+                            log.info("已完成插件{}的配置重新加载",plugin.pluginName());
                         }
                     }
                 }
                 key.reset();
             } catch (Exception e) {
-                logger.error("插件配置文件监听异常",e);
+                log.error("插件配置文件监听异常",e);
                 break;
             }
         }

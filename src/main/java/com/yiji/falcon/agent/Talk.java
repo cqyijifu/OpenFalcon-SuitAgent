@@ -4,8 +4,7 @@
  */
 package com.yiji.falcon.agent;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -24,9 +23,9 @@ import java.util.Set;
  * Agent主服务talk
  * @author guqiu@yiji.com
  */
+@Slf4j
 public class Talk extends Thread {
 
-    private final Logger log = LoggerFactory.getLogger(this.getClass());
     private Selector selector;
     private Agent agent;
     private SocketChannel socketChannel;

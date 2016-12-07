@@ -8,8 +8,7 @@ package com.yiji.falcon.agent.web;
  * guqiu@yiji.com 2016-07-26 13:45 创建
  */
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -21,9 +20,9 @@ import java.net.Socket;
 /**
  * @author guqiu@yiji.com
  */
+@Slf4j
 public class HttpServer extends Thread{
 
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private static final String SHUTDOWN_COMMAND = "/__SHUTDOWN__";
     private boolean shutdown = false;
     /**
@@ -45,7 +44,7 @@ public class HttpServer extends Thread{
         try {
             startServer();
         } catch (IOException e) {
-            logger.error("web服务启动异常",e);
+            log.error("web服务启动异常",e);
             status = 0;
             System.exit(0);
         }
@@ -53,7 +52,7 @@ public class HttpServer extends Thread{
 
     public void startServer() throws IOException {
         serverSocket = new ServerSocket(port, 10, InetAddress.getLocalHost());
-        logger.info("Web服务启动地址:http://{}:{}",InetAddress.getLocalHost().getHostAddress(),serverSocket.getLocalPort());
+        log.info("Web服务启动地址:http://{}:{}",InetAddress.getLocalHost().getHostAddress(),serverSocket.getLocalPort());
         status = 1;
         while (!shutdown) {
             Socket socket;
@@ -77,13 +76,13 @@ public class HttpServer extends Thread{
                 }
                 socket.close();
             } catch (Exception e) {
-                logger.error("Web处理异常",e);
+                log.error("Web处理异常",e);
             }
         }
         try {
             close();
         } catch (Exception e) {
-            logger.error("web服务关闭异常",e);
+            log.error("web服务关闭异常",e);
         }
     }
 
@@ -91,7 +90,7 @@ public class HttpServer extends Thread{
         if(serverSocket != null && !serverSocket.isClosed()){
             serverSocket.close();
             status = 0;
-            logger.info("Web 服务已关闭");
+            log.info("Web 服务已关闭");
         }
     }
 

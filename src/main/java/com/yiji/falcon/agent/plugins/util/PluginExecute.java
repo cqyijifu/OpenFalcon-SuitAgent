@@ -14,10 +14,9 @@ import com.yiji.falcon.agent.plugins.job.DetectPluginJob;
 import com.yiji.falcon.agent.plugins.job.JDBCPluginJob;
 import com.yiji.falcon.agent.plugins.job.SNMPPluginJob;
 import com.yiji.falcon.agent.util.StringUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.quartz.JobDataMap;
 import org.quartz.SchedulerException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.sql.DriverManager;
 import java.util.Set;
@@ -25,9 +24,8 @@ import java.util.Set;
 /**
  * @author guqiu@yiji.com
  */
+@Slf4j
 public class PluginExecute {
-
-    private static final Logger logger = LoggerFactory.getLogger(PluginExecute.class);
 
     /**
      * 启动插件
@@ -71,7 +69,7 @@ public class PluginExecute {
                     }
                 }
             } catch (Exception e) {
-                logger.error("插件启动异常",e);
+                log.error("插件启动异常",e);
             }
         });
         snmpv3Plugins.forEach(plugin -> {
@@ -83,7 +81,7 @@ public class PluginExecute {
                 jobDataMap.put("pluginObject",snmpv3Plugin);
                 AgentJobHelper.pluginWorkForSNMPV3(snmpv3Plugin,pluginName,SNMPPluginJob.class,pluginName,snmpv3Plugin.serverName(),jobDataMap);
             }catch (Exception e){
-                logger.error("插件启动异常",e);
+                log.error("插件启动异常",e);
             }
         });
 
@@ -96,7 +94,7 @@ public class PluginExecute {
                 jobDataMap.put("pluginObject",detectPlugin);
                 AgentJobHelper.pluginWorkForDetect(detectPlugin,pluginName, DetectPluginJob.class,jobDataMap);
             }catch (Exception e){
-                logger.error("插件启动异常",e);
+                log.error("插件启动异常",e);
             }
         });
 
@@ -111,7 +109,7 @@ public class PluginExecute {
                 jobDataMap.put("pluginObject",jdbcPlugin);
                 AgentJobHelper.pluginWorkForJDBC(jdbcPlugin,pluginName,JDBCPluginJob.class,pluginName,jdbcPlugin.serverName(),jobDataMap);
             } catch (Exception e) {
-                logger.error("插件启动异常",e);
+                log.error("插件启动异常",e);
             }
         });
 

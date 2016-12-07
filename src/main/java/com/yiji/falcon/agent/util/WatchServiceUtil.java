@@ -8,8 +8,7 @@ package com.yiji.falcon.agent.util;
  * guqiu@yiji.com 2016-11-21 13:54 创建
  */
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.nio.file.FileSystems;
@@ -22,9 +21,8 @@ import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 /**
  * @author guqiu@yiji.com
  */
+@Slf4j
 public class WatchServiceUtil {
-
-    private static final Logger logger = LoggerFactory.getLogger(WatchServiceUtil.class);
 
     /**
      * 监听指定路径的修改事件
@@ -47,7 +45,7 @@ public class WatchServiceUtil {
             Path dir = FileSystems.getDefault().getPath(path);
             dir.register(watchService, kind);
         } catch (IOException e) {
-            logger.error("{}监听异常",path,e);
+            log.error("{}监听异常",path,e);
         }
         return watchService;
     }

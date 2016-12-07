@@ -10,17 +10,15 @@ package com.yiji.falcon.agent.plugins.plugin.docker;
 
 import com.yiji.falcon.agent.util.CommandUtilForUnix;
 import com.yiji.falcon.agent.util.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.*;
 
 /**
  * @author guqiu@yiji.com
  */
+@Slf4j
 public class CAdvisorRunner extends Thread{
-
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private String cAdvisorPath;
     private int cAdvisorPort;
@@ -40,16 +38,16 @@ public class CAdvisorRunner extends Thread{
         String cmd = "kill " + pid;
         CommandUtilForUnix.ExecuteResult executeResult = CommandUtilForUnix.execWithReadTimeLimit(cmd,false,5);
         if(executeResult.isSuccess){
-            logger.info("关闭cAdvisor成功({})",cmd);
+            log.info("关闭cAdvisor成功({})",cmd);
         }else{
-            logger.info("关闭cAdvisor失败({})：{}",cmd,executeResult.msg);
+            log.info("关闭cAdvisor失败({})：{}",cmd,executeResult.msg);
         }
     }
 
     @Override
     public void run() {
         String cmd = String.format("%s -logtostderr -port=%d", cAdvisorPath, cAdvisorPort);
-        logger.debug("启动内置cAdvisor服务 : {}","/bin/sh -c " + cmd);
+        log.debug("启动内置cAdvisor服务 : {}","/bin/sh -c " + cmd);
         ProcessBuilder pb = new ProcessBuilder("/bin/sh","-c",cmd);
         try {
             Process process = pb.start();
@@ -74,7 +72,7 @@ public class CAdvisorRunner extends Thread{
 
             process.destroy();
         } catch (IOException e) {
-            logger.error("",e);
+            log.error("",e);
         }
     }
 
@@ -82,9 +80,9 @@ public class CAdvisorRunner extends Thread{
         String msg = new String(resultOutStream.toByteArray(),"utf-8");
         if(StringUtils.isEmpty(pid)){
             pid = msg.split("\\s+")[2];
-            logger.info("cAdvisor 进程id : {}",pid);
+            log.info("cAdvisor 进程id : {}",pid);
         }
-        logger.debug("cAdvisor output : {}",msg);
+        log.debug("cAdvisor output : {}",msg);
     }
 
 }

@@ -8,9 +8,12 @@ package com.yiji.falcon.agent.jmx;
  * guqiu@yiji.com 2016-08-12 15:28 创建
  */
 
+import lombok.Data;
+
 /**
  * @author guqiu@yiji.com
  */
+@Data
 public class JMXConnectUrlInfo {
     /**
      * 是否需要认证
@@ -34,48 +37,6 @@ public class JMXConnectUrlInfo {
 
     public JMXConnectUrlInfo(String remoteUrl) {
         this.remoteUrl = remoteUrl;
-    }
-
-    @Override
-    public String toString() {
-        return "JMXRemoteUrlInfo{" +
-                "isAuthentication=" + isAuthentication +
-                ", remoteUrl='" + remoteUrl + '\'' +
-                ", jmxUser='" + jmxUser + '\'' +
-                ", jmxPassword='" + jmxPassword + '\'' +
-                '}';
-    }
-
-    public boolean isAuthentication() {
-        return isAuthentication;
-    }
-
-    public void setAuthentication(boolean authentication) {
-        isAuthentication = authentication;
-    }
-
-    public String getRemoteUrl() {
-        return remoteUrl;
-    }
-
-    public void setRemoteUrl(String remoteUrl) {
-        this.remoteUrl = remoteUrl;
-    }
-
-    public String getJmxUser() {
-        return jmxUser;
-    }
-
-    public void setJmxUser(String jmxUser) {
-        this.jmxUser = jmxUser;
-    }
-
-    public String getJmxPassword() {
-        return jmxPassword;
-    }
-
-    public void setJmxPassword(String jmxPassword) {
-        this.jmxPassword = jmxPassword;
     }
 
 }

@@ -5,8 +5,8 @@
 package com.yiji.falcon.agent.config;
 
 import com.yiji.falcon.agent.util.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -21,11 +21,11 @@ import java.util.Properties;
  * 系统配置
  * @author guqiu@yiji.com
  */
+@Getter
+@Slf4j
 public enum  AgentConfiguration {
 
     INSTANCE;
-
-    private final Logger log = LoggerFactory.getLogger(this.getClass());
 
     //版本不能大于 x.9
     public static final float VERSION = (float) 9.5;
@@ -132,6 +132,10 @@ public enum  AgentConfiguration {
      * 初始化agent配置
      */
     AgentConfiguration() {
+        instance();
+    }
+
+    private void instance(){
         if(StringUtils.isEmpty(System.getProperty("agent.conf.path"))){
             log.error("agent agent.properties 配置文件位置读取失败,请确定系统配置项:" + "agent.conf.path");
             System.exit(0);
@@ -282,75 +286,4 @@ public enum  AgentConfiguration {
         this.jmxCommonMetricsConfPath = property;
     }
 
-    public int getAgentMaxThreadCount() {
-        return agentMaxThreadCount;
-    }
-
-    public String getQuartzConfPath() {
-        return quartzConfPath;
-    }
-
-    public int getAgentPort() {
-        return agentPort;
-    }
-
-    public String getAgentPushUrl(){
-        return this.agentPushUrl;
-    }
-
-    public String getAgentEndpoint(){
-        return this.agentEndpoint;
-    }
-
-    public String getAgentConfPath(){
-        return this.agentConfPath;
-    }
-
-    public String getJmxCommonMetricsConfPath() {
-        return jmxCommonMetricsConfPath;
-    }
-
-    public int getAgentFlushTime() {
-        return agentFlushTime;
-    }
-
-    public String getPluginConfPath() {
-        return pluginConfPath;
-    }
-
-    public String getAuthorizationConfPath() {
-        return authorizationConfPath;
-    }
-
-    public String getFalconDir() {
-        return falconDir;
-    }
-
-    public String getFalconConfDir() {
-        return falconConfDir;
-    }
-
-    public int getAgentWebPort() {
-        return agentWebPort;
-    }
-
-    public boolean isWebEnable() {
-        return webEnable;
-    }
-
-    public boolean isAgentJMXLocalConnect() {
-        return agentJMXLocalConnect;
-    }
-
-    public int getMockValidTime() {
-        return mockValidTime;
-    }
-
-    public String getAgentUpdateUrl() {
-        return agentUpdateUrl;
-    }
-
-    public String getAgentHomeDir() {
-        return agentHomeDir;
-    }
 }

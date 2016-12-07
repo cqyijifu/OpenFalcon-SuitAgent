@@ -15,8 +15,7 @@ import com.yiji.falcon.agent.plugins.util.CacheUtil;
 import com.yiji.falcon.agent.util.CommandUtilForUnix;
 import com.yiji.falcon.agent.util.Maths;
 import com.yiji.falcon.agent.vo.detect.DetectResult;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.util.*;
@@ -25,9 +24,8 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * @author guqiu@yiji.com
  */
+@Slf4j
 public class PingPlugin implements DetectPlugin {
-
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private int step;
     private final Map<String,String> addresses = new HashMap<>();
@@ -87,7 +85,7 @@ public class PingPlugin implements DetectPlugin {
                 return result;
             }
         } catch (IOException e) {
-            logger.error("Ping {} 命令执行异常",adds,e);
+            log.error("Ping {} 命令执行异常",adds,e);
         }
         return null;
     }

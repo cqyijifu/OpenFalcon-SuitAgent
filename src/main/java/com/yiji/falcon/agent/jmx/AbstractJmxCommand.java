@@ -6,8 +6,7 @@ package com.yiji.falcon.agent.jmx;
 
 import com.yiji.falcon.agent.util.CommandUtilForUnix;
 import com.yiji.falcon.agent.util.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,9 +25,8 @@ import java.util.StringTokenizer;
 /**
  * @author guqiu@yiji.com
  */
+@Slf4j
 public class AbstractJmxCommand {
-
-    private final static Logger logger = LoggerFactory.getLogger(AbstractJmxCommand.class);
 
     private static final String CONNECTOR_ADDRESS =
         "com.sun.management.jmxremote.localConnectorAddress";
@@ -51,7 +49,7 @@ public class AbstractJmxCommand {
      * 返回查找的JMX连接地址对象或查找失败返回Null
      */
     public static JMXConnectUrlInfo findJMXRemoteUrlByProcessId(int pid, String ip){
-        logger.info("JMX Remote Target Pid:{}", pid);
+        log.info("JMX Remote Target Pid:{}", pid);
         String cmd = "ps u -p " + pid;
         String jmxPortOpt = "-Dcom.sun.management.jmxremote.port";
         String authPortOpt = "-Dcom.sun.management.jmxremote.authenticate";
@@ -68,7 +66,7 @@ public class AbstractJmxCommand {
 
                 String port = getConfigValueByCmdKey(msg,jmxPortOpt);
                 if(port == null){
-                    logger.warn("从启动命令未找到JMX Remote 配置:{}",msg);
+                    log.warn("从启动命令未找到JMX Remote 配置:{}",msg);
                     return null;
                 }
                 String accessFile = getConfigValueByCmdKey(msg,jmxRemoteAccessOpt);
@@ -85,11 +83,11 @@ public class AbstractJmxCommand {
                         String javaHome = CommandUtilForUnix.getJavaHomeFromEtcProfile();
 
                         if(StringUtils.isEmpty(javaHome)){
-                            logger.error("JAVA_HOME 读取失败");
+                            log.error("JAVA_HOME 读取失败");
                             return null;
                         }
 
-                        logger.info("JAVA_HOME : {}",javaHome);
+                        log.info("JAVA_HOME : {}",javaHome);
                         if(accessFile == null){
                             accessFile = javaHome + "/" + "jre/lib/management/jmxremote.access";
                         }
@@ -105,7 +103,7 @@ public class AbstractJmxCommand {
                     String password = getJmxPassword(contentForPassword,user);
 
                     if(StringUtils.isEmpty(user) || StringUtils.isEmpty(password)){
-                        logger.error("JMX Remote 的认证User {} 或 Password {} 获取失败",user,password);
+                        log.error("JMX Remote 的认证User {} 或 Password {} 获取失败",user,password);
                     }
 
                     remoteUrlInfo.setJmxUser(user);
@@ -114,13 +112,13 @@ public class AbstractJmxCommand {
                 }
 
             }else{
-                logger.error("命令 {} 执行失败",cmd);
+                log.error("命令 {} 执行失败",cmd);
                 return null;
             }
 
             return remoteUrlInfo;
         } catch (Exception e) {
-            logger.error("JMX Remote Url 获取异常",e);
+            log.error("JMX Remote Url 获取异常",e);
             return null;
         }
 
@@ -167,7 +165,7 @@ public class AbstractJmxCommand {
         content = getRidOfCommend(content);
         String[] users = content.split("\n");
         if(users.length < 1){
-            logger.error("请配置jmxremote.access");
+            log.error("请配置jmxremote.access");
             return null;
         }
         for (String user : users) {
@@ -176,7 +174,7 @@ public class AbstractJmxCommand {
                 return ss[0].trim();
             }
         }
-        logger.error("请在 jmxremote.access 中配置 readwrite 用户");
+        log.error("请在 jmxremote.access 中配置 readwrite 用户");
         return null;
     }
 

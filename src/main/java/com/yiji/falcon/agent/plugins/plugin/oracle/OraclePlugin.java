@@ -16,8 +16,7 @@ import com.yiji.falcon.agent.plugins.metrics.MetricsCommon;
 import com.yiji.falcon.agent.plugins.util.PluginActivateType;
 import com.yiji.falcon.agent.util.StringUtils;
 import com.yiji.falcon.agent.vo.jdbc.JDBCUserInfo;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.sql.*;
 import java.util.*;
@@ -27,8 +26,8 @@ import static com.yiji.falcon.agent.plugins.metrics.MetricsCommon.getMetricsName
 /**
  * @author guqiu@yiji.com
  */
+@Slf4j
 public class OraclePlugin implements JDBCPlugin {
-    private final Logger log = LoggerFactory.getLogger(this.getClass());
     private final List<JDBCUserInfo> userInfoList = new ArrayList<>();
     private int step;
     private PluginActivateType pluginActivateType;

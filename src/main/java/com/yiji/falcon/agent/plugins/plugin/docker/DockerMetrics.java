@@ -14,8 +14,7 @@ import com.yiji.falcon.agent.util.DateUtil;
 import com.yiji.falcon.agent.util.MD5Util;
 import com.yiji.falcon.agent.util.Maths;
 import com.yiji.falcon.agent.util.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.util.*;
@@ -25,9 +24,8 @@ import java.util.regex.Pattern;
 /**
  * @author guqiu@yiji.com
  */
+@Slf4j
 public class DockerMetrics {
-
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private DockerMetricsUtil dockerRemoteUtil;
 
@@ -49,7 +47,7 @@ public class DockerMetrics {
      */
     public DockerMetrics(String cAdvisorIp,int cAdvisorPort) throws IOException {
         dockerRemoteUtil = new DockerMetricsUtil(cAdvisorIp,cAdvisorPort);
-        logger.info("cAdvisor服务连接数据采集：{}:{}",cAdvisorIp,cAdvisorPort);
+        log.info("cAdvisor服务连接数据采集：{}:{}",cAdvisorIp,cAdvisorPort);
     }
 
     /**
@@ -84,18 +82,18 @@ public class DockerMetrics {
             try {
                 collectObjectList.addAll(getCpuMetrics(containerName,container));
             } catch (Exception e) {
-                logger.error("Docker CPU数据采集异常",e);
+                log.error("Docker CPU数据采集异常",e);
             }
             try {
                 collectObjectList.addAll(getMemMetrics(containerName,container,machineInfo));
             } catch (Exception e) {
-                logger.error("Docker 内存数据采集异常",e);
+                log.error("Docker 内存数据采集异常",e);
             }
             collectObjectList.addAll(getNetMetrics(containerName,container));
             try {
                 collectObjectList.add(containerAppMetrics(containerName,containerId));
             } catch (Exception e) {
-                logger.error("Docker 容器应用数据采集异常",e);
+                log.error("Docker 容器应用数据采集异常",e);
             }
         }
 
@@ -129,7 +127,7 @@ public class DockerMetrics {
                 long time2 = transNanoseconds(timestamp2);
 
                 if(time == 0 || time2 == 0){
-                    logger.error("CPU利用率采集失败，时间钟转换失败");
+                    log.error("CPU利用率采集失败，时间钟转换失败");
                     return new ArrayList<>();
                 }
 
@@ -178,7 +176,7 @@ public class DockerMetrics {
                 return Long.parseLong(String.valueOf(microseconds / 1000) + picoseconds.substring(0,6));
             }
         }else {
-            logger.error("转换的时间不符合格式 \\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{6,} : {}",timestamp);
+            log.error("转换的时间不符合格式 \\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{6,} : {}",timestamp);
         }
 
         return 0;
@@ -209,12 +207,12 @@ public class DockerMetrics {
                 if(cache.equals(parseMD5)){
                     collectObject.setValue("1");
                 }else{
-                    logger.warn("与第一次监控的进程活动不同。\n第一次:{}\n现在的:{}",containerCmd.get(containerName + "-first"),containerCmd.get(containerName));
+                    log.warn("与第一次监控的进程活动不同。\n第一次:{}\n现在的:{}",containerCmd.get(containerName + "-first"),containerCmd.get(containerName));
                 }
             }
         }else {
             collectObject = new CollectObject(containerName,"availability.container.app","-1","");
-            logger.error("Docker container exec {} execute failed : {}",cmd,execResult.getResult());
+            log.error("Docker container exec {} execute failed : {}",cmd,execResult.getResult());
         }
 
         return collectObject;

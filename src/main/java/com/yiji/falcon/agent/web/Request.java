@@ -9,8 +9,7 @@ package com.yiji.falcon.agent.web;
  */
 
 import com.yiji.falcon.agent.util.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,9 +19,8 @@ import java.util.List;
 /**
  * @author guqiu@yiji.com
  */
+@Slf4j
 public class Request {
-
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private InputStream input;
     /**
@@ -49,7 +47,7 @@ public class Request {
         try {
             i = input.read(buffer);
         } catch (IOException e) {
-            logger.error("request parse error",e);
+            log.error("request parse error",e);
             i = -1;
         }
 
@@ -57,7 +55,7 @@ public class Request {
             request.append((char) buffer[j]);
         }
         header = request.toString();
-        logger.debug("Request Header : \r\n {}",header);
+        log.debug("Request Header : \r\n {}",header);
         parseUri();
         parseUrlPath();
     }

@@ -9,6 +9,8 @@ package com.yiji.falcon.agent.vo.detect;
  */
 
 import com.yiji.falcon.agent.falcon.CounterType;
+import lombok.Data;
+import lombok.ToString;
 
 import java.util.List;
 
@@ -16,6 +18,7 @@ import java.util.List;
  * 一次探测的结果
  * @author guqiu@yiji.com
  */
+@Data
 public class DetectResult {
 
     /**
@@ -36,39 +39,8 @@ public class DetectResult {
      * 设置后,将会对每个监控值都会打上此tag
      */
     private String commonTag;
-    @Override
-    public String toString() {
-        return "DetectResult{" +
-                "success=" + success +
-                ", metricsList=" + metricsList +
-                ", commonTag='" + commonTag + '\'' +
-                '}';
-    }
 
-    public boolean isSuccess() {
-        return success;
-    }
-
-    public void setSuccess(boolean success) {
-        this.success = success;
-    }
-
-    public String getCommonTag() {
-        return commonTag;
-    }
-
-    public void setCommonTag(String commonTag) {
-        this.commonTag = commonTag;
-    }
-
-    public List<Metric> getMetricsList() {
-        return metricsList;
-    }
-
-    public void setMetricsList(List<Metric> metricsList) {
-        this.metricsList = metricsList;
-    }
-
+    @ToString
     public static class Metric{
         /**
          * 自定义监控名
@@ -98,16 +70,6 @@ public class DetectResult {
             this.value = value;
             this.counterType = counterType;
             this.tags = tags;
-        }
-
-        @Override
-        public String toString() {
-            return "Metric{" +
-                    "metricName='" + metricName + '\'' +
-                    ", value=" + value +
-                    ", counterType=" + counterType +
-                    ", tags='" + tags + '\'' +
-                    '}';
         }
     }
 }

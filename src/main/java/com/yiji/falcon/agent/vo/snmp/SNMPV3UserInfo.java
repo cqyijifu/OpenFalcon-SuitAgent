@@ -8,12 +8,15 @@ package com.yiji.falcon.agent.vo.snmp;
  * guqiu@yiji.com 2016-07-11 14:51 创建
  */
 
+import lombok.Data;
+
 import java.util.List;
 
 /**
  * SNMPV3协议访问的授权用户信息
  * @author guqiu@yiji.com
  */
+@Data
 public class SNMPV3UserInfo {
 
     /**
@@ -59,99 +62,4 @@ public class SNMPV3UserInfo {
      */
     private List<String> ifCollectNameEnables;
 
-    @Override
-    public String toString() {
-        return "SNMPV3UserInfo{" +
-                "protocol='" + protocol + '\'' +
-                ", address='" + address + '\'' +
-                ", port='" + port + '\'' +
-                ", username='" + username + '\'' +
-                ", aythType='" + aythType + '\'' +
-                ", authPswd='" + authPswd + '\'' +
-                ", privType='" + privType + '\'' +
-                ", privPswd='" + privPswd + '\'' +
-                ", endPoint='" + endPoint + '\'' +
-                ", ifCollectNameEnables='" + ifCollectNameEnables + '\'' +
-                '}';
-    }
-
-    public String getProtocol() {
-        return protocol;
-    }
-
-    public void setProtocol(String protocol) {
-        this.protocol = protocol;
-    }
-
-    public String getAddress() {
-        return address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
-    }
-
-    public String getPort() {
-        return port;
-    }
-
-    public void setPort(String port) {
-        this.port = port;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getAythType() {
-        return aythType;
-    }
-
-    public void setAythType(String aythType) {
-        this.aythType = aythType;
-    }
-
-    public String getAuthPswd() {
-        return authPswd;
-    }
-
-    public void setAuthPswd(String authPswd) {
-        this.authPswd = authPswd;
-    }
-
-    public String getPrivType() {
-        return privType;
-    }
-
-    public void setPrivType(String privType) {
-        this.privType = privType;
-    }
-
-    public String getPrivPswd() {
-        return privPswd;
-    }
-
-    public void setPrivPswd(String privPswd) {
-        this.privPswd = privPswd;
-    }
-
-    public String getEndPoint() {
-        return endPoint;
-    }
-
-    public void setEndPoint(String endPoint) {
-        this.endPoint = endPoint;
-    }
-
-    public List<String> getIfCollectNameEnables() {
-        return ifCollectNameEnables;
-    }
-
-    public void setIfCollectNameEnables(List<String> ifCollectNameEnables) {
-        this.ifCollectNameEnables = ifCollectNameEnables;
-    }
 }

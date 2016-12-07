@@ -13,8 +13,7 @@ import com.yiji.falcon.agent.plugins.DetectPlugin;
 import com.yiji.falcon.agent.plugins.Plugin;
 import com.yiji.falcon.agent.plugins.util.CacheUtil;
 import com.yiji.falcon.agent.vo.detect.DetectResult;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -26,9 +25,8 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * @author guqiu@yiji.com
  */
+@Slf4j
 public class TcpPlugin implements DetectPlugin {
-
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private int step;
     private final Map<String, String> addresses = new HashMap<>();
@@ -72,7 +70,7 @@ public class TcpPlugin implements DetectPlugin {
             ipAddr = ss[0];
             port = Integer.parseInt(ss[1]);
         } else {
-            logger.error("地址配置:{} 非法,请确定是否符合 address:port格式", adds);
+            log.error("地址配置:{} 非法,请确定是否符合 address:port格式", adds);
             return null;
         }
         DetectResult detectResult = new DetectResult();
@@ -87,7 +85,7 @@ public class TcpPlugin implements DetectPlugin {
             if (socket.isConnected()) {
                 isAva = true;
             } else {
-                logger.warn("tcp地址:{} 连接失败");
+                log.warn("tcp地址:{} 连接失败");
             }
 
             long time = System.currentTimeMillis() - start;

@@ -4,11 +4,9 @@
  */
 package com.yiji.falcon.agent.plugins.plugin.zk;
 
-import com.yiji.falcon.agent.plugins.plugin.elasticSearch.ElasticSearchConfig;
 import com.yiji.falcon.agent.util.CommandUtilForUnix;
 import com.yiji.falcon.agent.util.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -18,7 +16,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 
 /*
  * 修订记录:
@@ -28,8 +25,8 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author guqiu@yiji.com
  */
+@Slf4j
 public class ZKConfig {
-    private static final Logger log = LoggerFactory.getLogger(ElasticSearchConfig.class);
 
     private static ConcurrentHashMap<String,Map<String,Object>> cache = new ConcurrentHashMap<>();
 

@@ -5,8 +5,7 @@
 package com.yiji.falcon.agent.falcon;
 
 import com.yiji.falcon.agent.util.StringUtils;
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
+import lombok.Data;
 
 import javax.management.ObjectName;
 
@@ -19,6 +18,7 @@ import javax.management.ObjectName;
  * push到falcon的数据报告对象
  * @author guqiu@yiji.com
  */
+@Data
 public class FalconReportObject implements Cloneable{
 
     /**
@@ -66,20 +66,6 @@ public class FalconReportObject implements Cloneable{
         }
     }
 
-    @Override
-    public String toString() {
-        return "FalconReportObject{" +
-                "endpoint='" + endpoint + '\'' +
-                ", metric='" + metric + '\'' +
-                ", timestamp=" + timestamp +
-                ", step=" + step +
-                ", value=" + value +
-                ", counterType=" + counterType +
-                ", tags='" + tags + '\'' +
-                ", objectName=" + objectName +
-                '}';
-    }
-
     /**
      * 添加tag
      * @param newTag
@@ -96,101 +82,4 @@ public class FalconReportObject implements Cloneable{
         return this;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-
-        if (!(o instanceof FalconReportObject)) return false;
-
-        FalconReportObject that = (FalconReportObject) o;
-
-        return new EqualsBuilder()
-                .append(timestamp, that.timestamp)
-                .append(step, that.step)
-                .append(value, that.value)
-                .append(endpoint, that.endpoint)
-                .append(metric, that.metric)
-                .append(counterType, that.counterType)
-                .append(tags, that.tags)
-                .append(objectName, that.objectName)
-                .isEquals();
-    }
-
-    @Override
-    public int hashCode() {
-        return new HashCodeBuilder(17, 37)
-                .append(endpoint)
-                .append(metric)
-                .append(timestamp)
-                .append(step)
-                .append(value)
-                .append(counterType)
-                .append(tags)
-                .append(objectName)
-                .toHashCode();
-    }
-
-    public ObjectName getObjectName() {
-        return objectName;
-    }
-
-    public void setObjectName(ObjectName objectName) {
-        this.objectName = objectName;
-    }
-
-    public String getEndpoint() {
-        return endpoint;
-    }
-
-    public void setEndpoint(String endpoint) {
-        this.endpoint = endpoint;
-    }
-
-    public String getMetric() {
-        return metric;
-    }
-
-    public void setMetric(String metric) {
-        this.metric = metric;
-    }
-
-    public long getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(long timestamp) {
-        this.timestamp = timestamp;
-    }
-
-    public int getStep() {
-        return step;
-    }
-
-    public void setStep(int step) {
-        this.step = step;
-    }
-
-    public String getValue() {
-        return value;
-    }
-
-    public void setValue(String value) {
-        this.value = value;
-    }
-
-    public CounterType getCounterType() {
-        return counterType;
-    }
-
-    public void setCounterType(CounterType counterType) {
-        this.counterType = counterType;
-    }
-
-    public String getTags() {
-        return tags;
-    }
-
-    public void setTags(String tags) {
-        this.tags = tags;
-    }
 }

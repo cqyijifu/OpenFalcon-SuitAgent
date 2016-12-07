@@ -8,8 +8,7 @@ package com.yiji.falcon.agent.util;
  * guqiu@yiji.com 2016-08-22 14:01 创建
  */
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import sun.misc.BASE64Encoder;
 
 import java.security.MessageDigest;
@@ -17,9 +16,8 @@ import java.security.MessageDigest;
 /**
  * @author guqiu@yiji.com
  */
+@Slf4j
 public class MD5Util {
-
-    private static final Logger logger = LoggerFactory.getLogger(MD5Util.class);
 
     /**
      * 对传入的字符串进行MD5加密并用base64重新编码
@@ -35,7 +33,7 @@ public class MD5Util {
             BASE64Encoder base64 = new BASE64Encoder();
             return base64.encode(md5.digest(str.getBytes("utf-8")));
         } catch (Exception e) {
-            logger.error("",e);
+            log.error("",e);
         }
 
         return null;

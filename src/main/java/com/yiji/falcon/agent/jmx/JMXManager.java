@@ -9,8 +9,7 @@ import com.yiji.falcon.agent.jmx.vo.JMXConnectionInfo;
 import com.yiji.falcon.agent.jmx.vo.JMXMetricsValueInfo;
 import com.yiji.falcon.agent.jmx.vo.JMXObjectNameInfo;
 import com.yiji.falcon.agent.util.ExceptionUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.management.MBeanAttributeInfo;
 import javax.management.ObjectInstance;
@@ -26,9 +25,8 @@ import java.util.stream.Collectors;
 /**
  * @author guqiu@yiji.com
  */
+@Slf4j
 public class JMXManager {
-
-    private static final Logger log = LoggerFactory.getLogger(JMXManager.class);
 
     /**
      * 获取指定应用的名称(如运行的main类名称)所有的jmx值

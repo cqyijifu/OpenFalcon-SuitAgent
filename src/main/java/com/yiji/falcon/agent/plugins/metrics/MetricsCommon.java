@@ -11,8 +11,7 @@ import com.yiji.falcon.agent.falcon.FalconReportObject;
 import com.yiji.falcon.agent.falcon.MetricsType;
 import com.yiji.falcon.agent.plugins.*;
 import com.yiji.falcon.agent.util.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
@@ -34,9 +33,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * metrics监控公共类
  * @author guqiu@yiji.com
  */
+@Slf4j
 public abstract class MetricsCommon {
-
-    private static final Logger logger = LoggerFactory.getLogger(MetricsCommon.class);
 
     private static final ConcurrentHashMap<String,Long> mockValid = new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<String,Set<String>> mockService = new ConcurrentHashMap<>();
@@ -59,7 +57,7 @@ public abstract class MetricsCommon {
     private static void addMockValidShutdownTime(String serviceType, String service){
         String key = getMockValidKey(serviceType,service);
         if(!isExistFromMockValid(serviceType,service)){
-            logger.info("添加mock服务的停机时间 - {}:{}",serviceType,service);
+            log.info("添加mock服务的停机时间 - {}:{}",serviceType,service);
             mockValid.put(key,System.currentTimeMillis());
         }
     }
@@ -72,7 +70,7 @@ public abstract class MetricsCommon {
     private static void removeMockValidTimeRecord(String serviceType,String service){
         String key = getMockValidKey(serviceType,service);
         if(mockValid.remove(key) != null){
-            logger.info("已移除 Mock有效性时间记录 - {}:{}",serviceType,service);
+            log.info("已移除 Mock有效性时间记录 - {}:{}",serviceType,service);
         }
     }
 
@@ -141,7 +139,7 @@ public abstract class MetricsCommon {
             mockServices.add(service);
             mockService.put(serviceType,mockServices);
         }
-        logger.info("已添加Mock服务 - {}:{}",serviceType,service);
+        log.info("已添加Mock服务 - {}:{}",serviceType,service);
     }
 
     /**
@@ -153,7 +151,7 @@ public abstract class MetricsCommon {
         if(mockService.get(serviceType) != null){
             Set<String> mockServices = mockService.get(serviceType);
             if(mockServices.remove(service)){
-                logger.info("已移除Mock服务 - {}:{}",serviceType,service);
+                log.info("已移除Mock服务 - {}:{}",serviceType,service);
             }
             mockService.put(serviceType,mockServices);
             removeMockValidTimeRecord(serviceType,service);
@@ -197,14 +195,14 @@ public abstract class MetricsCommon {
                             //判断Mock有效性
                             long mockTime = isValidMock(key,targetService);
                             if(mockTime > 0){
-                                logger.info("发现超时的mock服务 - {}:{} 已超时: {} 毫秒",key,targetService,mockTime);
+                                log.info("发现超时的mock服务 - {}:{} 已超时: {} 毫秒",key,targetService,mockTime);
                                 break;
                             }
 
                             if(hasMock(tags,targetService)){
                                 //添加mock的停机时间
                                 addMockValidShutdownTime(key,targetService);
-                                logger.info("mock服务 {}:{} 的 availability",targetType,targetService);
+                                log.info("mock服务 {}:{} 的 availability",targetType,targetService);
                                 falconReportObject.setValue("1");
                                 falconReportObject.appendTags("mock=true");
                                 isOK = true;
@@ -229,7 +227,7 @@ public abstract class MetricsCommon {
             }
         }
 
-        logger.info("Variability ：{}",falconReportObject);
+        log.info("Variability ：{}",falconReportObject);
         return falconReportObject;
     }
 
@@ -267,7 +265,7 @@ public abstract class MetricsCommon {
             hostIP = addr.getHostAddress();
             hostName = addr.getHostName();
         } catch (UnknownHostException e) {
-            logger.error("获取系统Host信息失败",e);
+            log.error("获取系统Host信息失败",e);
         }
         return endPoint.replace("{host.ip}",hostIP).
                 replace("{host.name}",hostName).trim();
@@ -294,7 +292,7 @@ public abstract class MetricsCommon {
                 engine.eval(express);
                 newValue = engine.get("newValue");
             } catch (ScriptException e) {
-                logger.error("执行js表达式错误",e);
+                log.error("执行js表达式错误",e);
             }
         }
 

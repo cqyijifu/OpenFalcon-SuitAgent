@@ -11,8 +11,7 @@ package com.yiji.falcon.agent.plugins.plugin.netDevice;
 import com.yiji.falcon.agent.plugins.util.SNMPHelper;
 import com.yiji.falcon.agent.plugins.util.SNMPV3Session;
 import com.yiji.falcon.agent.plugins.util.VendorType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.snmp4j.PDU;
 
 import java.io.IOException;
@@ -24,9 +23,8 @@ import java.util.List;
  *
  * @author guqiu@yiji.com
  */
+@Slf4j
 class SwitchMemoryStatCollect {
-    private final static Logger logger = LoggerFactory.getLogger(SwitchMemoryStatCollect.class);
-
     private static final String metricsName = "AllMemoryUsageRatio";
 
     /**
@@ -154,7 +152,7 @@ class SwitchMemoryStatCollect {
         List<PDU> snmpMemFree = session.walk(memFreeOid);
 
         if(snmpMemFree.isEmpty() || snmpMemTotal.isEmpty()){
-            logger.warn("{} No Such Object available on this agent at this OID",session);
+            log.warn("{} No Such Object available on this agent at this OID",session);
             return null;
         }
 

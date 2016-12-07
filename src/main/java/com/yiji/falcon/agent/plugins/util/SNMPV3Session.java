@@ -11,8 +11,7 @@ package com.yiji.falcon.agent.plugins.util;
 import com.yiji.falcon.agent.exception.AgentArgumentException;
 import com.yiji.falcon.agent.util.StringUtils;
 import com.yiji.falcon.agent.vo.snmp.SNMPV3UserInfo;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.snmp4j.PDU;
 import org.snmp4j.Snmp;
 import org.snmp4j.UserTarget;
@@ -31,9 +30,8 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * @author guqiu@yiji.com
  */
+@Slf4j
 public class SNMPV3Session {
-
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     //信息缓存
     private static final ConcurrentHashMap<String,Object> infoCache = new ConcurrentHashMap<>();
@@ -106,7 +104,7 @@ public class SNMPV3Session {
             //超时将会返回null
             return SNMPHelper.snmpGet(snmp,target,SNMPHelper.sysDescOid) != null;
         } catch (Exception e) {
-            logger.error("SNMP连接({}:{}-{})可用性检测为失败(不可用)",userInfo.getAddress(),userInfo.getPort(),userInfo.getEndPoint(),e);
+            log.error("SNMP连接({}:{}-{})可用性检测为失败(不可用)",userInfo.getAddress(),userInfo.getPort(),userInfo.getEndPoint(),e);
             return false;
         }
     }
@@ -140,7 +138,7 @@ public class SNMPV3Session {
 //                return prefix;
 //            }
 //        } catch (IOException e) {
-//            logger.error("设备描述信息获取失败",e);
+//            log.error("设备描述信息获取失败",e);
 //            return prefix;
 //        }
     }
@@ -279,7 +277,7 @@ public class SNMPV3Session {
     }
 
     public void close() throws IOException {
-        logger.debug("关闭snmp连接{}",userInfo.getAddress());
+        log.debug("关闭snmp连接{}",userInfo.getAddress());
         snmp.close();
     }
 

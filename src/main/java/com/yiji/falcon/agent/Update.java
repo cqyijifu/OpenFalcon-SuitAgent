@@ -12,11 +12,10 @@ import com.yiji.falcon.agent.config.AgentConfiguration;
 import com.yiji.falcon.agent.util.FileUtil;
 import com.yiji.falcon.agent.util.StringUtils;
 import com.yiji.falcon.agent.util.ZipUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.ho.yaml.Yaml;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -32,8 +31,8 @@ import java.util.*;
 /**
  * @author guqiu@yiji.com
  */
+@Slf4j
 public class Update {
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private static final String downloadUrl = AgentConfiguration.INSTANCE.getAgentUpdateUrl();
 
@@ -49,12 +48,12 @@ public class Update {
      * @throws IOException
      */
     public void update() throws IOException {
-        logger.info("----------------------------------------------------------------------");
-        logger.info("---------------------------Update Start-------------------------------");
-        logger.info("----------------------------------------------------------------------");
-        logger.info("{}now version : {}",log4UpdateStart, AgentConfiguration.VERSION);
+        log.info("----------------------------------------------------------------------");
+        log.info("---------------------------Update Start-------------------------------");
+        log.info("----------------------------------------------------------------------");
+        log.info("{}now version : {}",log4UpdateStart, AgentConfiguration.VERSION);
         if(StringUtils.isEmpty(downloadUrl)){
-            logger.error("{}update download url is undefined.please config agent.update.pack.url on agent.properties <FAILED>",log4UpdateStart);
+            log.error("{}update download url is undefined.please config agent.update.pack.url on agent.properties <FAILED>",log4UpdateStart);
             return;
         }
         if(downloadUpdatePack()){
@@ -72,8 +71,8 @@ public class Update {
                 Collections.sort(versions);
                 for (Float version : versions) {
                     if(version >= AgentConfiguration.VERSION){
-                        logger.info("--------------------------------------");
-                        logger.info("{}Update base from {}",log4UpdateStart,version);
+                        log.info("--------------------------------------");
+                        log.info("{}Update base from {}",log4UpdateStart,version);
                         String updateDir = baseDir + File.separator + version;
                         String updateListConfFile = updateDir + File.separator + "updateList.yml";
                         Map<String,Map<String,Object>> updateConf = Yaml.loadType(new FileInputStream(updateListConfFile),HashMap.class);
@@ -85,23 +84,23 @@ public class Update {
                         updateOfFileAdd(fileAddConf,updateDir);
                         updateOfFileReplace(fileReplaceConf,updateDir);
                         updateOfPropertiesModify(propertiesModifyConf, String.valueOf(version));
-                        logger.info("--------------------------------------");
+                        log.info("--------------------------------------");
                         update = true;
                     }
                 }
             }
             if(!update){
-                logger.info("{}Congratulation ! you suit agent is up to date",log4UpdateStart);
+                log.info("{}Congratulation ! you suit agent is up to date",log4UpdateStart);
             }
 
             //删除临时目录
             File f = new File(updateFilesTempDir);
             FileUtils.deleteDirectory(f);
-            logger.info("{}deleted temp dir {}",log4UpdateStart,updateFilesTempDir);
+            log.info("{}deleted temp dir {}",log4UpdateStart,updateFilesTempDir);
         }
-        logger.info("----------------------------------------------------------------------");
-        logger.info("---------------------------Update End-------------------------------");
-        logger.info("----------------------------------------------------------------------");
+        log.info("----------------------------------------------------------------------");
+        log.info("---------------------------Update End-------------------------------");
+        log.info("----------------------------------------------------------------------");
 
     }
 
@@ -119,16 +118,16 @@ public class Update {
                     File destDir = new File(agentHome + File.separator + targetDir);
                     boolean update = true;
                     if(!updateFile.exists()){
-                        logger.error("{}update file '{}' is not exist",log4UpdateStart,updateFile.getAbsolutePath());
+                        log.error("{}update file '{}' is not exist",log4UpdateStart,updateFile.getAbsolutePath());
                         update = false;
                     }
                     if(!destDir.exists()){
-                        logger.error("{}update dir '{}' is not exist",log4UpdateStart,destDir.getAbsolutePath());
+                        log.error("{}update dir '{}' is not exist",log4UpdateStart,destDir.getAbsolutePath());
                         update = false;
                     }
                     if(update){
                         FileUtils.copyFileToDirectory(updateFile,destDir);
-                        logger.info("{}add file '{}' to dir '{}' <SUCCESS>",log4UpdateStart,updateFile.toPath().getFileName(),destDir.getAbsolutePath());
+                        log.info("{}add file '{}' to dir '{}' <SUCCESS>",log4UpdateStart,updateFile.toPath().getFileName(),destDir.getAbsolutePath());
                     }
                 }
             }
@@ -152,16 +151,16 @@ public class Update {
                 try(DirectoryStream<Path> stream = Files.newDirectoryStream(targetPath.getParent(),targetPath.getFileName().toString())){
                     for (Path path : stream) {
                         if(!path.toFile().delete()){
-                            logger.error("{}old file '{}' deleted <FAILED>. update <FAILED>",log4UpdateStart,path);
+                            log.error("{}old file '{}' deleted <FAILED>. update <FAILED>",log4UpdateStart,path);
                             return;
                         }
                     }
                 }catch (Exception e){
-                    logger.error("",e);
+                    log.error("",e);
                 }
 
                 FileUtils.copyFileToDirectory(updateFile,targetPath.getParent().toFile());
-                logger.info("{}replace file '{}' to dir '{}' <SUCCESS>",log4UpdateStart,updateFile.toPath().getFileName(),targetPath.getParent());
+                log.info("{}replace file '{}' to dir '{}' <SUCCESS>",log4UpdateStart,updateFile.toPath().getFileName(),targetPath.getParent());
             }
         }
     }
@@ -199,7 +198,7 @@ public class Update {
                     if(key.contains("->")){
                         targetPropertiesFilePath = agentHome + File.separator + key.split("->")[0].trim();
                     }else{
-                        logger.error("{}modify properties key's update config format illegal (propertiesFile->key) : {}",log4UpdateStart,key);
+                        log.error("{}modify properties key's update config format illegal (propertiesFile->key) : {}",log4UpdateStart,key);
                         continue;
                     }
                 }else{
@@ -212,14 +211,14 @@ public class Update {
                     if(key.contains("->")){
                         targetKeyName = key.split("->")[1].trim();
                     }else{
-                        logger.error("{}modify properties key's update config format illegal (propertiesFile->key) : {}",log4UpdateStart,key);
+                        log.error("{}modify properties key's update config format illegal (propertiesFile->key) : {}",log4UpdateStart,key);
                         continue;
                     }
                 }else{
                     targetKeyName = String.valueOf(conf.get(key));
                 }
                 if(!targetPropertiesFile.exists()){
-                    logger.error("{}{} '{}' properties key's file '{}' is not exist <FAILED>",log4UpdateStart,type,targetKeyName,targetPropertiesFilePath);
+                    log.error("{}{} '{}' properties key's file '{}' is not exist <FAILED>",log4UpdateStart,type,targetKeyName,targetPropertiesFilePath);
                     continue;
                 }
                 File backup = new File(targetPropertiesFilePath + ".updateBak");
@@ -268,16 +267,16 @@ public class Update {
 
                 //写入最后的结果
                 if(FileUtil.writeTextToTextFile(finalContent.toString(),targetPropertiesFile,false)){
-                    logger.info("{}{} '{}' properties key from '{}' <SUCCESS>",log4UpdateStart,type,targetKeyName,key);
+                    log.info("{}{} '{}' properties key from '{}' <SUCCESS>",log4UpdateStart,type,targetKeyName,key);
                 }else{
-                    logger.info("{}{} '{}' properties key from '{}' <FAILED>",log4UpdateStart,type,targetKeyName,key);
+                    log.info("{}{} '{}' properties key from '{}' <FAILED>",log4UpdateStart,type,targetKeyName,key);
                     //恢复备份的文件
                     FileUtils.copyFile(backup,targetPropertiesFile);
                 }
 
                 //删除备份文件
                 if(!backup.delete()){
-                    logger.warn("{}backup file '{}' deleted <FAILED>",log4UpdateStart,backup.getAbsolutePath());
+                    log.warn("{}backup file '{}' deleted <FAILED>",log4UpdateStart,backup.getAbsolutePath());
                 }
             }
         }
@@ -296,21 +295,21 @@ public class Update {
             URL url = new URL(downloadUrl);
 
             File f = new File(updateDownloadFilePath);
-            logger.info("{}downloading update file from {} ...",log4UpdateStart,downloadUrl);
+            log.info("{}downloading update file from {} ...",log4UpdateStart,downloadUrl);
             FileUtils.copyURLToFile(url, f);
-            logger.info("{}update file download completed!",log4UpdateStart);
+            log.info("{}update file download completed!",log4UpdateStart);
             File zipDownloadFile = new File(updateFilesTempDir);
             if(zipDownloadFile.exists()){
                 FileUtils.deleteDirectory(zipDownloadFile);
             }
-            logger.info("{}unpack update file to {}",log4UpdateStart,updateFilesTempDir);
+            log.info("{}unpack update file to {}",log4UpdateStart,updateFilesTempDir);
             ZipUtil.unzip(updateDownloadFilePath, updateFilesTempDir);
 
             if(f.delete()){
-                logger.info("{}delete temp file {}",log4UpdateStart,updateDownloadFilePath);
+                log.info("{}delete temp file {}",log4UpdateStart,updateDownloadFilePath);
             }
         } catch (Exception e) {
-            logger.info("{}download update file <FAILED>",log4UpdateStart,e);
+            log.info("{}download update file <FAILED>",log4UpdateStart,e);
             return false;
         }
         return true;

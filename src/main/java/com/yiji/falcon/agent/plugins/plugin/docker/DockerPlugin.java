@@ -13,8 +13,7 @@ import com.yiji.falcon.agent.plugins.DetectPlugin;
 import com.yiji.falcon.agent.plugins.Plugin;
 import com.yiji.falcon.agent.util.CommandUtilForUnix;
 import com.yiji.falcon.agent.vo.detect.DetectResult;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,9 +23,8 @@ import java.util.*;
  * Docker的监控插件
  * @author guqiu@yiji.com
  */
+@Slf4j
 public class DockerPlugin implements DetectPlugin {
-
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private String cAdvisorPath;
     private int cAdvisorPort = 0;
@@ -65,7 +63,7 @@ public class DockerPlugin implements DetectPlugin {
 
             return addressesCache;
         }else {
-            logger.warn("Docker插件只在Linux环境下有效");
+            log.warn("Docker插件只在Linux环境下有效");
             return new ArrayList<>();
         }
     }
@@ -80,7 +78,7 @@ public class DockerPlugin implements DetectPlugin {
         try {
             CommandUtilForUnix.ExecuteResult executeResult = CommandUtilForUnix.execWithReadTimeLimit("docker ps",false,7);
             if(!executeResult.isSuccess){
-                logger.error("{} : {}",warnMsg,executeResult.msg);
+                log.error("{} : {}",warnMsg,executeResult.msg);
                 return 0;
             }
             String msg = executeResult.msg;
@@ -95,7 +93,7 @@ public class DockerPlugin implements DetectPlugin {
                             for (String s1 : ss2[0].split(":")) {
                                 if(s1.matches("\\d+")){
                                     int port = Integer.parseInt(s1);
-                                    logger.info("检测到本地启动的cAdvisor服务端口：{}",port);
+                                    log.info("检测到本地启动的cAdvisor服务端口：{}",port);
                                     return port;
                                 }
                             }
@@ -103,9 +101,9 @@ public class DockerPlugin implements DetectPlugin {
                     }
                 }
             }
-            logger.info("未检测到本机有cAdvisor服务");
+            log.info("未检测到本机有cAdvisor服务");
         } catch (IOException e) {
-            logger.error("{}",warnMsg,e);
+            log.error("{}",warnMsg,e);
             return 0;
         }
         return 0;
@@ -117,12 +115,12 @@ public class DockerPlugin implements DetectPlugin {
      */
     private boolean startCAdvisor(){
         if(this.cAdvisorPort == 0){
-            logger.error("请配置cAdvisor的端口地址");
+            log.error("请配置cAdvisor的端口地址");
             return false;
         }
 
         if(!new File(this.cAdvisorPath).exists()){
-            logger.error("{} 不存在，Docker 插件启动失败", cAdvisorPath);
+            log.error("{} 不存在，Docker 插件启动失败", cAdvisorPath);
             return false;
         }
 
@@ -170,12 +168,12 @@ public class DockerPlugin implements DetectPlugin {
 
                 detectResult.setSuccess(true);
             }else{
-                logger.error("Docker daemon failed : {}",executeResult.msg);
+                log.error("Docker daemon failed : {}",executeResult.msg);
                 detectResult.setSuccess(false);
             }
 
         } catch (Exception e) {
-            logger.error("Docker数据采集异常",e);
+            log.error("Docker数据采集异常",e);
             detectResult.setSuccess(false);
         }
 
@@ -240,7 +238,7 @@ public class DockerPlugin implements DetectPlugin {
             try {
                 cadvisorRunner.shutdownCAdvisor();
             } catch (IOException e) {
-                logger.error("",e);
+                log.error("",e);
             }
         }
     }

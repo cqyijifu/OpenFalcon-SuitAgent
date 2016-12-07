@@ -16,8 +16,7 @@ import com.yiji.falcon.agent.util.HttpUtil;
 import com.yiji.falcon.agent.util.StringUtils;
 import com.yiji.falcon.agent.vo.HttpResult;
 import com.yiji.falcon.agent.vo.detect.DetectResult;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -25,9 +24,8 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * @author guqiu@yiji.com
  */
+@Slf4j
 public class HttpPlugin implements DetectPlugin {
-
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private int step;
     private final Map<String,String> addresses = new HashMap<>();
@@ -145,7 +143,7 @@ public class HttpPlugin implements DetectPlugin {
                         detectResult.setSuccess(false);
                     }
                 }else{
-                    logger.error("请求协议值非法,只能是get或post。您的参数为:{}",adds);
+                    log.error("请求协议值非法,只能是get或post。您的参数为:{}",adds);
                 }
 
                 detectResult.setSuccess(isAva);
@@ -160,7 +158,7 @@ public class HttpPlugin implements DetectPlugin {
                 }
 
             }else{
-                logger.error("请求协议值非法,只能是http或https。您的参数为:{}",adds);
+                log.error("请求协议值非法,只能是http或https。您的参数为:{}",adds);
                 return null;
             }
 

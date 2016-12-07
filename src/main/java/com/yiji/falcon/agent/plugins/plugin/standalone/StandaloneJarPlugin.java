@@ -19,8 +19,7 @@ import com.yiji.falcon.agent.plugins.metrics.MetricsCommon;
 import com.yiji.falcon.agent.plugins.util.PluginActivateType;
 import com.yiji.falcon.agent.util.*;
 import com.yiji.falcon.agent.vo.HttpResult;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,9 +31,8 @@ import java.util.*;
 /**
  * @author guqiu@yiji.com
  */
+@Slf4j
 public class StandaloneJarPlugin implements JMXPlugin {
-
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private String jmxServerDir;
     private String jmxServerName;
@@ -78,7 +76,7 @@ public class StandaloneJarPlugin implements JMXPlugin {
                             }
                         });
                     } catch (IOException e) {
-                        logger.error("遍历目录 {} 发生异常",jmxServerDir,e);
+                        log.error("遍历目录 {} 发生异常",jmxServerDir,e);
                     }
                 }
             }
@@ -132,7 +130,7 @@ public class StandaloneJarPlugin implements JMXPlugin {
                     String httpUrl = String.format("http://%s:%s/mgt/health", InetAddress.getLocalHost().getHostAddress(),port);
                     HttpResult httpResult = HttpUtil.get(httpUrl);
                     if(httpResult.getStatus() >= 400){
-                        logger.error("YijiBoot应用健康状况获取失败:http请求失败 {}",httpResult);
+                        log.error("YijiBoot应用健康状况获取失败:http请求失败 {}",httpResult);
                     }else{
                         FalconReportObject falconReportObject = new FalconReportObject();
                         MetricsCommon.setReportCommonValue(falconReportObject,step);
@@ -158,7 +156,7 @@ public class StandaloneJarPlugin implements JMXPlugin {
                         }
                     }
                 } catch (Exception e) {
-                    logger.error("YijiBoot应用健康状况获取异常",e);
+                    log.error("YijiBoot应用健康状况获取异常",e);
                 }
             }
         }
@@ -249,7 +247,7 @@ public class StandaloneJarPlugin implements JMXPlugin {
                     }
                 }
             } catch (IOException e) {
-                logger.error("standaloneJar serverDirPath获取异常",e);
+                log.error("standaloneJar serverDirPath获取异常",e);
             }
         }
         return dirPath;

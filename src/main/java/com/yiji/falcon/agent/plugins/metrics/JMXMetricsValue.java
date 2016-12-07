@@ -18,9 +18,8 @@ import com.yiji.falcon.agent.util.MapUtil;
 import com.yiji.falcon.agent.util.Maths;
 import com.yiji.falcon.agent.util.StringUtils;
 import com.yiji.falcon.agent.vo.jmx.JMXMetricsConfiguration;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.math.NumberUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.management.openmbean.CompositeDataSupport;
 import java.io.File;
@@ -40,9 +39,8 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @author guqiu@yiji.com
  */
+@Slf4j
 public class JMXMetricsValue extends MetricsCommon {
-    private final Logger log = LoggerFactory.getLogger(this.getClass());
-
 
     private JMXPlugin jmxPlugin;
     private List<JMXMetricsValueInfo> jmxMetricsValueInfos;

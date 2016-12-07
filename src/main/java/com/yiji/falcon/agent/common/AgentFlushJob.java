@@ -5,11 +5,10 @@
 package com.yiji.falcon.agent.common;
 
 import com.yiji.falcon.agent.plugins.util.PluginExecute;
+import lombok.extern.slf4j.Slf4j;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /*
  * 修订记录:
@@ -20,8 +19,8 @@ import org.slf4j.LoggerFactory;
  * agent自动发现服务JOB
  * @author guqiu@yiji.com
  */
+@Slf4j
 public class AgentFlushJob implements Job{
-    private final Logger log = LoggerFactory.getLogger(this.getClass());
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
         try {

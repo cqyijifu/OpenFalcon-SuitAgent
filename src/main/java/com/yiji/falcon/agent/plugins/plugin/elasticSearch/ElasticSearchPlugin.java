@@ -19,9 +19,8 @@ import com.yiji.falcon.agent.plugins.util.PluginActivateType;
 import com.yiji.falcon.agent.util.CommandUtilForUnix;
 import com.yiji.falcon.agent.util.HttpUtil;
 import com.yiji.falcon.agent.util.StringUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.ho.yaml.Yaml;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -33,9 +32,8 @@ import static com.yiji.falcon.agent.plugins.metrics.MetricsCommon.executeJsExpre
 /**
  * @author guqiu@yiji.com
  */
+@Slf4j
 public class ElasticSearchPlugin implements JMXPlugin {
-
-    private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private String basePropertiesKey;
     private String jmxServerName;
@@ -83,7 +81,7 @@ public class ElasticSearchPlugin implements JMXPlugin {
             lastAgentSignName = String.format("%d", ElasticSearchConfig.getHttpPort(pid));
             return lastAgentSignName;
         } catch (IOException e) {
-            logger.error("获取elasticSearch的名称异常,返回最后的AgentSignName：{}",lastAgentSignName);
+            log.error("获取elasticSearch的名称异常,返回最后的AgentSignName：{}",lastAgentSignName);
             return lastAgentSignName;
         }
     }
@@ -106,7 +104,7 @@ public class ElasticSearchPlugin implements JMXPlugin {
             String selfNodeId = ElasticSearchConfig.getNodeId(pid);
             String selfNodeName = ElasticSearchConfig.getNodeName(pid);
             if(StringUtils.isEmpty(selfNodeId) || StringUtils.isEmpty(selfNodeName)){
-                logger.error("获取es:{} 的服务信息失败",metricsValueInfo.getJmxConnectionInfo().getName());
+                log.error("获取es:{} 的服务信息失败",metricsValueInfo.getJmxConnectionInfo().getName());
             }else{
                 HashMap<String,Object> confMap = Yaml.loadType(new FileInputStream(configPath),HashMap.class);
                 if(confMap != null){
@@ -131,7 +129,7 @@ public class ElasticSearchPlugin implements JMXPlugin {
                                     if(i == paths.length -1){
                                         Object value = jsonObject.get(paths[i]);
                                         if(value instanceof JSONObject){
-                                            logger.error("elasticSearch http获取值异常,检查{}路径(valuePath)是否为叶子节点:{}",key,config.get("valuePath"));
+                                            log.error("elasticSearch http获取值异常,检查{}路径(valuePath)是否为叶子节点:{}",key,config.get("valuePath"));
                                         }else{
                                             //服务的标识后缀名
                                             String name = metricsValueInfo.getJmxConnectionInfo().getName();
@@ -160,7 +158,7 @@ public class ElasticSearchPlugin implements JMXPlugin {
                 }
             }
         } catch (IOException e) {
-            logger.error("elasticSearch监控值获取发生异常",e);
+            log.error("elasticSearch监控值获取发生异常",e);
         }
 
         return result;
@@ -239,7 +237,7 @@ public class ElasticSearchPlugin implements JMXPlugin {
         try {
             dirPath = CommandUtilForUnix.getCmdDirByPid(pid);
         } catch (IOException e) {
-            logger.error("elasticSearch serverDirPath获取异常",e);
+            log.error("elasticSearch serverDirPath获取异常",e);
         }
         return dirPath;
     }

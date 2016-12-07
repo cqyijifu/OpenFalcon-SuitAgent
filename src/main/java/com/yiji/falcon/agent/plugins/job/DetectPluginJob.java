@@ -12,19 +12,17 @@ import com.yiji.falcon.agent.plugins.DetectPlugin;
 import com.yiji.falcon.agent.plugins.metrics.DetectMetricsValue;
 import com.yiji.falcon.agent.plugins.metrics.MetricsCommon;
 import com.yiji.falcon.agent.util.ExecuteThreadUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.quartz.Job;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author guqiu@yiji.com
  */
+@Slf4j
 public class DetectPluginJob implements Job {
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
-
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
         JobDataMap jobDataMap = context.getJobDetail().getJobDataMap();
@@ -35,7 +33,7 @@ public class DetectPluginJob implements Job {
             //可能会涉及到外网的连接,采用异步方式
             ExecuteThreadUtil.execute(new JobThread(metricsValue,"detect job thread"));
         } catch (Exception e) {
-            logger.error("插件 {} 运行异常",pluginName,e);
+            log.error("插件 {} 运行异常",pluginName,e);
         }
     }
 }

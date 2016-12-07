@@ -9,9 +9,8 @@ import com.sun.tools.attach.VirtualMachineDescriptor;
 import com.yiji.falcon.agent.config.AgentConfiguration;
 import com.yiji.falcon.agent.jmx.vo.JMXConnectionInfo;
 import com.yiji.falcon.agent.util.StringUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.math.NumberUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXServiceURL;
@@ -34,8 +33,8 @@ import java.util.stream.Collectors;
 /**
  * @author guqiu@yiji.com
  */
+@Slf4j
 public class JMXConnection {
-    private static final Logger log = LoggerFactory.getLogger(JMXConnection.class);
     private static final Map<String,JMXConnectionInfo> connectCacheLibrary = new HashMap<>();//JMX的连接缓存
     private static final Map<String,Integer> serverConnectCount = new HashMap<>();//记录服务应有的JMX连接数
 
@@ -319,7 +318,7 @@ public class JMXConnection {
         jmxConnectionInfo.setCacheKeyId(desc.id());
         jmxConnectionInfo.setConnectionServerName(serverName);
         jmxConnectionInfo.setConnectionQualifiedServerName(desc.displayName());
-        jmxConnectionInfo.setmBeanServerConnection(connector.getMBeanServerConnection());
+        jmxConnectionInfo.setMBeanServerConnection(connector.getMBeanServerConnection());
         jmxConnectionInfo.setValid(true);
         jmxConnectionInfo.setPid(Integer.parseInt(desc.id()));
 

@@ -11,9 +11,8 @@ import com.yiji.falcon.agent.falcon.MetricsType;
 import com.yiji.falcon.agent.plugins.JDBCPlugin;
 import com.yiji.falcon.agent.util.PropertiesUtil;
 import com.yiji.falcon.agent.util.StringUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.math.NumberUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,9 +31,8 @@ import java.util.*;
  * 利用JDBC获取metrics监控值抽象类
  * @author guqiu@yiji.com
  */
+@Slf4j
 public class JDBCMetricsValue extends MetricsCommon{
-    private final Logger log = LoggerFactory.getLogger(this.getClass());
-
     private JDBCPlugin jdbcPlugin;
 
     private Collection<Connection> connections;

@@ -17,8 +17,7 @@ import com.yiji.falcon.agent.plugins.util.PluginActivateType;
 import com.yiji.falcon.agent.plugins.util.SNMPV3Session;
 import com.yiji.falcon.agent.util.StringUtils;
 import com.yiji.falcon.agent.vo.snmp.SNMPV3UserInfo;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -27,9 +26,8 @@ import java.util.stream.Collectors;
  * 交换机设备监控插件
  * @author guqiu@yiji.com
  */
+@Slf4j
 public class SwitchPlugin implements SNMPV3Plugin{
-
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private int step;
     private PluginActivateType pluginActivateType;
@@ -127,7 +125,7 @@ public class SwitchPlugin implements SNMPV3Plugin{
                         url = url.replace("snmpv3://","");
                         String[] props = url.split(":");
                         if(props.length < 8){
-                            logger.error("snmp v3 的连接URL格式错误,请检查URL:{} 是否符合格式:snmpv3://protocol:address:port:username:authType:authPswd:privType:privPswd:endPoint(option)",url);
+                            log.error("snmp v3 的连接URL格式错误,请检查URL:{} 是否符合格式:snmpv3://protocol:address:port:username:authType:authPswd:privType:privPswd:endPoint(option)",url);
                             continue;
                         }
                         SNMPV3UserInfo userInfo = new SNMPV3UserInfo();
@@ -172,7 +170,7 @@ public class SwitchPlugin implements SNMPV3Plugin{
             collectObjects.add(SwitchCPUStatCollect.getCPUStat(session));
             collectObjects.add(SwitchMemoryStatCollect.getMemoryStat(session));
         } catch (Exception e) {
-            logger.error("获取设备 {} 的CPU利用率数据失败",session.toString(),e);
+            log.error("获取设备 {} 的CPU利用率数据失败",session.toString(),e);
         }
 
         final List<FalconReportObject> falconReportObjects = new ArrayList<>();
