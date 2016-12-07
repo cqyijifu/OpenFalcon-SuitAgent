@@ -36,9 +36,11 @@ import static com.yiji.falcon.agent.plugins.util.SNMPHelper.ignoreIfName;
 public class SNMPV3MetricsValue extends MetricsCommon {
 
     private SNMPV3Plugin plugin;
+    private List<SNMPV3UserInfo> snmpv3UserInfoList;
 
-    public SNMPV3MetricsValue(SNMPV3Plugin plugin) {
+    public SNMPV3MetricsValue(SNMPV3Plugin plugin,List<SNMPV3UserInfo> snmpv3UserInfoList) {
         this.plugin = plugin;
+        this.snmpv3UserInfoList = snmpv3UserInfoList;
     }
 
     /**
@@ -51,7 +53,7 @@ public class SNMPV3MetricsValue extends MetricsCommon {
     public List<SNMPV3Session> getSessions() throws IOException, AgentArgumentException {
         List<SNMPV3Session> pluginSessions = new ArrayList<>();
 
-        Collection<SNMPV3UserInfo> userInfoCollection = plugin.userInfo();
+        Collection<SNMPV3UserInfo> userInfoCollection = snmpv3UserInfoList;
         if (userInfoCollection != null) {
             for (SNMPV3UserInfo userInfo : userInfoCollection) {
                 SNMPV3Session session = new SNMPV3Session(userInfo);

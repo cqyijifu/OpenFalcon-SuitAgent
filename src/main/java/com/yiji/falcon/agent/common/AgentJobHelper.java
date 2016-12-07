@@ -10,9 +10,7 @@ import com.yiji.falcon.agent.plugins.DetectPlugin;
 import com.yiji.falcon.agent.plugins.JDBCPlugin;
 import com.yiji.falcon.agent.plugins.SNMPV3Plugin;
 import com.yiji.falcon.agent.plugins.job.JMXPluginJob;
-import com.yiji.falcon.agent.plugins.metrics.SNMPV3MetricsValue;
 import com.yiji.falcon.agent.plugins.util.PluginActivateType;
-import com.yiji.falcon.agent.plugins.util.SNMPV3Session;
 import com.yiji.falcon.agent.util.CronUtil;
 import com.yiji.falcon.agent.util.SchedulerUtil;
 import com.yiji.falcon.agent.util.StringUtils;
@@ -23,7 +21,6 @@ import org.quartz.*;
 
 import java.sql.Connection;
 import java.util.Collection;
-import java.util.List;
 import java.util.concurrent.ConcurrentSkipListSet;
 
 import static org.quartz.TriggerBuilder.newTrigger;
@@ -188,12 +185,8 @@ public class AgentJobHelper {
         if(!isHasWorked(serverName)){
             if(pluginActivateType == PluginActivateType.AUTO){
                 try {
-                    List<SNMPV3Session> sessions = new SNMPV3MetricsValue(snmpv3Plugin).getSessions();
-                    if(sessions != null && !sessions.isEmpty()){
-                        //无异常且连接正常,代表连接获取成功,开启服务监控
-                        log.info("发现服务 {} , 启动插件 {} ",serverName,pluginName);
-                        doJob(jobClazz,desc,step,jobDataMap,serverName);
-                    }
+                    log.info("发现服务 {} , 启动插件 {} ",serverName,pluginName);
+                    doJob(jobClazz,desc,step,jobDataMap,serverName);
                 } catch (Exception ignored) {
                 }
             }else if(!snmpv3Plugin.userInfo().isEmpty() && pluginActivateType == PluginActivateType.FORCE){

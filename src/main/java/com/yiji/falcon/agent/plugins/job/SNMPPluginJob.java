@@ -12,11 +12,14 @@ import com.yiji.falcon.agent.plugins.SNMPV3Plugin;
 import com.yiji.falcon.agent.plugins.metrics.MetricsCommon;
 import com.yiji.falcon.agent.plugins.metrics.SNMPV3MetricsValue;
 import com.yiji.falcon.agent.util.ExecuteThreadUtil;
+import com.yiji.falcon.agent.vo.snmp.SNMPV3UserInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.Job;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
+
+import java.util.List;
 
 /**
  * @author guqiu@yiji.com
@@ -30,7 +33,8 @@ public class SNMPPluginJob implements Job {
         String pluginName = jobDataMap.getString("pluginName");
         try {
             SNMPV3Plugin plugin = (SNMPV3Plugin) jobDataMap.get("pluginObject");
-            MetricsCommon metricsValue = new SNMPV3MetricsValue(plugin);
+            List<SNMPV3UserInfo> jobUsers = (List<SNMPV3UserInfo>) jobDataMap.get("userInfoList");
+            MetricsCommon metricsValue = new SNMPV3MetricsValue(plugin,jobUsers);
             //SNMP监控数据获取时间较长,采用异步方式
             ExecuteThreadUtil.execute(new JobThread(metricsValue,"snmp v3 job thread"));
         } catch (Exception e) {
