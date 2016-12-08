@@ -63,17 +63,14 @@ public class JMXConnectWithTimeout {
         });
 
         Object result = BlockingQueueUtil.getResult(blockingQueue,timeout,unit);
+        blockingQueue.clear();
 
-        if (result == null)
-            throw new SocketTimeoutException("Connect timed out: " + url);
-        if (result instanceof JMXConnector)
+
+        if (result instanceof JMXConnector){
             return (JMXConnector) result;
-        if(result instanceof String){
-            if("".equals(result)){
-
-            }
-        }
-        if(result instanceof Throwable){
+        }else if (result == null){
+            throw new SocketTimeoutException("Connect timed out: " + url);
+        }else if(result instanceof Throwable){
             throw new IOException("JMX Connect Failed : " + url,((Throwable) result));
         }
         return null;
