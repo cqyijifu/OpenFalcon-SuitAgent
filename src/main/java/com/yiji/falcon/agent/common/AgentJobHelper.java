@@ -16,6 +16,7 @@ import com.yiji.falcon.agent.util.SchedulerUtil;
 import com.yiji.falcon.agent.util.StringUtils;
 import com.yiji.falcon.agent.vo.sceduler.ScheduleJobResult;
 import com.yiji.falcon.agent.vo.sceduler.ScheduleJobStatus;
+import com.yiji.falcon.agent.vo.snmp.SNMPV3UserInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.*;
 
@@ -185,8 +186,12 @@ public class AgentJobHelper {
         if(!isHasWorked(serverName)){
             if(pluginActivateType == PluginActivateType.AUTO){
                 try {
-                    log.info("发现服务 {} , 启动插件 {} ",serverName,pluginName);
-                    doJob(jobClazz,desc,step,jobDataMap,serverName);
+                    Collection<SNMPV3UserInfo> snmpv3UserInfoList = snmpv3Plugin.userInfo();
+                    if(snmpv3UserInfoList != null && !snmpv3UserInfoList.isEmpty()){
+                        //无异常且连接正常,代表连接获取成功,开启服务监控
+                        log.info("发现服务 {} , 启动插件 {} ",serverName,pluginName);
+                        doJob(jobClazz,desc,step,jobDataMap,serverName);
+                    }
                 } catch (Exception ignored) {
                 }
             }else if(!snmpv3Plugin.userInfo().isEmpty() && pluginActivateType == PluginActivateType.FORCE){
