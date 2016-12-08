@@ -84,25 +84,29 @@ public class PluginExecute {
                 jobDataMap.put("pluginName",pluginName);
                 jobDataMap.put("pluginObject",snmpv3Plugin);
                 Collection<SNMPV3UserInfo> userInfoCollection = snmpv3Plugin.userInfo();
-                List<SNMPV3UserInfo> jobUsers = new ArrayList<>();
-                StringBuilder sb = new StringBuilder();
-                int count = 1;
-                for (SNMPV3UserInfo snmpv3UserInfo : userInfoCollection) {
-                    //每5个SNMP连接为一个job
-                    if(jobUsers.size() == 5){
-                        jobDataMap.put("userInfoList",jobUsers);
-                        AgentJobHelper.pluginWorkForSNMPV3(snmpv3Plugin,pluginName,SNMPPluginJob.class,pluginName + "-" + count + "-" + sb.toString(),snmpv3Plugin.serverName() + "-" + count + "-" + sb.toString(),jobDataMap);
-                        jobUsers = new ArrayList<>();
-                        jobUsers.add(snmpv3UserInfo);
-                        sb = new StringBuilder();
-                        sb.append(snmpv3UserInfo.getAddress()).append(" | ");
-                        count++;
-                    }else{
-                        sb.append(snmpv3UserInfo.getAddress()).append(" | ");
-                        jobUsers.add(snmpv3UserInfo);
-                    }
-                }
-                AgentJobHelper.pluginWorkForSNMPV3(snmpv3Plugin,pluginName,SNMPPluginJob.class,pluginName + "-" + count + "-" + sb.toString(),snmpv3Plugin.serverName() + "-" + count + "-" + sb.toString(),jobDataMap);
+//                List<SNMPV3UserInfo> jobUsers = new ArrayList<>();
+//                StringBuilder sb = new StringBuilder();
+//                int count = 1;
+//                for (SNMPV3UserInfo snmpv3UserInfo : userInfoCollection) {
+//                    //每5个SNMP连接为一个job
+//                    if(jobUsers.size() == 5){
+//                        jobDataMap.put("userInfoList",jobUsers);
+//                        AgentJobHelper.pluginWorkForSNMPV3(snmpv3Plugin,pluginName,SNMPPluginJob.class,pluginName + "-" + count + "-" + sb.toString(),snmpv3Plugin.serverName() + "-" + count + "-" + sb.toString(),jobDataMap);
+//                        jobUsers = new ArrayList<>();
+//                        jobUsers.add(snmpv3UserInfo);
+//                        sb = new StringBuilder();
+//                        sb.append(snmpv3UserInfo.getAddress()).append(" | ");
+//                        count++;
+//                    }else{
+//                        sb.append(snmpv3UserInfo.getAddress()).append(" | ");
+//                        jobUsers.add(snmpv3UserInfo);
+//                    }
+//                }
+//                jobDataMap.put("userInfoList",jobUsers);
+//                AgentJobHelper.pluginWorkForSNMPV3(snmpv3Plugin,pluginName,SNMPPluginJob.class,pluginName + "-" + count + "-" + sb.toString(),snmpv3Plugin.serverName() + "-" + count + "-" + sb.toString(),jobDataMap);
+
+                jobDataMap.put("userInfoList",userInfoCollection);
+                AgentJobHelper.pluginWorkForSNMPV3(snmpv3Plugin,pluginName,SNMPPluginJob.class,pluginName,snmpv3Plugin.serverName(),jobDataMap);
             }catch (Exception e){
                 log.error("插件启动异常",e);
             }
