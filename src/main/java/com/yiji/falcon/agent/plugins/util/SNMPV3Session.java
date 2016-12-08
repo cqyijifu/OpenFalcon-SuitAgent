@@ -33,8 +33,6 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 public class SNMPV3Session {
 
-    //信息缓存
-    private static final ConcurrentHashMap<String,Object> infoCache = new ConcurrentHashMap<>();
 //    private static final String cacheKey_equipmentName = "equipmentName";
     private static final String cacheKey_sysDesc = "sysDesc";
     private static final String cacheKey_sysVendor = "sysVendor";
@@ -43,6 +41,8 @@ public class SNMPV3Session {
     private Snmp snmp;
     private UserTarget target;
     private SNMPV3UserInfo userInfo;
+    //信息缓存
+    private final ConcurrentHashMap<String,Object> infoCache = new ConcurrentHashMap<>();
 
     @Override
     public String toString() {
