@@ -298,7 +298,7 @@ public class CommandUtilForUnix {
         while( st.hasMoreElements() ){
             String split = st.nextToken().trim();
             if(!StringUtils.isEmpty(split)){
-                if(split.contains("JAVA_HOME")){
+                if(split.contains("JAVA_HOME=")){
                     String[] ss = split.split("=");
                     List<String> list = new ArrayList<>();
                     for (String s : ss) {
