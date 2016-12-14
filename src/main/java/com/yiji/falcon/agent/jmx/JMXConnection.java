@@ -98,7 +98,7 @@ public class JMXConnection {
      *
      * @throws IOException
      */
-    public static void close() {
+    public static void closeAll() {
         for (JMXConnectionInfo jmxConnectionInfo : connectCacheLibrary.values()) {
             jmxConnectionInfo.closeJMXConnector();
         }
@@ -212,16 +212,8 @@ public class JMXConnection {
         //清除当前连接池中的连接
         List<String> removeKey = connectCacheLibrary.keySet().stream().filter(key -> NumberUtils.isNumber(key.replace(serverName,""))).collect(Collectors.toList());
         removeKey.forEach(key -> {
-            try {
-                JMXConnector jmxConnector = connectCacheLibrary.get(key).getJmxConnector();
-                if(jmxConnector != null){
-                    jmxConnector.close();
-                }
-
-            } catch (IOException ignored) {
-            }finally {
-                connectCacheLibrary.remove(key);
-            }
+            connectCacheLibrary.get(key).closeJMXConnector();
+            connectCacheLibrary.remove(key);
         });
     }
 

@@ -5,6 +5,7 @@
 package com.yiji.falcon.agent.jmx.vo;
 
 import com.yiji.falcon.agent.jmx.JMXManager;
+import com.yiji.falcon.agent.util.ExecuteThreadUtil;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -53,12 +54,14 @@ public class JMXConnectionInfo {
      * 关闭JMX连接
      */
     public void closeJMXConnector(){
-        if(jmxConnector != null){
-            try {
-                jmxConnector.close();
-            } catch (Exception ignored) {
+        ExecuteThreadUtil.execute(() -> {
+            if(jmxConnector != null){
+                try {
+                    jmxConnector.close();
+                } catch (Exception ignored) {
+                }
             }
-        }
+        });
     }
 
     public boolean isValid() {

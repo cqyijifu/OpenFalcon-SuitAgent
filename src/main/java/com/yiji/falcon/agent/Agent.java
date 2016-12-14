@@ -218,7 +218,7 @@ public class Agent extends Thread{
         log.info("调度器关闭成功");
 
         log.info("关闭JMX连接");
-        JMXConnection.close();
+        JMXConnection.closeAll();
 
         String agentPushUrl = AgentConfiguration.INSTANCE.getAgentPushUrl();
         if(agentPushUrl.contains("127.0.0.1") ||

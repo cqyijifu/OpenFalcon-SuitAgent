@@ -242,10 +242,7 @@ public class JMXMetricsValue extends MetricsCommon {
     private void removeJMXConnectCache(JMXConnectionInfo jmxConnectionInfo){
         String key = jmxConnectionInfo.getConnectionServerName() + jmxConnectionInfo.getPid();
         JMXConnection.removeConnectCache(jmxConnectionInfo.getConnectionServerName(), jmxConnectionInfo.getPid());
-        try {
-            jmxConnectionInfo.getJmxConnector().close();
-        } catch (Exception ignored) {
-        }
+        jmxConnectionInfo.closeJMXConnector();
 
         //清理缓存数据
         for (Object k : MapUtil.getSameValueKeys(serverDirPathCatch, serverDirPathCatch.get(key))) {
