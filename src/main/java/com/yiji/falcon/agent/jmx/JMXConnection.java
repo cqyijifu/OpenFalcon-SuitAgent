@@ -100,13 +100,7 @@ public class JMXConnection {
      */
     public static void close() {
         for (JMXConnectionInfo jmxConnectionInfo : connectCacheLibrary.values()) {
-            JMXConnector jmxConnector = jmxConnectionInfo.getJmxConnector();
-            if(jmxConnector != null){
-                try {
-                    jmxConnector.close();
-                } catch (IOException ignored) {
-                }
-            }
+            jmxConnectionInfo.closeJMXConnector();
         }
     }
 
