@@ -229,22 +229,19 @@ public class StandaloneJarPlugin implements JMXPlugin {
 
         if(StringUtils.isEmpty(dirPath)){
             try {
-                String cmd = "lsof -p " + pid + " | grep " + serverName;
+                String cmd = "ls -al /proc/" + pid + "/fd/" + " | grep " + serverName;
                 CommandUtilForUnix.ExecuteResult executeResult = CommandUtilForUnix.execWithReadTimeLimit(cmd,false,7);
                 String msg = executeResult.msg;
-                String[] ss = msg.split("\n");
+                String[] ss = msg.split("\\s+");
                 for (String s : ss) {
-                    if(!StringUtils.isEmpty(s)){
-                        String[] split = s.split("\\s+");
-                        dirPath = split[split.length - 1];
+                    if(!StringUtils.isEmpty(s) && s.contains(serverName)){
+                        dirPath = s;
                         break;
                     }
                 }
 
-                if (dirPath != null) {
-                    if(!dirPath.toLowerCase().endsWith(".jar")){
-                        dirPath += File.separator + serverName;
-                    }
+                if(!dirPath.toLowerCase().endsWith(".jar")){
+                    dirPath += File.separator + serverName;
                 }
             } catch (IOException e) {
                 log.error("standaloneJar serverDirPath获取异常",e);

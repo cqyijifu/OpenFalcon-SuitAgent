@@ -53,7 +53,7 @@ public class ElasticSearchConfig {
             result = new HashMap<>();
         }
 
-        String cmd = "lsof -p " + pid + " | grep elasticsearch";
+        String cmd = "ls -al /proc/" + pid + "/fd/" + " | grep elasticsearch";
         CommandUtilForUnix.ExecuteResult executeResult = CommandUtilForUnix.execWithReadTimeLimit(cmd,false,10);
 
         if(executeResult.isSuccess){

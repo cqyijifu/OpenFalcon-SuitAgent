@@ -69,7 +69,7 @@ public class CommandUtilForUnix {
      * @throws IOException
      */
     public static String getCmdDirByPid(int pid) throws IOException {
-        String cmd = "lsof -p " + pid;
+        String cmd = "ls -al /proc/" + pid;
         CommandUtilForUnix.ExecuteResult executeResult = CommandUtilForUnix.execWithReadTimeLimit(cmd,false,7);
         String msg = executeResult.msg;
         String[] ss = msg.split("\n");

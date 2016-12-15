@@ -48,7 +48,7 @@ public class ZKConfig {
             result = new HashMap<>();
         }
 
-        String cmd = "lsof -p " + pid + " | grep zookeeper";
+        String cmd = "ls -al /proc/" + pid + "/fd/" + " | grep zookeeper";
         CommandUtilForUnix.ExecuteResult executeResult = CommandUtilForUnix.execWithReadTimeLimit(cmd,false,7);
 
         if(executeResult.isSuccess){
