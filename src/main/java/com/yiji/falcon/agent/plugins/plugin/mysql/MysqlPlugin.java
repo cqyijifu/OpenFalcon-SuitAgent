@@ -57,7 +57,7 @@ public class MysqlPlugin implements JDBCPlugin {
      */
     @Override
     public String metricsConfName() {
-        return null;
+        return "mysqlPluginMetricsConf.properties";
     }
 
     /**
