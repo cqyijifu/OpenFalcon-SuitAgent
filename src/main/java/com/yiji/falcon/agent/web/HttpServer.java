@@ -51,8 +51,8 @@ public class HttpServer extends Thread{
     }
 
     public void startServer() throws IOException {
-        serverSocket = new ServerSocket(port, 10, InetAddress.getLocalHost());
-        log.info("Web服务启动地址:http://{}:{}",InetAddress.getLocalHost().getHostAddress(),serverSocket.getLocalPort());
+        serverSocket = new ServerSocket(port, 10, InetAddress.getByName("0.0.0.0"));
+        log.info("Web服务启动地址:http://{}:{}",InetAddress.getByName("0.0.0.0").getHostName(),serverSocket.getLocalPort());
         status = 1;
         while (!shutdown) {
             Socket socket;

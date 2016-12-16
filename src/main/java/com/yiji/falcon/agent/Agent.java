@@ -181,7 +181,7 @@ public class Agent extends Thread{
         if(httpServer != null){
             try {
                 log.info("发送web关闭命令");
-                HttpResult response = HttpUtil.get(String.format("http://%s:%d/__SHUTDOWN__", InetAddress.getLocalHost().getHostAddress(),AgentConfiguration.INSTANCE.getAgentWebPort()));
+                HttpResult response = HttpUtil.get(String.format("http://%s:%d/__SHUTDOWN__", InetAddress.getByName("0.0.0.0").getHostName(),AgentConfiguration.INSTANCE.getAgentWebPort()));
                 log.info("web关闭结果:{}",response);
             } catch (Exception e) {
                 log.error("web关闭",e);
