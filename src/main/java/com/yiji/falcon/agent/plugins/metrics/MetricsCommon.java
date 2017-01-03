@@ -174,11 +174,26 @@ public abstract class MetricsCommon {
      * @return
      */
     public static FalconReportObject generatorVariabilityReport(boolean isAva, String agentSignName, int step, Plugin plugin, String serverName){
+        return generatorVariabilityReport(isAva,isAva?"1":"0",agentSignName,step,plugin,serverName);
+    }
+
+    /**
+     * 创建指定可用性的报告对象
+     * @param isAva
+     * @param avaValue
+     * 指定可用性的值
+     * @param agentSignName
+     * @param step
+     * @param plugin
+     * @param serverName
+     * @return
+     */
+    public static FalconReportObject generatorVariabilityReport(boolean isAva,String avaValue, String agentSignName, int step, Plugin plugin, String serverName){
         FalconReportObject falconReportObject = new FalconReportObject();
         setReportCommonValue(falconReportObject,step);
         falconReportObject.setCounterType(CounterType.GAUGE);
         falconReportObject.setMetric(getMetricsName("availability"));
-        falconReportObject.setValue(isAva ? "1" : "0");
+        falconReportObject.setValue(avaValue);
         falconReportObject.appendTags(getTags(agentSignName,plugin,serverName,MetricsType.AVAILABILITY));
         falconReportObject.setTimestamp(System.currentTimeMillis() / 1000);
 

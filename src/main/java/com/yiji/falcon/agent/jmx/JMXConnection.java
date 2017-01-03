@@ -7,6 +7,7 @@ package com.yiji.falcon.agent.jmx;
 import com.sun.tools.attach.VirtualMachine;
 import com.sun.tools.attach.VirtualMachineDescriptor;
 import com.yiji.falcon.agent.config.AgentConfiguration;
+import com.yiji.falcon.agent.exception.JMXUnavailabilityType;
 import com.yiji.falcon.agent.jmx.vo.JMXConnectionInfo;
 import com.yiji.falcon.agent.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -179,7 +180,7 @@ public class JMXConnection {
             }else{
                 //对应的ServerName的JMX连接获取失败，返回该服务JMX连接失败，用于上报不可用记录
                 JMXConnectionInfo jmxConnectionInfo = new JMXConnectionInfo();
-                jmxConnectionInfo.setValid(false);
+                jmxConnectionInfo.setValid(false, JMXUnavailabilityType.connectionFailed);
                 connections.add(jmxConnectionInfo);
                 serverConnectCount.put(serverName,1);
             }
@@ -306,7 +307,7 @@ public class JMXConnection {
         jmxConnectionInfo.setConnectionServerName(serverName);
         jmxConnectionInfo.setConnectionQualifiedServerName(desc.displayName());
         jmxConnectionInfo.setMBeanServerConnection(connector.getMBeanServerConnection());
-        jmxConnectionInfo.setValid(true);
+        jmxConnectionInfo.setValid(true,null);
         jmxConnectionInfo.setPid(Integer.parseInt(desc.id()));
 
         connectCacheLibrary.put(serverName + desc.id(),jmxConnectionInfo);
@@ -319,7 +320,7 @@ public class JMXConnection {
      */
     private JMXConnectionInfo initBadJMXConnect(VirtualMachineDescriptor desc){
         JMXConnectionInfo jmxConnectionInfo = new JMXConnectionInfo();
-        jmxConnectionInfo.setValid(false);
+        jmxConnectionInfo.setValid(false,JMXUnavailabilityType.connectionFailed);
         jmxConnectionInfo.setConnectionServerName(serverName);
         jmxConnectionInfo.setConnectionQualifiedServerName(desc.displayName());
         jmxConnectionInfo.setPid(Integer.parseInt(desc.id()));

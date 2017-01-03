@@ -5,6 +5,7 @@
 package com.yiji.falcon.agent.jmx;
 
 import com.yiji.falcon.agent.exception.JMXUnavailabilityException;
+import com.yiji.falcon.agent.exception.JMXUnavailabilityType;
 import com.yiji.falcon.agent.jmx.vo.JMXConnectionInfo;
 import com.yiji.falcon.agent.jmx.vo.JMXMetricsValueInfo;
 import com.yiji.falcon.agent.jmx.vo.JMXObjectNameInfo;
@@ -113,7 +114,7 @@ public class JMXManager {
                                         for (Throwable throwable : throwables) {
                                             if (throwable != null &&
                                                     throwable.getClass() == java.net.ConnectException.class){
-                                                throw new JMXUnavailabilityException(e);
+                                                throw new JMXUnavailabilityException(JMXUnavailabilityType.connectionFailed,e);
                                             }
                                         }
                                     }
@@ -136,13 +137,13 @@ public class JMXManager {
                                 JMXObjectNameInfo jmxObjectNameInfo = (JMXObjectNameInfo) resultOni;
                                 objectNameList.add(jmxObjectNameInfo);
                             }else if(resultOni == null){
-                                throw new JMXUnavailabilityException(String.format("mbean %s 的值集合获取失败：超时%d秒",mbean.toString(),timeout));
+                                throw new JMXUnavailabilityException(JMXUnavailabilityType.getMbeanValueTimeout,String.format("mbean %s 的值集合获取失败：超时%d秒",mbean.toString(),timeout));
                             }else if(resultOni instanceof JMXUnavailabilityException){
                                 throw (JMXUnavailabilityException) resultOni;
                             }else if (resultOni instanceof Throwable){
-                                throw new JMXUnavailabilityException(String.format("mbean %s 的值集合获取异常",mbean.toString()), (Exception) resultOni);
+                                throw new JMXUnavailabilityException(JMXUnavailabilityType.getMbeanValueException,String.format("mbean %s 的值集合获取异常",mbean.toString()), (Exception) resultOni);
                             }else {
-                                throw new JMXUnavailabilityException("未匹配到的数据：" + resultOni);
+                                throw new JMXUnavailabilityException(JMXUnavailabilityType.unKnown,"未匹配到的数据：" + resultOni);
                             }
                         }
 
@@ -150,11 +151,11 @@ public class JMXManager {
                         jmxMetricsValueInfo.setJmxObjectNameInfoList(objectNameList);
                         validCount++;
                     }else if (resultBeanSet == null){
-                        throw new JMXUnavailabilityException(String.format("JMX %s 的objectNameList对象获取失败：超时%d秒",connectionInfo.toString(),timeout));
+                        throw new JMXUnavailabilityException(JMXUnavailabilityType.getObjectNameListTimeout,String.format("JMX %s 的objectNameList对象获取失败：超时%d秒",connectionInfo.toString(),timeout));
                     }else if (resultBeanSet instanceof Throwable){
-                        throw new JMXUnavailabilityException(String.format("JMX %s 的objectNameList对象获取异常：%s",connectionInfo.toString(),resultBeanSet.toString()));
+                        throw new JMXUnavailabilityException(JMXUnavailabilityType.getObjectNameListException,String.format("JMX %s 的objectNameList对象获取异常：%s",connectionInfo.toString(),resultBeanSet.toString()));
                     }else {
-                        throw new JMXUnavailabilityException("未匹配到的数据：" + resultBeanSet);
+                        throw new JMXUnavailabilityException(JMXUnavailabilityType.unKnown,"未匹配到的数据：" + resultBeanSet);
                     }
 
                 } catch (Exception e) {
@@ -162,7 +163,7 @@ public class JMXManager {
                         // JMX连接异常，报告不可用,将会在下一次获取连接时进行维护
                         //JMX连接异常，报告不可用,将会在下一次获取连接时进行维护
                         log.error("JMXUnavailabilityException(Effect availability To false)",e);
-                        connectionInfo.setValid(false);
+                        connectionInfo.setValid(false,((JMXUnavailabilityException) e).getType());
                     }
                 }finally {
                     //设置返回对象-添加监控值对象

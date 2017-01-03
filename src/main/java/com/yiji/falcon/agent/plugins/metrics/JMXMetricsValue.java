@@ -294,7 +294,7 @@ public class JMXMetricsValue extends MetricsCommon {
 
             if (!jmxConnectionInfo.isValid()) {
                 //该连接不可用,添加该 jmx不可用的监控报告
-                FalconReportObject reportObject = generatorVariabilityReport(false, jmxConnectionInfo.getName(), jmxPlugin.step(), jmxPlugin, jmxPlugin.serverName());
+                FalconReportObject reportObject = generatorVariabilityReport(false,String.valueOf(jmxConnectionInfo.getType().getType()), jmxConnectionInfo.getName(), jmxPlugin.step(), jmxPlugin, jmxPlugin.serverName());
                 result.add(reportObject);
             }
 

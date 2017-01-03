@@ -4,6 +4,7 @@
  */
 package com.yiji.falcon.agent.jmx.vo;
 
+import com.yiji.falcon.agent.exception.JMXUnavailabilityType;
 import com.yiji.falcon.agent.jmx.JMXManager;
 import com.yiji.falcon.agent.util.ExecuteThreadUtil;
 import lombok.Getter;
@@ -50,6 +51,9 @@ public class JMXConnectionInfo {
 
     private boolean valid;
 
+    @Getter
+    private JMXUnavailabilityType type;
+
     /**
      * 关闭JMX连接
      */
@@ -72,9 +76,10 @@ public class JMXConnectionInfo {
      * 设置不可用时自动关闭JMX连接
      * @param valid
      */
-    public void setValid(boolean valid) {
+    public void setValid(boolean valid,JMXUnavailabilityType type) {
         this.valid = valid;
         if(!valid){
+            this.type = type;
             closeJMXConnector();
         }
     }
@@ -90,6 +95,7 @@ public class JMXConnectionInfo {
                 ", name='" + name + '\'' +
                 ", pid=" + pid +
                 ", valid=" + valid +
+                ", JMXUnavailabilityType=" + type +
                 '}';
     }
 
