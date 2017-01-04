@@ -36,7 +36,7 @@ public class JMXPluginJob implements Job {
             JMXPlugin jmxPlugin = (JMXPlugin) jobDataMap.get("pluginObject");
             String jmxServerName = jobDataMap.getString("jmxServerName");
 
-            List<JMXMetricsValueInfo> jmxMetricsValueInfos = JMXManager.getJmxMetricValue(jmxServerName);
+            List<JMXMetricsValueInfo> jmxMetricsValueInfos = JMXManager.getJmxMetricValue(jmxServerName,jmxPlugin);
 
             //设置agentSignName
             for (JMXMetricsValueInfo jmxMetricsValueInfo : jmxMetricsValueInfos) {

@@ -135,7 +135,7 @@ public class StandaloneJarPlugin implements JMXPlugin {
                         FalconReportObject falconReportObject = new FalconReportObject();
                         MetricsCommon.setReportCommonValue(falconReportObject,step);
                         falconReportObject.setCounterType(CounterType.GAUGE);
-                        falconReportObject.setTimestamp(System.currentTimeMillis() / 1000);
+                        falconReportObject.setTimestamp(metricsValueInfo.getTimestamp());
                         falconReportObject.appendTags(MetricsCommon.getTags(jarName,this,serverName(), MetricsType.JMX_OBJECT_IN_BUILD));
 
                         String jsonStr = httpResult.getResult();

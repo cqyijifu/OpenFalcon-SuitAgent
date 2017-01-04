@@ -97,17 +97,17 @@ public class ZookeeperPlugin implements JMXPlugin {
                 isLeader = true;
             }
         }
-        result.add(generatorIsLeaderReport(isLeader,name));
+        result.add(generatorIsLeaderReport(metricsValueInfo.getTimestamp(),isLeader,name));
         return result;
     }
 
-    private FalconReportObject generatorIsLeaderReport(boolean isLeader,String name){
+    private FalconReportObject generatorIsLeaderReport(long timestamp,boolean isLeader,String name){
         FalconReportObject falconReportObject = new FalconReportObject();
         MetricsCommon.setReportCommonValue(falconReportObject,step);
         falconReportObject.setCounterType(CounterType.GAUGE);
         falconReportObject.setMetric(MetricsCommon.getMetricsName("isZookeeperLeader"));
         falconReportObject.setValue(isLeader ? "1" : "0");
-        falconReportObject.setTimestamp(System.currentTimeMillis() / 1000);
+        falconReportObject.setTimestamp(timestamp);
         falconReportObject.appendTags(MetricsCommon.getTags(name,this,serverName(), MetricsType.JMX_OBJECT_IN_BUILD));
         return falconReportObject;
     }

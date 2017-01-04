@@ -51,6 +51,10 @@ public class JMXConnectionInfo {
 
     private boolean valid;
 
+    /**
+     * 不可用类型
+     * 注：当type为{@link JMXUnavailabilityType#connectionFailed}时，该对象中的{@link JMXConnectionInfo#jmxConnector}才是真正的不可用，其他情况，应该正常进行采集操作
+     */
     @Getter
     private JMXUnavailabilityType type;
 

@@ -5,6 +5,7 @@
 package com.yiji.falcon.agent.falcon;
 
 import com.yiji.falcon.agent.config.AgentConfiguration;
+import com.yiji.falcon.agent.util.DateUtil;
 import com.yiji.falcon.agent.util.HttpUtil;
 import com.yiji.falcon.agent.util.StringUtils;
 import com.yiji.falcon.agent.vo.HttpResult;
@@ -14,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
+import java.util.Date;
 
 /*
  * 修订记录:
@@ -32,13 +34,15 @@ public class ReportMetrics {
      * @param falconReportObjectList
      */
     public static void push(Collection<FalconReportObject> falconReportObjectList){
-        if(falconReportObjectList != null){
+        if(falconReportObjectList != null && !falconReportObjectList.isEmpty()){
             JSONArray jsonArray = new JSONArray();
+            long timestamp = 0;
             for (FalconReportObject falconReportObject : falconReportObjectList) {
                 if(!isValidTag(falconReportObject)){
                     log.error("报告对象的tag为空,此metrics将不允上报:{}",falconReportObject.toString());
                     continue;
                 }
+                timestamp = falconReportObject.getTimestamp();
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("endpoint",falconReportObject.getEndpoint());
                 jsonObject.put("metric",falconReportObject.getMetric());
@@ -49,7 +53,8 @@ public class ReportMetrics {
                 jsonObject.put("tags",falconReportObject.getTags() == null ? "" : falconReportObject.getTags());
                 jsonArray.put(jsonObject);
             }
-            log.debug("报告Falcon : [{}]",jsonArray.toString());
+            String time = DateUtil.getFormatDateTime(new Date(timestamp * 1000));
+            log.debug("报告Falcon({}) : [{}]",time,jsonArray.toString());
             HttpResult result;
             try {
                 result = HttpUtil.postJSON(AgentConfiguration.INSTANCE.getAgentPushUrl(),jsonArray.toString());
