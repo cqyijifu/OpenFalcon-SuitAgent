@@ -37,7 +37,8 @@ import java.util.stream.Collectors;
 @Slf4j
 public class JMXManager {
 
-    private static final int timeout = 15;
+    private static final int objectNameListTimeout = 15;
+    private static final int mBeanTimeout = 5;
 
     /**
      * 获取指定应用的名称(如运行的main类名称)所有的jmx值
@@ -110,20 +111,18 @@ public class JMXManager {
                     });
 
                     //超时15秒
-                    Object resultBeanSet = BlockingQueueUtil.getResult(blockingQueue4BeanSet,timeout, TimeUnit.SECONDS);
+                    Object resultBeanSet = BlockingQueueUtil.getResult(blockingQueue4BeanSet, objectNameListTimeout, TimeUnit.SECONDS);
                     blockingQueue4BeanSet.clear();
 
                     if(resultBeanSet instanceof Set){
                         Set<ObjectInstance> beanSet = (Set<ObjectInstance>) resultBeanSet;
+                        //记录指标采集过程中，有异常的指标
+                        List<JMXUnavailabilityException> mBeanValueGetExceptions = new ArrayList<>();
 
                         for (ObjectInstance mbean : beanSet) {
-
                             //阻塞队列异步执行
                             ExecuteThreadUtil.execute(() -> {
                                 try {
-
-                                    Thread.sleep(17000);
-
                                     Map<String,Object> map = new HashMap<>();
                                     JMXObjectNameInfo jmxObjectNameInfo = new JMXObjectNameInfo();
                                     ObjectName objectName = mbean.getObjectName();
@@ -156,14 +155,14 @@ public class JMXManager {
                             });
 
                             //超时15秒
-                            Object resultOni = BlockingQueueUtil.getResult(blockingQueue4BeanValue,timeout, TimeUnit.SECONDS);
+                            Object resultOni = BlockingQueueUtil.getResult(blockingQueue4BeanValue, mBeanTimeout, TimeUnit.SECONDS);
                             blockingQueue4BeanValue.clear();
 
                             if(resultOni instanceof JMXObjectNameInfo){
                                 JMXObjectNameInfo jmxObjectNameInfo = (JMXObjectNameInfo) resultOni;
                                 objectNameList.add(jmxObjectNameInfo);
                             }else if(resultOni == null){
-                                throw new JMXUnavailabilityException(JMXUnavailabilityType.getMbeanValueTimeout,String.format("mbean %s 的值集合获取失败：超时%d秒",mbean.toString(),timeout));
+                                mBeanValueGetExceptions.add(new JMXUnavailabilityException(JMXUnavailabilityType.getMbeanValueTimeout,String.format("mbean %s 的值集合获取失败：超时%d秒",mbean.toString(), mBeanTimeout)));
                             }else if(resultOni instanceof JMXUnavailabilityException){
                                 throw (JMXUnavailabilityException) resultOni;
                             }else if (resultOni instanceof Throwable){
@@ -173,9 +172,14 @@ public class JMXManager {
                             }
                         }
 
+                        if(!mBeanValueGetExceptions.isEmpty()){
+                            //统一抛出mBean值超时异常
+                            throw new JMXUnavailabilityException((mBeanValueGetExceptions));
+                        }
+
                         validCount++;
                     }else if (resultBeanSet == null){
-                        throw new JMXUnavailabilityException(JMXUnavailabilityType.getObjectNameListTimeout,String.format("JMX %s 的objectNameList对象获取失败：超时%d秒",connectionInfo.toString(),timeout));
+                        throw new JMXUnavailabilityException(JMXUnavailabilityType.getObjectNameListTimeout,String.format("JMX %s 的objectNameList对象获取失败：超时%d秒",connectionInfo.toString(), objectNameListTimeout));
                     }else if (resultBeanSet instanceof Throwable){
                         throw new JMXUnavailabilityException(JMXUnavailabilityType.getObjectNameListException,String.format("JMX %s 的objectNameList对象获取异常：%s",connectionInfo.toString(),resultBeanSet.toString()));
                     }else {
@@ -186,7 +190,11 @@ public class JMXManager {
                     if (e instanceof JMXUnavailabilityException){
                         // JMX连接异常，报告不可用,将会在下一次获取连接时进行维护
                         //JMX连接异常，报告不可用,将会在下一次获取连接时进行维护
-                        log.error("JMXUnavailabilityException(Effect availability To false)",e);
+                        if(((JMXUnavailabilityException) e).getExceptions() == null){
+                            log.error("JMXUnavailabilityException(Effect availability To false)",e);
+                        }else {
+                            log.error("获取MBean值超时的对象：{}",((JMXUnavailabilityException) e).getExceptions());
+                        }
                         connectionInfo.setValid(false,((JMXUnavailabilityException) e).getType());
                     }
                 }finally {

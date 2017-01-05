@@ -10,6 +10,8 @@ package com.yiji.falcon.agent.exception;
 
 import lombok.Getter;
 
+import java.util.List;
+
 /**
  * @author guqiu@yiji.com
  */
@@ -17,6 +19,26 @@ public class JMXUnavailabilityException extends Exception {
 
     @Getter
     private JMXUnavailabilityType type;
+
+    @Getter
+    private List<JMXUnavailabilityException> exceptions;
+
+    @Override
+    public String toString() {
+        return "JMXUnavailabilityException{" +
+                "type=" + type +
+                "msg=" + getMessage() +
+                '}';
+    }
+
+    /**
+     * mBean值获取超时的异常集合
+     * @param exceptions
+     */
+    public JMXUnavailabilityException(List<JMXUnavailabilityException> exceptions) {
+        this.exceptions = exceptions;
+        this.type = JMXUnavailabilityType.getMbeanValueTimeout;
+    }
 
     /**
      * JMX 连接不可用状态异常
