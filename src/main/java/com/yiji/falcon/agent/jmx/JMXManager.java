@@ -44,7 +44,8 @@ public class JMXManager {
      * @param serverName
      * @return
      */
-    public synchronized static List<JMXMetricsValueInfo> getJmxMetricValue(String serverName, JMXPlugin jmxPlugin){
+    public static List<JMXMetricsValueInfo> getJmxMetricValue(String serverName, JMXPlugin jmxPlugin){
+        long timestamp = System.currentTimeMillis() / 1000;
         final Set<JMXMetricsConfiguration> jmxMetricsConfigurationSet = JMXMetricsConfigUtil.getMetricsConfig(jmxPlugin);
         final BlockingQueue<Object> blockingQueue4BeanSet = new ArrayBlockingQueue<>(1);
         final BlockingQueue<Object> blockingQueue4BeanValue = new ArrayBlockingQueue<>(1);
@@ -58,6 +59,8 @@ public class JMXManager {
                 && mbeanConns.get(0).getCacheKeyId() == null){
             log.error("SuitAgent启动时应用 {} jmx连接失败,请检查应用是否已启动",serverName);
             JMXMetricsValueInfo jmxMetricsValueInfo = new JMXMetricsValueInfo();
+            jmxMetricsValueInfo.setTimestamp(timestamp);
+            jmxMetricsValueInfo.setJmxMetricsConfigurations(jmxMetricsConfigurationSet);
             jmxMetricsValueInfo.setJmxConnectionInfo(mbeanConns.get(0));
             //返回上层返回的JMX服务不可用的对象
             return Collections.singletonList(jmxMetricsValueInfo);
@@ -68,7 +71,7 @@ public class JMXManager {
         for (JMXConnectionInfo connectionInfo : mbeanConns) {//遍历JMX连接
             JMXMetricsValueInfo jmxMetricsValueInfo = new JMXMetricsValueInfo();//监控值信息对象
             jmxMetricsValueInfo.setJmxMetricsConfigurations(jmxMetricsConfigurationSet);
-            jmxMetricsValueInfo.setTimestamp(System.currentTimeMillis() / 1000);
+            jmxMetricsValueInfo.setTimestamp(timestamp);
             if(connectionInfo.isValid()){//若该JMX连接可用
                 List<JMXObjectNameInfo> objectNameList = new ArrayList<>();//该jmx连接下的所有ObjectName值信息
                 try {
@@ -116,58 +119,58 @@ public class JMXManager {
                         for (ObjectInstance mbean : beanSet) {
 
                             //阻塞队列异步执行
-                            synchronized (blockingQueue4BeanValue){
-                                ExecuteThreadUtil.execute(() -> {
+                            ExecuteThreadUtil.execute(() -> {
+                                try {
+
+                                    Thread.sleep(17000);
+
+                                    Map<String,Object> map = new HashMap<>();
+                                    JMXObjectNameInfo jmxObjectNameInfo = new JMXObjectNameInfo();
+                                    ObjectName objectName = mbean.getObjectName();
+                                    jmxObjectNameInfo.setObjectName(objectName);
+                                    jmxObjectNameInfo.setJmxConnectionInfo(connectionInfo);
                                     try {
-                                        Map<String,Object> map = new HashMap<>();
-                                        JMXObjectNameInfo jmxObjectNameInfo = new JMXObjectNameInfo();
-                                        ObjectName objectName = mbean.getObjectName();
-                                        jmxObjectNameInfo.setObjectName(objectName);
-                                        jmxObjectNameInfo.setJmxConnectionInfo(connectionInfo);
-                                        try {
-                                            for (MBeanAttributeInfo mBeanAttributeInfo : connectionInfo.getmBeanServerConnection().getMBeanInfo(objectName).getAttributes()) {
-                                                map.put(mBeanAttributeInfo.getName(),
-                                                        connectionInfo.getmBeanServerConnection().getAttribute(mbean.getObjectName(),mBeanAttributeInfo.getName())
-                                                );
-                                            }
-                                        } catch (Exception e) {
-                                            List<Throwable> throwables = ExceptionUtil.getExceptionCauses(e);
-                                            for (Throwable throwable : throwables) {
-                                                if (throwable != null &&
-                                                        throwable.getClass() == java.net.ConnectException.class){
-                                                    throw new JMXUnavailabilityException(JMXUnavailabilityType.connectionFailed,e);
-                                                }
+                                        for (MBeanAttributeInfo mBeanAttributeInfo : connectionInfo.getmBeanServerConnection().getMBeanInfo(objectName).getAttributes()) {
+                                            map.put(mBeanAttributeInfo.getName(),
+                                                    connectionInfo.getmBeanServerConnection().getAttribute(mbean.getObjectName(),mBeanAttributeInfo.getName())
+                                            );
+                                        }
+                                    } catch (Exception e) {
+                                        List<Throwable> throwables = ExceptionUtil.getExceptionCauses(e);
+                                        for (Throwable throwable : throwables) {
+                                            if (throwable != null &&
+                                                    throwable.getClass() == java.net.ConnectException.class){
+                                                throw new JMXUnavailabilityException(JMXUnavailabilityType.connectionFailed,e);
                                             }
                                         }
-
-                                        jmxObjectNameInfo.setMetricsValue(map);
-
-                                        if (!blockingQueue4BeanValue.offer(jmxObjectNameInfo)){
-                                            log.error("mbean {} 的值集合offer失败",mbean.toString());
-                                        }
-                                    } catch (Throwable t) {
-                                        blockingQueue4BeanValue.offer(t);
                                     }
-                                });
 
-                                //超时15秒
-                                Object resultOni = BlockingQueueUtil.getResult(blockingQueue4BeanValue,timeout, TimeUnit.SECONDS);
-                                blockingQueue4BeanValue.clear();
+                                    jmxObjectNameInfo.setMetricsValue(map);
 
-                                if(resultOni instanceof JMXObjectNameInfo){
-                                    JMXObjectNameInfo jmxObjectNameInfo = (JMXObjectNameInfo) resultOni;
-                                    objectNameList.add(jmxObjectNameInfo);
-                                }else if(resultOni == null){
-                                    throw new JMXUnavailabilityException(JMXUnavailabilityType.getMbeanValueTimeout,String.format("mbean %s 的值集合获取失败：超时%d秒",mbean.toString(),timeout));
-                                }else if(resultOni instanceof JMXUnavailabilityException){
-                                    throw (JMXUnavailabilityException) resultOni;
-                                }else if (resultOni instanceof Throwable){
-                                    throw new JMXUnavailabilityException(JMXUnavailabilityType.getMbeanValueException,String.format("mbean %s 的值集合获取异常",mbean.toString()), (Exception) resultOni);
-                                }else {
-                                    throw new JMXUnavailabilityException(JMXUnavailabilityType.unKnown,"未匹配到的数据：" + resultOni);
+                                    if (!blockingQueue4BeanValue.offer(jmxObjectNameInfo)){
+                                        log.error("mbean {} 的值集合offer失败",mbean.toString());
+                                    }
+                                } catch (Throwable t) {
+                                    blockingQueue4BeanValue.offer(t);
                                 }
-                            }
+                            });
 
+                            //超时15秒
+                            Object resultOni = BlockingQueueUtil.getResult(blockingQueue4BeanValue,timeout, TimeUnit.SECONDS);
+                            blockingQueue4BeanValue.clear();
+
+                            if(resultOni instanceof JMXObjectNameInfo){
+                                JMXObjectNameInfo jmxObjectNameInfo = (JMXObjectNameInfo) resultOni;
+                                objectNameList.add(jmxObjectNameInfo);
+                            }else if(resultOni == null){
+                                throw new JMXUnavailabilityException(JMXUnavailabilityType.getMbeanValueTimeout,String.format("mbean %s 的值集合获取失败：超时%d秒",mbean.toString(),timeout));
+                            }else if(resultOni instanceof JMXUnavailabilityException){
+                                throw (JMXUnavailabilityException) resultOni;
+                            }else if (resultOni instanceof Throwable){
+                                throw new JMXUnavailabilityException(JMXUnavailabilityType.getMbeanValueException,String.format("mbean %s 的值集合获取异常",mbean.toString()), (Exception) resultOni);
+                            }else {
+                                throw new JMXUnavailabilityException(JMXUnavailabilityType.unKnown,"未匹配到的数据：" + resultOni);
+                            }
                         }
 
                         validCount++;
