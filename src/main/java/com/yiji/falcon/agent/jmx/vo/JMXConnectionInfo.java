@@ -4,6 +4,7 @@
  */
 package com.yiji.falcon.agent.jmx.vo;
 
+import com.yiji.falcon.agent.exception.JMXUnavailabilityType;
 import com.yiji.falcon.agent.jmx.JMXManager;
 import com.yiji.falcon.agent.util.ExecuteThreadUtil;
 import lombok.Getter;
@@ -51,6 +52,13 @@ public class JMXConnectionInfo {
     private boolean valid;
 
     /**
+     * 不可用类型
+     * 注：当type为{@link JMXUnavailabilityType#connectionFailed}时，该对象中的{@link JMXConnectionInfo#jmxConnector}才是真正的不可用，其他情况，应该正常进行采集操作
+     */
+    @Getter
+    private JMXUnavailabilityType type;
+
+    /**
      * 关闭JMX连接
      */
     public void closeJMXConnector(){
@@ -72,9 +80,10 @@ public class JMXConnectionInfo {
      * 设置不可用时自动关闭JMX连接
      * @param valid
      */
-    public void setValid(boolean valid) {
+    public void setValid(boolean valid,JMXUnavailabilityType type) {
         this.valid = valid;
         if(!valid){
+            this.type = type;
             closeJMXConnector();
         }
     }
@@ -90,6 +99,7 @@ public class JMXConnectionInfo {
                 ", name='" + name + '\'' +
                 ", pid=" + pid +
                 ", valid=" + valid +
+                ", JMXUnavailabilityType=" + type +
                 '}';
     }
 

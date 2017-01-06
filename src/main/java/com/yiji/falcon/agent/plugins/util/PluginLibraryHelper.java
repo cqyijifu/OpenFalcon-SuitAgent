@@ -167,7 +167,7 @@ public class PluginLibraryHelper {
                         clazz != JDBCPlugin.class &&
                         clazz != SNMPV3Plugin.class &&
                         clazz != DetectPlugin.class){
-                    Plugin plugin = (Plugin) clazz.newInstance();
+                    final Plugin plugin = (Plugin) clazz.newInstance();
                     //插件初始化操作
                     Map<String,String> config = getPluginConfig(plugin);
                     //初始化插件配置

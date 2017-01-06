@@ -4,7 +4,9 @@
  */
 package com.yiji.falcon.agent.vo.jmx;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 /*
  * 修订记录:
@@ -15,7 +17,9 @@ import lombok.Data;
  * JMX监控方式 Agent配置文件配置的需要进行获取的监控参数
  * @author guqiu@yiji.com
  */
-@Data
+@Getter
+@Setter
+@ToString
 public class JMXMetricsConfiguration {
 
     private String objectName;
@@ -24,5 +28,6 @@ public class JMXMetricsConfiguration {
     private String alias;
     private String counterType;
     private String tag;
+    private boolean hasCollect = false;
 
 }

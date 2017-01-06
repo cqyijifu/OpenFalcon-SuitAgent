@@ -4,7 +4,7 @@
  */
 package com.yiji.falcon.agent.plugins.metrics;
 
-import com.yiji.falcon.agent.config.AgentConfiguration;
+import com.yiji.falcon.agent.exception.JMXUnavailabilityType;
 import com.yiji.falcon.agent.falcon.CounterType;
 import com.yiji.falcon.agent.falcon.FalconReportObject;
 import com.yiji.falcon.agent.falcon.MetricsType;
@@ -23,7 +23,6 @@ import org.apache.commons.lang.math.NumberUtils;
 
 import javax.management.openmbean.CompositeDataSupport;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.lang.management.MemoryUsage;
 import java.util.*;
@@ -59,58 +58,6 @@ public class JMXMetricsValue extends MetricsCommon {
     }
 
     /**
-     * 获取配置文件配置的监控值
-     *
-     * @return
-     */
-    private Set<JMXMetricsConfiguration> getMetricsConfig() {
-        Set<JMXMetricsConfiguration> jmxMetricsConfigurations = new HashSet<>();
-
-        setMetricsConfig("agent.common.metrics.type.", AgentConfiguration.INSTANCE.getJmxCommonMetricsConfPath(), jmxMetricsConfigurations);
-        setMetricsConfig(jmxPlugin.basePropertiesKey(),
-                AgentConfiguration.INSTANCE.getPluginConfPath() + File.separator + jmxPlugin.configFileName(), jmxMetricsConfigurations);
-
-        return jmxMetricsConfigurations;
-    }
-
-    /**
-     * 设置配置的jmx监控属性
-     *
-     * @param basePropertiesKey        配置属性的前缀key值
-     * @param propertiesPath           监控属性的配置文件路径
-     * @param jmxMetricsConfigurations 需要保存的集合对象
-     * @throws IOException
-     */
-    private void setMetricsConfig(String basePropertiesKey, String propertiesPath, Set<JMXMetricsConfiguration> jmxMetricsConfigurations) {
-
-        if (!StringUtils.isEmpty(basePropertiesKey) &&
-                !StringUtils.isEmpty(propertiesPath)) {
-            try (FileInputStream in = new FileInputStream(propertiesPath)) {
-                Properties properties = new Properties();
-                properties.load(in);
-                for (int i = 1; i <= 100; i++) {
-                    String objectName = basePropertiesKey + i + ".objectName";
-                    if (!StringUtils.isEmpty(properties.getProperty(objectName))) {
-                        JMXMetricsConfiguration metricsConfiguration = new JMXMetricsConfiguration();
-                        metricsConfiguration.setObjectName(properties.getProperty(objectName));//设置ObjectName
-                        metricsConfiguration.setCounterType(properties.getProperty(basePropertiesKey + i + ".counterType"));//设置counterType
-                        metricsConfiguration.setMetrics(properties.getProperty(basePropertiesKey + i + ".metrics"));//设置metrics
-                        metricsConfiguration.setValueExpress(properties.getProperty(basePropertiesKey + i + ".valueExpress"));//设置metrics
-                        String tag = properties.getProperty(basePropertiesKey + i + ".tag");
-                        metricsConfiguration.setTag(StringUtils.isEmpty(tag) ? "" : tag);//设置tag
-                        String alias = properties.getProperty(basePropertiesKey + i + ".alias");
-                        metricsConfiguration.setAlias(StringUtils.isEmpty(alias) ? metricsConfiguration.getMetrics() : alias);
-
-                        jmxMetricsConfigurations.add(metricsConfiguration);
-                    }
-                }
-            } catch (IOException e) {
-                log.error("配置文件读取失败", e);
-            }
-        }
-    }
-
-    /**
      * 构建监控值报告的中间对象
      */
     private class KitObjectNameMetrics {
@@ -127,16 +74,19 @@ public class JMXMetricsValue extends MetricsCommon {
      */
     private Set<KitObjectNameMetrics> getKitObjectNameMetrics(Collection<JMXObjectNameInfo> jmxObjectNameInfos, JMXMetricsConfiguration metricsConfiguration) {
         Set<KitObjectNameMetrics> kitObjectNameMetricsSet = new HashSet<>();
-        for (JMXObjectNameInfo jmxObjectNameInfo : jmxObjectNameInfos) {
-            String objectName = jmxObjectNameInfo.getObjectName().toString();
-            Map<String, Object> metricsMap = jmxObjectNameInfo.getMetricsValue();
-            if (objectName.contains(metricsConfiguration.getObjectName())) {
-                if (metricsMap.get(metricsConfiguration.getMetrics()) != null ||
-                        metricsMap.get(metricsConfiguration.getAlias()) != null) {
-                    KitObjectNameMetrics kitObjectNameMetrics = new KitObjectNameMetrics();
-                    kitObjectNameMetrics.jmxObjectNameInfo = jmxObjectNameInfo;
-                    kitObjectNameMetrics.jmxMetricsConfiguration = metricsConfiguration;
-                    kitObjectNameMetricsSet.add(kitObjectNameMetrics);
+        if(jmxObjectNameInfos != null){
+            for (JMXObjectNameInfo jmxObjectNameInfo : jmxObjectNameInfos) {
+                String objectName = jmxObjectNameInfo.getObjectName().toString();
+                Map<String, Object> metricsMap = jmxObjectNameInfo.getMetricsValue();
+                if (objectName.contains(metricsConfiguration.getObjectName())) {
+                    if (metricsMap.get(metricsConfiguration.getMetrics()) != null ||
+                            metricsMap.get(metricsConfiguration.getAlias()) != null) {
+                        metricsConfiguration.setHasCollect(true);
+                        KitObjectNameMetrics kitObjectNameMetrics = new KitObjectNameMetrics();
+                        kitObjectNameMetrics.jmxObjectNameInfo = jmxObjectNameInfo;
+                        kitObjectNameMetrics.jmxMetricsConfiguration = metricsConfiguration;
+                        kitObjectNameMetricsSet.add(kitObjectNameMetrics);
+                    }
                 }
             }
         }
@@ -174,7 +124,7 @@ public class JMXMetricsValue extends MetricsCommon {
                     log.error("错误的{} counterType配置:{},只能是 {} 或 {},未修正前,将忽略此监控值", jmxMetricsConfiguration.getAlias(), jmxMetricsConfiguration.getCounterType(), CounterType.COUNTER, CounterType.GAUGE, e);
                     continue;
                 }
-                requestObject.setTimestamp(System.currentTimeMillis() / 1000);
+                requestObject.setTimestamp(metricsValueInfo.getTimestamp());
                 requestObject.setObjectName(jmxObjectNameInfo.getObjectName());
                 Object newValue = executeJsExpress(kitObjectNameMetrics.jmxMetricsConfiguration.getValueExpress(), metricsValue.toString());
                 if (NumberUtils.isNumber(String.valueOf(newValue).trim())) {
@@ -292,27 +242,42 @@ public class JMXMetricsValue extends MetricsCommon {
                 }
             }
 
-            if (!jmxConnectionInfo.isValid()) {
-                //该连接不可用,添加该 jmx不可用的监控报告
-                FalconReportObject reportObject = generatorVariabilityReport(false, jmxConnectionInfo.getName(), jmxPlugin.step(), jmxPlugin, jmxPlugin.serverName());
-                result.add(reportObject);
+            if(!jmxConnectionInfo.isValid()){
+                //添加该 jmx不可用的监控报告
+                if(jmxConnectionInfo.getType() == null){
+                    result.add(generatorVariabilityReport(false,jmxConnectionInfo.getName(),metricsValueInfo.getTimestamp(), jmxPlugin.step(), jmxPlugin, jmxPlugin.serverName()));
+                }else {
+                    result.add(generatorVariabilityReport(false,String.valueOf(jmxConnectionInfo.getType().getType()),metricsValueInfo.getTimestamp(), jmxConnectionInfo.getName(), jmxPlugin.step(), jmxPlugin, jmxPlugin.serverName()));
+                }
+            }else {
+                //添加可用性报告
+                result.add(generatorVariabilityReport(true, jmxConnectionInfo.getName(),metricsValueInfo.getTimestamp(), jmxPlugin.step(), jmxPlugin, jmxPlugin.serverName()));
             }
 
             if(jmxConnectionInfo.getmBeanServerConnection() != null
                     && jmxConnectionInfo.getCacheKeyId() != null
                     && jmxConnectionInfo.getConnectionQualifiedServerName() != null){
                 String dirName = getServerDirName(jmxConnectionInfo.getPid(),jmxConnectionInfo.getConnectionServerName());
-                if (jmxConnectionInfo.isValid()) {
+                if (hasContinueReport(jmxConnectionInfo)) {
                     Set<KitObjectNameMetrics> kitObjectNameMetricsSet = new HashSet<>();
-
-                    for (JMXMetricsConfiguration metricsConfiguration : getMetricsConfig()) {// 配置文件配置的需要监控的
+                    Set<JMXMetricsConfiguration> jmxMetricsConfigurationSet = metricsValueInfo.getJmxMetricsConfigurations();
+                    for (JMXMetricsConfiguration metricsConfiguration : jmxMetricsConfigurationSet) {// 配置文件配置的需要监控的
                         kitObjectNameMetricsSet.addAll(getKitObjectNameMetrics(metricsValueInfo.getJmxObjectNameInfoList(), metricsConfiguration));
                     }
 
-                    result.addAll(generatorReportObject(kitObjectNameMetricsSet, metricsValueInfo));
+                    //输出未采集到的指标
+                    final List<String> noCollects = new ArrayList<>();
+                    final List<String> hasCollects = new ArrayList<>();
+                    jmxMetricsConfigurationSet.stream().filter(conf -> !conf.isHasCollect()).
+                            forEach(conf -> noCollects.add(String.format("【metrics：%s，alias：%s】",conf.getMetrics(),conf.getAlias())));
+                    jmxMetricsConfigurationSet.stream().filter(JMXMetricsConfiguration::isHasCollect).
+                            forEach(conf -> hasCollects.add(String.format("【metrics：%s，alias：%s】",conf.getMetrics(),conf.getAlias())));
+                    if(!noCollects.isEmpty()){
+                        log.warn("当前未采集到的指标({})：{}",noCollects.size(),noCollects);
+                    }
+                    log.warn("当前已采集到的指标({})：{}",hasCollects.size(),hasCollects);
 
-                    //添加可用性报告
-                    result.add(generatorVariabilityReport(true, jmxConnectionInfo.getName(), jmxPlugin.step(), jmxPlugin, jmxPlugin.serverName()));
+                    result.addAll(generatorReportObject(kitObjectNameMetricsSet, metricsValueInfo));
 
                     //添加內建报告
                     result.addAll(getInbuiltReportObjects(metricsValueInfo));
@@ -333,6 +298,23 @@ public class JMXMetricsValue extends MetricsCommon {
     }
 
     /**
+     * 判断是否继续进行JMX报告获取
+     * @param jmxConnectionInfo
+     * @return
+     */
+    private boolean hasContinueReport(JMXConnectionInfo jmxConnectionInfo){
+        JMXUnavailabilityType type = jmxConnectionInfo.getType();
+        if(jmxConnectionInfo.isValid()){
+            //可用，返回true
+            return true;
+        }else if(!jmxConnectionInfo.isValid() && type != null && type != JMXUnavailabilityType.connectionFailed){
+            //不可用，但是并不是连接失败，返回true，上报已经采集到的值
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * 內建监控报告
      * HeapMemoryCommitted
      * NonHeapMemoryCommitted
@@ -347,9 +329,14 @@ public class JMXMetricsValue extends MetricsCommon {
      */
     private Collection<FalconReportObject> getInbuiltReportObjects(JMXMetricsValueInfo metricsValueInfo) {
         List<FalconReportObject> result = new ArrayList<>();
-        if (metricsValueInfo == null || !metricsValueInfo.getJmxConnectionInfo().isValid()) {
+        if (metricsValueInfo == null) {
             return result;
         }
+        if(!metricsValueInfo.getJmxConnectionInfo().isValid() && metricsValueInfo.getJmxConnectionInfo().getType() == JMXUnavailabilityType.connectionFailed){
+            return result;
+        }
+        boolean hasHeapCollect = false;
+        boolean hasMetaCollect = false;
         try {
             for (JMXObjectNameInfo objectNameInfo : metricsValueInfo.getJmxObjectNameInfoList()) {
                 //服务的标识后缀名
@@ -358,12 +345,12 @@ public class JMXMetricsValue extends MetricsCommon {
                 FalconReportObject falconReportObject = new FalconReportObject();
                 setReportCommonValue(falconReportObject, jmxPlugin.step());
                 falconReportObject.setCounterType(CounterType.GAUGE);
-                falconReportObject.setTimestamp(System.currentTimeMillis() / 1000);
+                falconReportObject.setTimestamp(metricsValueInfo.getTimestamp());
                 falconReportObject.setObjectName(objectNameInfo.getObjectName());
                 falconReportObject.appendTags(getTags(name, jmxPlugin, jmxPlugin.serverName(), MetricsType.JMX_OBJECT_IN_BUILD));
 
                 if ("java.lang:type=Memory".equals(objectNameInfo.getObjectName().toString())) {
-
+                    hasHeapCollect = true;
                     MemoryUsage heapMemoryUsage = MemoryUsage.from((CompositeDataSupport) objectNameInfo.getMetricsValue().get("HeapMemoryUsage"));
                     MemoryUsage nonHeapMemoryUsage = MemoryUsage.from((CompositeDataSupport) objectNameInfo.getMetricsValue().get("NonHeapMemoryUsage"));
 
@@ -415,6 +402,7 @@ public class JMXMetricsValue extends MetricsCommon {
                     }
 
                 }else if("java.lang:type=MemoryPool,name=Metaspace".equals(objectNameInfo.getObjectName().toString())){
+                    hasMetaCollect = true;
                     MemoryUsage metaspaceUsage = MemoryUsage.from((CompositeDataSupport) objectNameInfo.getMetricsValue().get("Usage"));
 
                     falconReportObject.setMetric(getMetricsName("MetaspaceMemoryCommitted"));
@@ -443,6 +431,13 @@ public class JMXMetricsValue extends MetricsCommon {
                         result.add(falconReportObject.clone());
                     }
                 }
+            }
+
+            if (!hasHeapCollect){
+                log.warn("此次可能因监控值超时原因，堆内存的相关信息未能采集到。");
+            }
+            if(!hasMetaCollect){
+                log.warn("JDK版本小于8或可能因监控值采集超时原因，元空间内存的相关信息未能采集到");
             }
 
         } catch (Exception e) {

@@ -10,6 +10,7 @@ import com.yiji.falcon.agent.falcon.CounterType;
 import com.yiji.falcon.agent.falcon.FalconReportObject;
 import com.yiji.falcon.agent.falcon.MetricsType;
 import com.yiji.falcon.agent.plugins.*;
+import com.yiji.falcon.agent.util.DateUtil;
 import com.yiji.falcon.agent.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 
@@ -20,6 +21,7 @@ import javax.script.ScriptException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -174,13 +176,41 @@ public abstract class MetricsCommon {
      * @return
      */
     public static FalconReportObject generatorVariabilityReport(boolean isAva, String agentSignName, int step, Plugin plugin, String serverName){
+        return generatorVariabilityReport(isAva,isAva?"1":"0",System.currentTimeMillis() / 1000,agentSignName,step,plugin,serverName);
+    }
+
+    /**
+     * 创建指定可用性的报告对象
+     * @param isAva
+     * @param agentSignName
+     * @param step
+     * @param plugin
+     * @param serverName
+     * @return
+     */
+    public static FalconReportObject generatorVariabilityReport(boolean isAva, String agentSignName,long timestamp, int step, Plugin plugin, String serverName){
+        return generatorVariabilityReport(isAva,isAva?"1":"0",timestamp,agentSignName,step,plugin,serverName);
+    }
+
+    /**
+     * 创建指定可用性的报告对象
+     * @param isAva
+     * @param avaValue
+     * 指定可用性的值
+     * @param agentSignName
+     * @param step
+     * @param plugin
+     * @param serverName
+     * @return
+     */
+    public static FalconReportObject generatorVariabilityReport(boolean isAva,String avaValue,long timestamp, String agentSignName, int step, Plugin plugin, String serverName){
         FalconReportObject falconReportObject = new FalconReportObject();
         setReportCommonValue(falconReportObject,step);
         falconReportObject.setCounterType(CounterType.GAUGE);
         falconReportObject.setMetric(getMetricsName("availability"));
-        falconReportObject.setValue(isAva ? "1" : "0");
+        falconReportObject.setValue(avaValue);
         falconReportObject.appendTags(getTags(agentSignName,plugin,serverName,MetricsType.AVAILABILITY));
-        falconReportObject.setTimestamp(System.currentTimeMillis() / 1000);
+        falconReportObject.setTimestamp(timestamp);
 
         if(!isAva){
             //mock处理
@@ -227,7 +257,8 @@ public abstract class MetricsCommon {
             }
         }
 
-        log.info("Variability ：{}",falconReportObject);
+        String time = DateUtil.getFormatDateTime(new Date(timestamp * 1000));
+        log.info("Variability({}) ：{}",time,falconReportObject);
         return falconReportObject;
     }
 

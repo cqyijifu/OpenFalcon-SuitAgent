@@ -136,7 +136,7 @@ public class ElasticSearchPlugin implements JMXPlugin {
 
                                             FalconReportObject falconReportObject = new FalconReportObject();
                                             MetricsCommon.setReportCommonValue(falconReportObject,step);
-                                            falconReportObject.setTimestamp(System.currentTimeMillis() / 1000);
+                                            falconReportObject.setTimestamp(metricsValueInfo.getTimestamp());
                                             falconReportObject.setMetric(MetricsCommon.getMetricsName(metrics));
 
                                             falconReportObject.setValue(String.valueOf(executeJsExpress(valueExpress,value)));
