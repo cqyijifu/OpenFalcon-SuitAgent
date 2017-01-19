@@ -162,7 +162,9 @@ public class JMXManager {
                                 JMXObjectNameInfo jmxObjectNameInfo = (JMXObjectNameInfo) resultOni;
                                 objectNameList.add(jmxObjectNameInfo);
                             }else if(resultOni == null){
-                                mBeanValueGetExceptions.add(new JMXUnavailabilityException(JMXUnavailabilityType.getMbeanValueTimeout,String.format("mbean %s 的值集合获取失败：超时%d秒",mbean.toString(), mBeanTimeout)));
+                                if(!mbean.toString().contains("java.lang:type=Runtime")){//排除Runtime超时
+                                    mBeanValueGetExceptions.add(new JMXUnavailabilityException(JMXUnavailabilityType.getMbeanValueTimeout,String.format("mbean %s 的值集合获取失败：超时%d秒",mbean.toString(), mBeanTimeout)));
+                                }
                             }else if(resultOni instanceof JMXUnavailabilityException){
                                 throw (JMXUnavailabilityException) resultOni;
                             }else if (resultOni instanceof Throwable){
