@@ -208,6 +208,17 @@ public class JMXManager {
             }else{
                 //设置返回对象-添加监控值对象,连接不可用也需要返回,以便于构建连接不可用的报告对象
                 jmxMetricsValueInfo.setJmxConnectionInfo(connectionInfo);
+                try {
+                    connectionInfo.getJmxConnector().getConnectionId();
+                } catch (Exception e) {
+                    //精确不可用类型值
+                    if("Not connected".equals(e.getMessage())){
+                        if(connectionInfo.getType() != null){
+                            //若JMX未未连接，设置不可用值为0
+                            connectionInfo.setValid(false,null);
+                        }
+                    }
+                }
                 jmxMetricsValueInfoList.add(jmxMetricsValueInfo);
             }
         }
