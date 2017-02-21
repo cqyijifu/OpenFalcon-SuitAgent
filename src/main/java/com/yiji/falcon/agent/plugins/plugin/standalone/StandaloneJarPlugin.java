@@ -127,18 +127,48 @@ public class StandaloneJarPlugin implements JMXPlugin {
             }
             if(!StringUtils.isEmpty(port)){
                 try {
-                    String httpUrl = String.format("http://%s:%s/mgt/health", InetAddress.getLocalHost().getHostAddress(),port);
-                    HttpResult httpResult = HttpUtil.get(httpUrl);
-                    if(httpResult.getStatus() >= 400){
-                        log.error("YijiBoot应用健康状况获取失败:http请求失败 {}",httpResult);
-                    }else{
-                        FalconReportObject falconReportObject = new FalconReportObject();
-                        MetricsCommon.setReportCommonValue(falconReportObject,step);
-                        falconReportObject.setCounterType(CounterType.GAUGE);
-                        falconReportObject.setTimestamp(metricsValueInfo.getTimestamp());
-                        falconReportObject.appendTags(MetricsCommon.getTags(jarName,this,serverName(), MetricsType.JMX_OBJECT_IN_BUILD));
+                    String httpHealthUrl = String.format("http://%s:%s/mgt/health", InetAddress.getLocalHost().getHostAddress(),port);
+                    String httpMetricsUrl = String.format("http://%s:%s/mgt/metrics", InetAddress.getLocalHost().getHostAddress(),port);
 
-                        String jsonStr = httpResult.getResult();
+                    HttpResult httpHealthResult = HttpUtil.get(httpHealthUrl);
+                    HttpResult httpMetricsResult = HttpUtil.get(httpMetricsUrl);
+
+                    FalconReportObject falconReportObject = new FalconReportObject();
+                    MetricsCommon.setReportCommonValue(falconReportObject,step);
+                    falconReportObject.setCounterType(CounterType.GAUGE);
+                    falconReportObject.setTimestamp(metricsValueInfo.getTimestamp());
+
+                    if (httpMetricsResult.getStatus() >= 400){
+                        log.error("YijiBoot应用Metrics状况获取失败:http请求失败 {}",httpMetricsResult);
+                    }else {
+                        String jsonStr = httpMetricsResult.getResult();
+                        JSONObject jsonObject = JSON.parseObject(jsonStr);
+                        Set<String> keys = jsonObject.keySet();
+                        for (String key : keys) {
+                            falconReportObject.setTags(MetricsCommon.getTags(jarName,this,serverName(), MetricsType.JMX_OBJECT_IN_BUILD));
+                            if(key.startsWith("tp") || key.startsWith("druid")){
+                                String metrics = getYijiBootMetricsPrefix(key);
+                                String tagValue = key.replace(metrics + ".","");
+                                String value = jsonObject.getString(key);
+
+                                falconReportObject.setMetric(metrics);
+                                falconReportObject.setValue(value);
+                                falconReportObject.appendTags("mgtMetrics=" + tagValue);
+                                reportObjects.add(falconReportObject.clone());
+                            }else {
+                                String value = jsonObject.getString(key);
+                                falconReportObject.setMetric(key);
+                                falconReportObject.setValue(value);
+                                reportObjects.add(falconReportObject.clone());
+                            }
+                        }
+                    }
+
+                    if(httpHealthResult.getStatus() >= 400){
+                        log.error("YijiBoot应用健康状况获取失败:http请求失败 {}",httpHealthResult);
+                    }else{
+                        falconReportObject.setTags(MetricsCommon.getTags(jarName,this,serverName(), MetricsType.JMX_OBJECT_IN_BUILD));
+                        String jsonStr = httpHealthResult.getResult();
                         JSONObject jsonObject = JSON.parseObject(jsonStr);
                         Map<String,Object> map = new HashMap<>();
                         JSONUtil.jsonToMap(map,jsonObject,"health");
@@ -156,13 +186,22 @@ public class StandaloneJarPlugin implements JMXPlugin {
                         }
                     }
                 } catch (Exception e) {
-                    log.error("YijiBoot应用健康状况获取异常",e);
+                    log.error("YijiBoot应用状况获取异常",e);
                 }
             }
         }
 
 
         return reportObjects;
+    }
+
+    private String getYijiBootMetricsPrefix(String key){
+        String[] split = key.split("\\.");
+        if (split.length >= 2){
+            return split[0] + "." + split[1];
+        }else {
+            return split.length > 0 ? split[0] : key;
+        }
     }
 
 

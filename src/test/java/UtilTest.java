@@ -7,6 +7,7 @@
  * guqiu@yiji.com 2016-08-09 10:58 创建
  */
 
+import com.github.kevinsawicki.http.HttpRequest;
 import org.apache.commons.lang.math.NumberUtils;
 import org.junit.Test;
 
@@ -19,7 +20,9 @@ public class UtilTest {
 
     @Test
     public void test() throws FileNotFoundException {
-        System.out.println(NumberUtils.isNumber("234.23423424234242342342"));
+        System.out.println(
+                HttpRequest.head("http://192.168.46.22:1988/v1/push").connectTimeout(5000).readTimeout(5000).trustAllCerts().trustAllHosts().code()
+        );
     }
 
 }
