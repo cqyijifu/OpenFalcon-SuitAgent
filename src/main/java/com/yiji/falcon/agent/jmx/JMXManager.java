@@ -21,9 +21,7 @@ import javax.management.MBeanAttributeInfo;
 import javax.management.ObjectInstance;
 import javax.management.ObjectName;
 import java.util.*;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 /*
@@ -39,6 +37,7 @@ public class JMXManager {
 
     private static final int objectNameListTimeout = 15;
     private static final int mBeanTimeout = 5;
+
 
     /**
      * 获取指定应用的名称(如运行的main类名称)所有的jmx值
@@ -130,9 +129,13 @@ public class JMXManager {
                                     jmxObjectNameInfo.setJmxConnectionInfo(connectionInfo);
                                     try {
                                         for (MBeanAttributeInfo mBeanAttributeInfo : connectionInfo.getmBeanServerConnection().getMBeanInfo(objectName).getAttributes()) {
-                                            map.put(mBeanAttributeInfo.getName(),
-                                                    connectionInfo.getmBeanServerConnection().getAttribute(mbean.getObjectName(),mBeanAttributeInfo.getName())
-                                            );
+                                            ExecutorService mBeanAttrValueGetExec = Executors.newFixedThreadPool(1);
+                                            try {
+                                                Future<Object> value = mBeanAttrValueGetExec.submit(() -> connectionInfo.getmBeanServerConnection().getAttribute(mbean.getObjectName(),mBeanAttributeInfo.getName()));
+                                                map.put(mBeanAttributeInfo.getName(),value.get(3,TimeUnit.SECONDS));
+                                            }finally {
+                                                mBeanAttrValueGetExec.shutdownNow();
+                                            }
                                         }
                                     } catch (Exception e) {
                                         List<Throwable> throwables = ExceptionUtil.getExceptionCauses(e);
