@@ -30,6 +30,9 @@ public class HttpPlugin implements DetectPlugin {
     private int step;
     private final Map<String,String> addresses = new HashMap<>();
     private final ConcurrentHashMap<String,String> tagsCache = new ConcurrentHashMap<>();
+    private int connectTimeout = 10000;
+    private int readTimeout = 10000;
+
     /**
      * 插件初始化操作
      * 该方法将会在插件运行前进行调用
@@ -42,10 +45,17 @@ public class HttpPlugin implements DetectPlugin {
     @Override
     public void init(Map<String, String> properties) {
         step = Integer.parseInt(properties.get("step"));
+        if (properties.get("http.connect.timeout") != null){
+            connectTimeout = Integer.parseInt(properties.get("http.connect.timeout"));
+        }
+        if (properties.get("http.read.timeout") != null){
+            readTimeout = Integer.parseInt(properties.get("http.read.timeout"));
+        }
         Set<String> keys = properties.keySet();
         keys.stream().filter(key -> key != null).filter(key -> key.contains("address")).forEach(key -> {
             addresses.put(key,properties.get(key));
-        });    }
+        });
+    }
 
     /**
      * 该插件监控的服务名
@@ -130,14 +140,14 @@ public class HttpPlugin implements DetectPlugin {
                 String protocol = addObj.isHttps() ? "https://" : "http://";
                 if(addObj.isGetMethod()){
                     try {
-                        httpResult = HttpUtil.get(protocol + url);
+                        httpResult = HttpUtil.get(protocol + url,connectTimeout,readTimeout);
                         isAva = true;
                     } catch (Exception e) {
                         detectResult.setSuccess(false);
                     }
                 }else if(addObj.isPostMethod()){
                     try {
-                        httpResult = HttpUtil.post(null,protocol + url);
+                        httpResult = HttpUtil.post(null,protocol + url,connectTimeout,readTimeout);
                         isAva = true;
                     } catch (Exception e) {
                         detectResult.setSuccess(false);
