@@ -28,7 +28,7 @@ public enum  AgentConfiguration {
     INSTANCE;
 
     //版本不能大于 x.9
-    public static final float VERSION = (float) 11.5;
+    public static final float VERSION = (float) 11.6;
 
     /**
      * quartz配置文件路径

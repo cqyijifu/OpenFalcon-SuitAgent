@@ -204,6 +204,7 @@ public abstract class MetricsCommon {
      * @return
      */
     public static FalconReportObject generatorVariabilityReport(boolean isAva,String avaValue,long timestamp, String agentSignName, int step, Plugin plugin, String serverName){
+        log.info("Availability Generator : {}-{}-{}-{}",isAva,avaValue,serverName,agentSignName);
         FalconReportObject falconReportObject = new FalconReportObject();
         setReportCommonValue(falconReportObject,step);
         falconReportObject.setCounterType(CounterType.GAUGE);
@@ -248,13 +249,8 @@ public abstract class MetricsCommon {
         }else{
             //mock清除处理
             String serviceType = getServiceTypeByPlugin(plugin);
-
-            if(isExistFromMockValid(serviceType,agentSignName)){
-                removeMockService(serviceType,agentSignName);
-            }
-            if(isExistFromMockValid(serviceType,serverName)){
-                removeMockService(serviceType,serverName);
-            }
+            removeMockService(serviceType,agentSignName);
+            removeMockService(serviceType,serverName);
         }
 
         String time = DateUtil.getFormatDateTime(new Date(timestamp * 1000));
@@ -263,6 +259,7 @@ public abstract class MetricsCommon {
     }
 
     private static boolean hasMock(String tags,String targetService){
+        log.info("判断mock需求1：【tags:{}】【target:{}】",tags,targetService);
         boolean mock = false;
         if (!StringUtils.isEmpty(tags)){
             String[] tagArray = tags.split(",");
@@ -272,6 +269,7 @@ public abstract class MetricsCommon {
                     String tagName = ss[0].trim();
                     String tagValue = ss[1].trim();
                     if("agentSignName".equals(tagName) || "service".equals(tagName)){
+                        log.info("判断mock需求2：【tagName:{}】【tagValue:{}】",tagName,tagValue);
                         if(tagValue.contains(targetService)){
                             mock = true;
                             break;
