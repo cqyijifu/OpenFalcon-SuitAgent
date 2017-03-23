@@ -6,6 +6,7 @@ package com.yiji.falcon.agent.jmx.vo;
 
 import com.yiji.falcon.agent.exception.JMXUnavailabilityType;
 import com.yiji.falcon.agent.jmx.JMXManager;
+import com.yiji.falcon.agent.plugins.JMXPlugin;
 import com.yiji.falcon.agent.util.ExecuteThreadUtil;
 import lombok.Getter;
 import lombok.Setter;
@@ -104,7 +105,7 @@ public class JMXConnectionInfo {
     }
 
     /**
-     * 注：请勿使用此对象进行JMX连接交互操作，可能会在JMX维护时发生java.io.IOException: The client has been closed异常 （{@link JMXManager#getJmxMetricValue(java.lang.String)} 方法除外）
+     * 注：请勿使用此对象进行JMX连接交互操作，可能会在JMX维护时发生java.io.IOException: The client has been closed异常 （{@link JMXManager#getJmxMetricValue(String, JMXPlugin)}} 方法除外）
      * @return
      */
     public MBeanServerConnection getmBeanServerConnection() {
