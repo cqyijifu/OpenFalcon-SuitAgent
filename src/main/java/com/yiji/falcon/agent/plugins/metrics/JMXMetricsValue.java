@@ -254,7 +254,7 @@ public class JMXMetricsValue extends MetricsCommon {
                 result.add(generatorVariabilityReport(true, jmxConnectionInfo.getName(),metricsValueInfo.getTimestamp(), jmxPlugin.step(), jmxPlugin, jmxPlugin.serverName()));
             }
 
-            if(jmxConnectionInfo.getmBeanServerConnection() != null
+            if(jmxConnectionInfo.getMBeanServerConnection() != null
                     && jmxConnectionInfo.getCacheKeyId() != null
                     && jmxConnectionInfo.getConnectionQualifiedServerName() != null){
                 String dirName = getServerDirName(jmxConnectionInfo.getPid(),jmxConnectionInfo.getConnectionServerName());

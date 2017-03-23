@@ -108,7 +108,7 @@ public class JMXConnectionInfo {
      * 注：请勿使用此对象进行JMX连接交互操作，可能会在JMX维护时发生java.io.IOException: The client has been closed异常 （{@link JMXManager#getJmxMetricValue(String, JMXPlugin)}} 方法除外）
      * @return
      */
-    public MBeanServerConnection getmBeanServerConnection() {
+    public MBeanServerConnection getMBeanServerConnection() {
         return mBeanServerConnection;
     }
 }

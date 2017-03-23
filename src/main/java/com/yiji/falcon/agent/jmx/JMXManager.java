@@ -53,7 +53,7 @@ public class JMXManager {
         List<JMXConnectionInfo> mbeanConns = jmxConnection.getMBeanConnection();
         if(mbeanConns.size() == 1
                 && !mbeanConns.get(0).isValid()
-                && mbeanConns.get(0).getmBeanServerConnection() == null
+                && mbeanConns.get(0).getMBeanServerConnection() == null
                 && mbeanConns.get(0).getConnectionQualifiedServerName() == null
                 && mbeanConns.get(0).getConnectionServerName() == null
                 && mbeanConns.get(0).getCacheKeyId() == null){
@@ -78,7 +78,7 @@ public class JMXManager {
                     //阻塞队列异步执行
                     ExecuteThreadUtil.execute(() -> {
                         try {
-                            Set<ObjectInstance> beanSet = connectionInfo.getmBeanServerConnection().queryMBeans(null, null);
+                            Set<ObjectInstance> beanSet = connectionInfo.getMBeanServerConnection().queryMBeans(null, null);
                             if("org.apache.catalina.startup.Bootstrap".equals(serverName)){
                                 //若tomcat服务器运行了springMVC的应用，必须要过滤有以下字符串的mBean，否则可能会导致tomcat中的应用启动失败
                                 beanSet = beanSet.stream()
@@ -128,10 +128,10 @@ public class JMXManager {
                                     jmxObjectNameInfo.setObjectName(objectName);
                                     jmxObjectNameInfo.setJmxConnectionInfo(connectionInfo);
                                     try {
-                                        for (MBeanAttributeInfo mBeanAttributeInfo : connectionInfo.getmBeanServerConnection().getMBeanInfo(objectName).getAttributes()) {
+                                        for (MBeanAttributeInfo mBeanAttributeInfo : connectionInfo.getMBeanServerConnection().getMBeanInfo(objectName).getAttributes()) {
                                             ExecutorService mBeanAttrValueGetExec = Executors.newFixedThreadPool(1);
                                             try {
-                                                Future<Object> value = mBeanAttrValueGetExec.submit(() -> connectionInfo.getmBeanServerConnection().getAttribute(mbean.getObjectName(),mBeanAttributeInfo.getName()));
+                                                Future<Object> value = mBeanAttrValueGetExec.submit(() -> connectionInfo.getMBeanServerConnection().getAttribute(mbean.getObjectName(),mBeanAttributeInfo.getName()));
                                                 map.put(mBeanAttributeInfo.getName(),value.get(3,TimeUnit.SECONDS));
                                             }finally {
                                                 mBeanAttrValueGetExec.shutdownNow();
