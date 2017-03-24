@@ -171,6 +171,10 @@ public class JMXManager {
                             }else if(resultOni instanceof JMXUnavailabilityException){
                                 throw (JMXUnavailabilityException) resultOni;
                             }else if (resultOni instanceof Throwable){
+                                if (((Throwable) resultOni).getMessage().contains("Connection refused")){
+                                    // 连接失败，直接抛出异常
+                                    throw (Exception) resultOni;
+                                }
                                 throw new JMXUnavailabilityException(JMXUnavailabilityType.getMbeanValueException,String.format("mbean %s 的值集合获取异常",mbean.toString()), (Exception) resultOni);
                             }else {
                                 throw new JMXUnavailabilityException(JMXUnavailabilityType.unKnown,"未匹配到的数据：" + resultOni);
@@ -186,6 +190,10 @@ public class JMXManager {
                     }else if (resultBeanSet == null){
                         throw new JMXUnavailabilityException(JMXUnavailabilityType.getObjectNameListTimeout,String.format("JMX %s 的objectNameList对象获取失败：超时%d秒",connectionInfo.toString(), objectNameListTimeout));
                     }else if (resultBeanSet instanceof Throwable){
+                        if (((Throwable) resultBeanSet).getMessage().contains("Connection refused")){
+                            // 连接失败，直接抛出异常
+                            throw (Exception) resultBeanSet;
+                        }
                         throw new JMXUnavailabilityException(JMXUnavailabilityType.getObjectNameListException,String.format("JMX %s 的objectNameList对象获取异常：%s",connectionInfo.toString(),resultBeanSet.toString()));
                     }else {
                         throw new JMXUnavailabilityException(JMXUnavailabilityType.unKnown,"未匹配到的数据：" + resultBeanSet);
@@ -201,6 +209,9 @@ public class JMXManager {
                             log.error("获取MBean值超时的对象：{}",((JMXUnavailabilityException) e).getExceptions());
                         }
                         connectionInfo.setValid(false,((JMXUnavailabilityException) e).getType());
+                    }else {
+                        log.error("采集异常",e);
+                        connectionInfo.setValid(false,null);
                     }
                 }finally {
                     //设置返回对象-添加监控值对象
