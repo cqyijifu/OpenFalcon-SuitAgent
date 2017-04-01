@@ -298,7 +298,7 @@ public class Agent extends Thread{
         }
 
         if(StringUtils.isEmpty(System.getProperty("agent.log4j.conf.path"))){
-            log.error("log4j 配置文件位置读取失败,请确定系统配置项:" + "agent.log4j.conf.path");
+            System.err.println("log4j 配置文件位置读取失败,请确定系统配置项:" + "agent.log4j.conf.path");
             System.exit(0);
         }else{
             //自定义日志配置文件
