@@ -305,6 +305,9 @@ public class Agent extends Thread{
             PropertyConfigurator.configure(System.getProperty("agent.log4j.conf.path"));
         }
 
+        //启动前进行配置检查
+        log.info("SuitAgent Port Listener: {}",AgentConfiguration.INSTANCE.getAgentPort());
+
         switch (args[0]){
             case "start":
 

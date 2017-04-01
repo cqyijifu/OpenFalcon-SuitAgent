@@ -6,7 +6,6 @@ package com.yiji.falcon.agent.config;
 
 import com.yiji.falcon.agent.util.StringUtils;
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -22,7 +21,6 @@ import java.util.Properties;
  * @author guqiu@yiji.com
  */
 @Getter
-@Slf4j
 public enum  AgentConfiguration {
 
     INSTANCE;
@@ -137,49 +135,49 @@ public enum  AgentConfiguration {
 
     private void instance(){
         if(StringUtils.isEmpty(System.getProperty("agent.conf.path"))){
-            log.error("agent agent.properties 配置文件位置读取失败,请确定系统配置项:" + "agent.conf.path");
+            System.err.println("agent agent.properties 配置文件位置读取失败,请确定系统配置项:" + "agent.conf.path");
             System.exit(0);
         }else{
             this.agentConfPath = System.getProperty("agent.conf.path");
         }
 
         if(StringUtils.isEmpty(System.getProperty(CONF_AGENT_HOME))){
-            log.error("agent home dir 读取失败,请确定系统配置项:" + CONF_AGENT_HOME);
+            System.err.println("agent home dir 读取失败,请确定系统配置项:" + CONF_AGENT_HOME);
             System.exit(0);
         }else{
             this.agentHomeDir = System.getProperty(CONF_AGENT_HOME);
         }
 
         if(StringUtils.isEmpty(System.getProperty(AUTHORIZATION_CONF_PATH))){
-            log.error("agent authorization.properties 配置文件位置读取失败,请确定系统配置项:" + AUTHORIZATION_CONF_PATH);
+            System.err.println("agent authorization.properties 配置文件位置读取失败,请确定系统配置项:" + AUTHORIZATION_CONF_PATH);
             System.exit(0);
         }else{
             this.authorizationConfPath = System.getProperty(AUTHORIZATION_CONF_PATH);
         }
 
         if(StringUtils.isEmpty(System.getProperty(FALCON_DIR_PATH))){
-            log.error("falcon 目录位置读取失败,请确定系统配置项:" + FALCON_DIR_PATH);
+            System.err.println("falcon 目录位置读取失败,请确定系统配置项:" + FALCON_DIR_PATH);
             System.exit(0);
         }else{
             this.falconDir = System.getProperty(FALCON_DIR_PATH);
         }
 
         if(StringUtils.isEmpty(System.getProperty(FALCON_CONF_DIR_PATH))){
-            log.error("falcon conf 目录位置读取失败,请确定系统配置项:" + FALCON_CONF_DIR_PATH);
+            System.err.println("falcon conf 目录位置读取失败,请确定系统配置项:" + FALCON_CONF_DIR_PATH);
             System.exit(0);
         }else{
             this.falconConfDir = System.getProperty(FALCON_CONF_DIR_PATH);
         }
 
         if(StringUtils.isEmpty(System.getProperty("agent.plugin.conf.dir"))){
-            log.error("agent 配置文件位置读取失败,请确定系统配置项:" + "agent.plugin.conf.dir");
+            System.err.println("agent 配置文件位置读取失败,请确定系统配置项:" + "agent.plugin.conf.dir");
             System.exit(0);
         }else{
             this.pluginConfPath = System.getProperty("agent.plugin.conf.dir");
         }
 
         if(StringUtils.isEmpty(System.getProperty("agent.quartz.conf.path"))){
-            log.error("quartz 配置文件位置读取失败,请确定系统配置项:" + "agent.quartz.conf.path");
+            System.err.println("quartz 配置文件位置读取失败,请确定系统配置项:" + "agent.quartz.conf.path");
             System.exit(0);
         }else{
             this.quartzConfPath = System.getProperty("agent.quartz.conf.path");
@@ -189,7 +187,7 @@ public enum  AgentConfiguration {
         try(FileInputStream in = new FileInputStream(this.agentConfPath)){
             agentConf.load(in);
         }catch (IOException e) {
-            log.error("{} 配置文件读取失败 Agent启动失败",this.agentConfPath);
+            System.err.println(this.agentConfPath + " 配置文件读取失败 Agent启动失败");
             System.exit(0);
         }
         init();
@@ -206,7 +204,7 @@ public enum  AgentConfiguration {
             try {
                 this.agentWebPort = Integer.parseInt(agentConf.getProperty(CONF_AGENT_WEB_PORT));
             } catch (Exception e) {
-                log.error("Agent启动失败,端口配置{}无效:{}", CONF_AGENT_WEB_PORT, agentConf.getProperty(CONF_AGENT_WEB_PORT));
+                System.err.println(String.format("Agent启动失败,端口配置%s无效:%s", CONF_AGENT_WEB_PORT, agentConf.getProperty(CONF_AGENT_WEB_PORT)));
                 System.exit(0);
             }
         }
@@ -219,7 +217,7 @@ public enum  AgentConfiguration {
             try {
                 this.mockValidTime = Integer.parseInt(agentConf.getProperty(CONF_AGENT_MOCK_VALID_TIME));
             } catch (NumberFormatException e) {
-                log.error("Agent启动失败,mock有效时间配置 {} 无效: {}", CONF_AGENT_MOCK_VALID_TIME, agentConf.getProperty(CONF_AGENT_MOCK_VALID_TIME));
+                System.err.println(String.format("Agent启动失败,mock有效时间配置 %s 无效: %s", CONF_AGENT_MOCK_VALID_TIME, agentConf.getProperty(CONF_AGENT_MOCK_VALID_TIME)));
                 System.exit(0);
             }
         }
@@ -236,29 +234,29 @@ public enum  AgentConfiguration {
             try {
                 this.agentPort = Integer.parseInt(agentConf.getProperty(CONF_AGENT_PORT));
             } catch (NumberFormatException e) {
-                log.error("Agent启动失败,端口配置{}无效:{}", CONF_AGENT_PORT, agentConf.getProperty(CONF_AGENT_PORT));
+                System.err.println(String.format("Agent启动失败,端口配置%s无效:%s", CONF_AGENT_PORT, agentConf.getProperty(CONF_AGENT_PORT)));
                 System.exit(0);
             }
         }
 
         if(StringUtils.isEmpty(agentConf.getProperty(CONF_AGENT_FALCON_PUSH_URL))){
-            log.error("Agent启动失败,未定义falcon push地址配置:{}", CONF_AGENT_FALCON_PUSH_URL);
+            System.err.println("Agent启动失败,未定义falcon push地址配置:" + CONF_AGENT_FALCON_PUSH_URL);
             System.exit(0);
         }
         this.agentPushUrl = agentConf.getProperty(CONF_AGENT_FALCON_PUSH_URL);
 
         if(StringUtils.isEmpty(agentConf.getProperty(CONF_AGENT_FLUSH_TIME))){
-            log.error("Agent启动失败,未指定配置:{}", CONF_AGENT_FLUSH_TIME);
+            System.err.println("Agent启动失败,未指定配置:" + CONF_AGENT_FLUSH_TIME);
             System.exit(0);
         }
         try {
             this.agentFlushTime = Integer.parseInt(agentConf.getProperty(CONF_AGENT_FLUSH_TIME));
             if(this.agentFlushTime <= 0){
-                log.error("Agent启动失败,自动发现服务的刷新周期配置 {} 必须大于0: {}",CONF_AGENT_FLUSH_TIME,agentConf.getProperty(CONF_AGENT_FLUSH_TIME));
+                System.err.println(String.format("Agent启动失败,自动发现服务的刷新周期配置 %s 必须大于0: %s",CONF_AGENT_FLUSH_TIME,agentConf.getProperty(CONF_AGENT_FLUSH_TIME)));
                 System.exit(0);
             }
         } catch (NumberFormatException e) {
-            log.error("Agent启动失败,自动发现服务的刷新周期配置{}无效:{}",CONF_AGENT_FLUSH_TIME,agentConf.getProperty(CONF_AGENT_FLUSH_TIME));
+            System.err.println(String.format("Agent启动失败,自动发现服务的刷新周期配置%s无效:%s",CONF_AGENT_FLUSH_TIME,agentConf.getProperty(CONF_AGENT_FLUSH_TIME)));
             System.exit(0);
         }
 
@@ -266,11 +264,11 @@ public enum  AgentConfiguration {
             try {
                 this.agentMaxThreadCount = Integer.parseInt(agentConf.getProperty(CONF_AGENT_MAX_THREAD));
                 if(this.agentMaxThreadCount <= 5){
-                    log.error("Agent启动失败,最大线程数 {} 必须大于5: {}",CONF_AGENT_MAX_THREAD,agentConf.getProperty(CONF_AGENT_MAX_THREAD));
+                    System.err.println(String.format("Agent启动失败,最大线程数 %s 必须大于5: %s",CONF_AGENT_MAX_THREAD,agentConf.getProperty(CONF_AGENT_MAX_THREAD)));
                     System.exit(0);
                 }
             } catch (NumberFormatException e) {
-                log.error("Agent启动失败,最大线程数{}无效:{}",CONF_AGENT_MAX_THREAD,agentConf.getProperty(CONF_AGENT_MAX_THREAD));
+                System.err.println(String.format("Agent启动失败,最大线程数%s无效:%s",CONF_AGENT_MAX_THREAD,agentConf.getProperty(CONF_AGENT_MAX_THREAD)));
                 System.exit(0);
             }
         }
@@ -280,7 +278,7 @@ public enum  AgentConfiguration {
     private void initJMXCommon(){
         String property = System.getProperty("agent.jmx.metrics.common.path");
         if(StringUtils.isEmpty(property)){
-            log.error("jmx 的公共配置系统属性文件未定义:agent.jmx.metrics.common.path");
+            System.err.println("jmx 的公共配置系统属性文件未定义:agent.jmx.metrics.common.path");
             System.exit(0);
         }
         this.jmxCommonMetricsConfPath = property;
