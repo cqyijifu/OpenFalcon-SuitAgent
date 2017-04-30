@@ -34,8 +34,6 @@ import java.util.*;
 public class JDBCMetricsValue extends MetricsCommon {
     private JDBCPlugin jdbcPlugin;
 
-//    private Collection<Connection> connections;
-
     public JDBCMetricsValue(JDBCPlugin jdbcPlugin) {
         this.jdbcPlugin = jdbcPlugin;
     }
