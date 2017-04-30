@@ -14,12 +14,12 @@ import lombok.Data;
  * @author guqiu@yiji.com
  */
 @Data
-public class JDBCUserInfo {
+public class JDBCConnectionInfo {
     private String url;
     private String username;
     private String password;
 
-    public JDBCUserInfo(String url, String username, String password) {
+    public JDBCConnectionInfo(String url, String username, String password) {
         this.url = url;
         this.username = username;
         this.password = password;

@@ -13,40 +13,45 @@ import com.yiji.falcon.agent.plugins.JDBCPlugin;
 import com.yiji.falcon.agent.plugins.Plugin;
 import com.yiji.falcon.agent.plugins.util.PluginActivateType;
 import com.yiji.falcon.agent.util.StringUtils;
-import com.yiji.falcon.agent.vo.jdbc.JDBCUserInfo;
+import com.yiji.falcon.agent.vo.jdbc.JDBCConnectionInfo;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author guqiu@yiji.com
  */
 public class MysqlPlugin implements JDBCPlugin {
 
-    private final List<JDBCUserInfo> userInfoList = new ArrayList<>();
+    private final List<JDBCConnectionInfo> connectionInfos = new ArrayList<>();
     private int step;
     private PluginActivateType pluginActivateType;
     private String jdbcConfig = null;
 
 
     /**
-     * 获取JDBC连接集合
+     * 数据库的JDBC连接驱动名称
      *
      * @return
-     * @throws SQLException
-     * @throws ClassNotFoundException
      */
     @Override
-    public Collection<Connection> getConnections() throws SQLException, ClassNotFoundException {
-        Set<Connection> connections = new HashSet<>();
-        String driver_jdbc = "com.mysql.jdbc.Driver";
-        Class.forName(driver_jdbc);
-        for (JDBCUserInfo userInfo : userInfoList) {
-            connections.add(DriverManager.getConnection(userInfo.getUrl(), userInfo.getUsername(), userInfo.getPassword()));
-        }
-        return connections;
+    public String getJDBCDriveName() {
+        return "com.mysql.jdbc.Driver";
+    }
+
+    /**
+     * 数据库的连接对象集合
+     * 系统将根据此对象建立数据库连接
+     *
+     * @return
+     */
+    @Override
+    public Collection<JDBCConnectionInfo> getConnectionInfos() {
+        return connectionInfos;
     }
 
     /**
@@ -86,15 +91,15 @@ public class MysqlPlugin implements JDBCPlugin {
      * 插件监控的服务正常运行时的內建监控报告
      * 若有些特殊的监控值无法用配置文件进行配置监控,可利用此方法进行硬编码形式进行获取
      * 注:此方法只有在监控对象可用时,才会调用,并加入到监控值报告中,一并上传
-     * @param connections
+     * @param connection
      * 数据库连接 不需在方法内关闭连接
      * @return
      * @throws SQLException
      * @throws ClassNotFoundException
      */
     @Override
-    public Collection<FalconReportObject> inbuiltReportObjectsForValid(Collection<Connection> connections) throws SQLException, ClassNotFoundException {
-        Metrics metrics = new Metrics(this,connections);
+    public Collection<FalconReportObject> inbuiltReportObjectsForValid(Connection connection) throws SQLException, ClassNotFoundException {
+        Metrics metrics = new Metrics(this,connection);
         return metrics.getReports();
     }
 
@@ -117,8 +122,8 @@ public class MysqlPlugin implements JDBCPlugin {
                     String url = auth.substring(auth.indexOf("url=") + 4,auth.indexOf("user=") - 1);
                     String user = auth.substring(auth.indexOf("user=") + 5,auth.indexOf("pswd=") - 1);
                     String pswd = auth.substring(auth.indexOf("pswd=") + 5);
-                    JDBCUserInfo userInfo = new JDBCUserInfo(url,user,pswd);
-                    userInfoList.add(userInfo);
+                    JDBCConnectionInfo userInfo = new JDBCConnectionInfo(url,user,pswd);
+                    connectionInfos.add(userInfo);
                 }
             }
         }

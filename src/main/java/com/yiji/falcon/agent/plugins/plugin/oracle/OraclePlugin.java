@@ -15,11 +15,17 @@ import com.yiji.falcon.agent.plugins.JDBCPlugin;
 import com.yiji.falcon.agent.plugins.metrics.MetricsCommon;
 import com.yiji.falcon.agent.plugins.util.PluginActivateType;
 import com.yiji.falcon.agent.util.StringUtils;
-import com.yiji.falcon.agent.vo.jdbc.JDBCUserInfo;
+import com.yiji.falcon.agent.vo.jdbc.JDBCConnectionInfo;
 import lombok.extern.slf4j.Slf4j;
 
-import java.sql.*;
-import java.util.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 import static com.yiji.falcon.agent.plugins.metrics.MetricsCommon.getMetricsName;
 
@@ -28,7 +34,7 @@ import static com.yiji.falcon.agent.plugins.metrics.MetricsCommon.getMetricsName
  */
 @Slf4j
 public class OraclePlugin implements JDBCPlugin {
-    private final List<JDBCUserInfo> userInfoList = new ArrayList<>();
+    private final List<JDBCConnectionInfo> connectionInfos = new ArrayList<>();
     private int step;
     private PluginActivateType pluginActivateType;
     private String jdbcConfig = null;
@@ -99,20 +105,26 @@ public class OraclePlugin implements JDBCPlugin {
         return "Oracle";
     }
 
+
     /**
-     * 获取JDBC连接
+     * 数据库的JDBC连接驱动名称
      *
      * @return
      */
     @Override
-    public Collection<Connection> getConnections() throws SQLException, ClassNotFoundException {
-        Set<Connection> connections = new HashSet<>();
-        String driver_jdbc = "oracle.jdbc.driver.OracleDriver";
-        Class.forName(driver_jdbc);
-        for (JDBCUserInfo userInfo : userInfoList) {
-            connections.add(DriverManager.getConnection(userInfo.getUrl(), userInfo.getUsername(), userInfo.getPassword()));
-        }
-        return connections;
+    public String getJDBCDriveName() {
+        return "oracle.jdbc.driver.OracleDriver";
+    }
+
+    /**
+     * 数据库的连接对象集合
+     * 系统将根据此对象建立数据库连接
+     *
+     * @return
+     */
+    @Override
+    public Collection<JDBCConnectionInfo> getConnectionInfos() {
+        return connectionInfos;
     }
 
     /**
@@ -141,59 +153,57 @@ public class OraclePlugin implements JDBCPlugin {
      * 插件监控的服务正常运行时的內建监控报告
      * 若有些特殊的监控值无法用配置文件进行配置监控,可利用此方法进行硬编码形式进行获取
      * 注:此方法只有在监控对象可用时,才会调用,并加入到监控值报告中,一并上传
-     * @param connections
+     * @param connection
      * 数据库连接 不需在方法内关闭连接
      * @return
      * @throws SQLException
      * @throws ClassNotFoundException
      */
     @Override
-    public Collection<FalconReportObject> inbuiltReportObjectsForValid(Collection<Connection> connections) throws SQLException, ClassNotFoundException {
+    public Collection<FalconReportObject> inbuiltReportObjectsForValid(Connection connection) throws SQLException, ClassNotFoundException {
         List<FalconReportObject> result = new ArrayList<>();
-        for (Connection connection : connections) {
-            //创建该连接下的PreparedStatement对象
-            PreparedStatement pstmt = connection.prepareStatement(tbSql);
-            //执行查询语句，将数据保存到ResultSet对象中
-            ResultSet rs = pstmt.executeQuery();
-            //将指针移到下一行，判断rs中是否有数据
-            while (rs.next()){
-                String tsName = rs.getString("TS_NAME");
-                String size = rs.getString("SIZE_M");
-                String sizeMax = rs.getString("SIZE_MAX_M");
-                String used = rs.getString("USED_M");
-                String usedPercent = rs.getString("USED_PERCENT");
-                String realUsedPercent = rs.getString("REAL_USED_PERCENT");
+        //创建该连接下的PreparedStatement对象
+        PreparedStatement pstmt = connection.prepareStatement(tbSql);
+        //执行查询语句，将数据保存到ResultSet对象中
+        ResultSet rs = pstmt.executeQuery();
+        //将指针移到下一行，判断rs中是否有数据
+        while (rs.next()){
+            String tsName = rs.getString("TS_NAME");
+            String size = rs.getString("SIZE_M");
+            String sizeMax = rs.getString("SIZE_MAX_M");
+            String used = rs.getString("USED_M");
+            String usedPercent = rs.getString("USED_PERCENT");
+            String realUsedPercent = rs.getString("REAL_USED_PERCENT");
 
-                FalconReportObject falconReportObject = new FalconReportObject();
-                MetricsCommon.setReportCommonValue(falconReportObject,step());
-                falconReportObject.setCounterType(CounterType.GAUGE);
-                falconReportObject.setTimestamp(System.currentTimeMillis() / 1000);
-                falconReportObject.appendTags(MetricsCommon.getTags(agentSignName(),this,serverName(), MetricsType.SQL_IN_BUILD))
-                .appendTags("TSName=" + tsName.trim());
+            FalconReportObject falconReportObject = new FalconReportObject();
+            MetricsCommon.setReportCommonValue(falconReportObject,step());
+            falconReportObject.setCounterType(CounterType.GAUGE);
+            falconReportObject.setTimestamp(System.currentTimeMillis() / 1000);
+            falconReportObject.appendTags(MetricsCommon.getTags(agentSignName(),this,serverName(), MetricsType.SQL_IN_BUILD))
+                    .appendTags("TSName=" + tsName.trim());
 
-                falconReportObject.setMetric(getMetricsName("ts.size"));
-                falconReportObject.setValue(size);
-                result.add(falconReportObject.clone());
+            falconReportObject.setMetric(getMetricsName("ts.size"));
+            falconReportObject.setValue(size);
+            result.add(falconReportObject.clone());
 
-                falconReportObject.setMetric(getMetricsName("ts.size.max"));
-                falconReportObject.setValue(sizeMax);
-                result.add(falconReportObject.clone());
+            falconReportObject.setMetric(getMetricsName("ts.size.max"));
+            falconReportObject.setValue(sizeMax);
+            result.add(falconReportObject.clone());
 
-                falconReportObject.setMetric(getMetricsName("ts.used"));
-                falconReportObject.setValue(used);
-                result.add(falconReportObject.clone());
+            falconReportObject.setMetric(getMetricsName("ts.used"));
+            falconReportObject.setValue(used);
+            result.add(falconReportObject.clone());
 
-                falconReportObject.setMetric(getMetricsName("ts.used.percent"));
-                falconReportObject.setValue(usedPercent);
-                result.add(falconReportObject.clone());
+            falconReportObject.setMetric(getMetricsName("ts.used.percent"));
+            falconReportObject.setValue(usedPercent);
+            result.add(falconReportObject.clone());
 
-                falconReportObject.setMetric(getMetricsName("ts.used.real.percent"));
-                falconReportObject.setValue(realUsedPercent);
-                result.add(falconReportObject.clone());
-            }
-            rs.close();
-            pstmt.close();
+            falconReportObject.setMetric(getMetricsName("ts.used.real.percent"));
+            falconReportObject.setValue(realUsedPercent);
+            result.add(falconReportObject.clone());
         }
+        rs.close();
+        pstmt.close();
 
         return result;
     }
@@ -217,8 +227,8 @@ public class OraclePlugin implements JDBCPlugin {
                     String url = auth.substring(auth.indexOf("url=") + 4,auth.indexOf("user=") - 1);
                     String user = auth.substring(auth.indexOf("user=") + 5,auth.indexOf("pswd=") - 1);
                     String pswd = auth.substring(auth.indexOf("pswd=") + 5);
-                    JDBCUserInfo userInfo = new JDBCUserInfo(url,user,pswd);
-                    userInfoList.add(userInfo);
+                    JDBCConnectionInfo userInfo = new JDBCConnectionInfo(url,user,pswd);
+                    connectionInfos.add(userInfo);
                 }
             }
         }

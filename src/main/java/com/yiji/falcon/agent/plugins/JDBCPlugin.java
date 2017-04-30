@@ -9,8 +9,7 @@ package com.yiji.falcon.agent.plugins;
  */
 
 import com.yiji.falcon.agent.falcon.FalconReportObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.yiji.falcon.agent.vo.jdbc.JDBCConnectionInfo;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -23,12 +22,17 @@ import java.util.Collection;
 public interface JDBCPlugin extends Plugin{
 
     /**
-     * 获取JDBC连接集合
+     * 数据库的JDBC连接驱动名称
      * @return
-     * @throws SQLException
-     * @throws ClassNotFoundException
      */
-    Collection<Connection> getConnections() throws SQLException, ClassNotFoundException;
+    String getJDBCDriveName();
+
+    /**
+     * 数据库的连接对象集合
+     * 系统将根据此对象建立数据库连接
+     * @return
+     */
+    Collection<JDBCConnectionInfo> getConnectionInfos();
 
     /**
      * 数据库监控语句的配置文件
@@ -61,31 +65,12 @@ public interface JDBCPlugin extends Plugin{
      * 插件监控的服务正常运行时的內建监控报告
      * 若有些特殊的监控值无法用配置文件进行配置监控,可利用此方法进行硬编码形式进行获取
      * 注:此方法只有在监控对象可用时,才会调用,并加入到监控值报告中,一并上传
-     * @param connections
+     * @param connection
      * 数据库连接 不需在方法内关闭连接
      * @return
      * @throws SQLException
      * @throws ClassNotFoundException
      */
-    Collection<FalconReportObject> inbuiltReportObjectsForValid(Collection<Connection> connections) throws SQLException, ClassNotFoundException;
-
-    /**
-     * 关闭数据库连接的工具方法
-     * @param connections
-     * @throws SQLException
-     * @throws ClassNotFoundException
-     */
-    default void helpCloseConnections(Collection<Connection> connections) {
-        Logger logger = LoggerFactory.getLogger(JDBCPlugin.class);
-        if(connections != null){
-            for (Connection connection : connections) {
-                try {
-                    connection.close();
-                } catch (SQLException e) {
-                    logger.error("数据库关闭异常",e);
-                }
-            }
-        }
-    }
+    Collection<FalconReportObject> inbuiltReportObjectsForValid(Connection connection) throws SQLException, ClassNotFoundException;
 
 }

@@ -14,13 +14,13 @@ import com.yiji.falcon.agent.plugins.util.PluginActivateType;
 import com.yiji.falcon.agent.util.CronUtil;
 import com.yiji.falcon.agent.util.SchedulerUtil;
 import com.yiji.falcon.agent.util.StringUtils;
+import com.yiji.falcon.agent.vo.jdbc.JDBCConnectionInfo;
 import com.yiji.falcon.agent.vo.sceduler.ScheduleJobResult;
 import com.yiji.falcon.agent.vo.sceduler.ScheduleJobStatus;
 import com.yiji.falcon.agent.vo.snmp.SNMPV3UserInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.*;
 
-import java.sql.Connection;
 import java.util.Collection;
 import java.util.concurrent.ConcurrentSkipListSet;
 
@@ -121,14 +121,12 @@ public class AgentJobHelper {
         if(!isHasWorked(serverName)){
             if(pluginActivateType == PluginActivateType.AUTO){
                 try {
-                    Collection<Connection> connections = jdbcPlugin.getConnections();
-                    if(connections != null && !connections.isEmpty()){
+                    Collection<JDBCConnectionInfo> connectionInfos = jdbcPlugin.getConnectionInfos();
+                    if(connectionInfos != null && !connectionInfos.isEmpty()){
                         //无异常且连接正常,代表连接获取成功,开启服务监控
                         log.info("发现服务 {} , 启动插件 {} ",serverName,pluginName);
                         doJob(jobClazz,desc,step,jobDataMap,serverName);
                     }
-                    //关闭连接
-                    jdbcPlugin.helpCloseConnections(connections);
                 } catch (Exception ignored) {
                 }
             }else if(!StringUtils.isEmpty(jdbcPlugin.jdbcConfig()) && pluginActivateType == PluginActivateType.FORCE){
