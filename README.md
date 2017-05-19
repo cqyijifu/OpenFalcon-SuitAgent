@@ -1,3 +1,4 @@
+
 # OpenFalcon-SuitAgent
 
 # 注意，此版本的suitAgent上报到plus版本的agent可能会出现很多不可用的监控指标数据
@@ -6,6 +7,9 @@
 
 如果现在正在使用12.X版本的，并且大规模应用的，因tag值会变化，酌情选择是否更新到13.x版本。
 
+tag变动：
+删除`metrics.type`标签
+`service.type`改为`serviceType`
 
 ## [升级日志](https://github.com/cqyijifu/OpenFalcon-SuitAgent/wiki/updateLog)
 ## [文档](https://github.com/cqyijifu/OpenFalcon-SuitAgent/wiki)
