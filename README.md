@@ -1,4 +1,6 @@
 
+# 下载地址：[SuitAgent](https://github.com/DevopsJK/SuitAgent/releases/tag/16.2)
+
 # OpenFalcon-SuitAgent
 
 # 注意，此版本的suitAgent上报到plus版本的agent可能会出现很多不可用的监控指标数据
