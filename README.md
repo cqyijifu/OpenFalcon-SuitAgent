@@ -17,6 +17,6 @@ tag变动：
 删除`metrics.type`标签
 `service.type`改为`serviceType`
 
-### [升级日志](https://github.com/cqyijifu/OpenFalcon-SuitAgent/wiki/updateLog)
-### [文档](https://github.com/cqyijifu/OpenFalcon-SuitAgent/wiki)
-### [局域网升级工具](https://github.com/cqyijifu/SuitAgent-UpdateToole)
+### [升级日志](https://github.com/DevopsJK/SuitAgent/wiki/updateLog)
+### [文档](https://github.com/DevopsJK/SuitAgent/wiki)
+### [局域网升级工具](https://github.com/DevopsJK/SuitAgentUpdateTool)
